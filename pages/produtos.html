@@ -15,6 +15,9 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .page-header h2 {
@@ -29,152 +32,574 @@
         .page-content {
             padding: 24px;
             overflow-y: auto;
-            max-height: calc(100vh - 200px);
+            max-height: calc(100vh - 180px);
         }
 
-        .filter-bar {
-            display: flex;
-            gap: 12px;
+        /* BARRA DE BUSCA */
+        .search-bar {
+            background: #ffffff;
+            border: 1px solid #e9edf2;
+            border-radius: 12px;
+            padding: 14px 20px;
             margin-bottom: 20px;
+            display: flex;
             flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
-        .filter-bar input,
-        .filter-bar select {
-            padding: 8px 14px;
-            border: 1px solid #d1d9e6;
-            border-radius: 8px;
-            font-size: 14px;
-            background: white;
-        }
-
-        .filter-bar input {
+        .search-bar .search-input-wrapper {
             flex: 1;
             min-width: 200px;
+            position: relative;
         }
 
-        .filter-bar select {
-            min-width: 150px;
+        .search-bar .search-input-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
         }
 
-        .produtos-table {
+        .search-bar .search-input-wrapper input {
             width: 100%;
-            border-collapse: collapse;
+            padding: 10px 12px 10px 38px;
+            border: 1.5px solid #d1d9e6;
+            border-radius: 10px;
             font-size: 14px;
+            background: #fafbfc;
+            transition: all 0.2s;
         }
 
-        .produtos-table th {
-            background: #f8fafc;
-            color: #1e293b;
-            font-weight: 600;
-            padding: 10px 14px;
-            text-align: left;
-            border-bottom: 2px solid #e9edf2;
+        .search-bar .search-input-wrapper input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.08);
+        }
+
+        .search-bar .search-stats {
+            font-size: 13px;
+            color: #64748b;
+            white-space: nowrap;
+            padding: 6px 12px;
+            background: #f1f5f9;
+            border-radius: 20px;
+        }
+
+        .search-bar .search-stats strong {
+            color: #0f172a;
+        }
+
+        .search-bar .btn-limpar-busca {
+            padding: 6px 14px;
+            border: none;
+            background: #f1f5f9;
+            border-radius: 8px;
             font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            cursor: pointer;
+            color: #64748b;
+            transition: all 0.2s;
+            display: none;
         }
 
-        .produtos-table td {
-            padding: 10px 14px;
-            border-bottom: 1px solid #edf2f7;
-            vertical-align: middle;
+        .search-bar .btn-limpar-busca:hover {
+            background: #fee2e2;
+            color: #dc2626;
         }
 
-        .produtos-table tr:hover td {
-            background: #fafbff;
+        .search-bar .btn-limpar-busca.visible {
+            display: inline-flex;
         }
 
-        .badge-protocolo {
+        /* GRADE DE PRODUTOS */
+        .produtos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .produto-card {
+            background: #ffffff;
+            border: 1px solid #e9edf2;
+            border-radius: 14px;
+            overflow: hidden;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .produto-card:hover {
+            border-color: #4f46e5;
+            box-shadow: 0 8px 30px rgba(79, 70, 229, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .produto-card .card-header {
+            padding: 14px 18px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .produto-card .card-header .codigo {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: 700;
+            color: #4f46e5;
+            background: #eef2ff;
+            padding: 2px 12px;
+            border-radius: 20px;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+        }
+
+        .produto-card .card-header .acoes-topo {
+            display: flex;
+            gap: 6px;
+        }
+
+        .produto-card .card-header .acoes-topo .btn {
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+
+        .produto-card .card-body {
+            padding: 14px 18px;
+            flex: 1;
+        }
+
+        .produto-card .card-body .imagem-area {
+            width: 100%;
+            height: 140px;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed #d1d9e6;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .produto-card .card-body .imagem-area img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 8px;
+        }
+
+        .produto-card .card-body .imagem-area .placeholder {
+            font-size: 48px;
+            opacity: 0.3;
+            color: #94a3b8;
+        }
+
+        .produto-card .card-body .imagem-area .upload-btn {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .produto-card .card-body .imagem-area .upload-btn:hover {
+            background: rgba(0,0,0,0.8);
+        }
+
+        .produto-card .card-body .info-principal {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .produto-card .card-body .info-principal .nome {
+            font-size: 16px;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.3;
+        }
+
+        .produto-card .card-body .info-principal .marca {
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .produto-card .card-body .info-principal .marca i {
+            color: #94a3b8;
+            margin-right: 4px;
+        }
+
+        .produto-card .card-body .info-principal .detalhes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px;
+        }
+
+        .produto-card .card-body .info-principal .detalhes .tag {
             display: inline-block;
             padding: 2px 12px;
-            border-radius: 40px;
+            border-radius: 20px;
             font-size: 11px;
             font-weight: 500;
+            background: #f1f5f9;
+            color: #475569;
         }
 
-        .badge-protocolo.wifi { background: #dbeafe; color: #1e40af; }
-        .badge-protocolo.zigbee { background: #d1fae5; color: #065f46; }
-        .badge-protocolo.rf { background: #fef3c7; color: #92400e; }
-
-        .color-dot {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 1px solid #e9edf2;
+        .produto-card .card-body .info-principal .detalhes .tag.protocolo-wifi {
+            background: #dbeafe;
+            color: #1e40af;
         }
 
+        .produto-card .card-body .info-principal .detalhes .tag.protocolo-zigbee {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .produto-card .card-body .info-principal .detalhes .tag.protocolo-rf {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .produto-card .card-body .info-principal .detalhes .tag.preco {
+            background: #eef2ff;
+            color: #4f46e5;
+            font-weight: 600;
+        }
+
+        .produto-card .card-body .info-principal .detalhes .tag.qtd {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        /* ESPECIFICAÇÕES */
+        .produto-card .especificacoes-area {
+            border-top: 1px solid #f1f5f9;
+            margin: 0 18px;
+            padding: 10px 0;
+        }
+
+        .produto-card .especificacoes-area .btn-especificacoes {
+            width: 100%;
+            padding: 6px 12px;
+            border: none;
+            background: #f8fafc;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .produto-card .especificacoes-area .btn-especificacoes:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .produto-card .especificacoes-area .btn-especificacoes .icone {
+            transition: transform 0.3s;
+        }
+
+        .produto-card .especificacoes-area .btn-especificacoes .icone.open {
+            transform: rotate(180deg);
+        }
+
+        .produto-card .especificacoes-area .especificacoes-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease, padding 0.3s ease;
+            padding: 0 4px;
+        }
+
+        .produto-card .especificacoes-area .especificacoes-content.open {
+            max-height: 300px;
+            padding: 10px 4px 4px;
+        }
+
+        .produto-card .especificacoes-area .especificacoes-content .texto {
+            font-size: 13px;
+            color: #475569;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #f8fafc;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border-left: 3px solid #4f46e5;
+        }
+
+        .produto-card .especificacoes-area .especificacoes-content .texto.empty {
+            color: #94a3b8;
+            font-style: italic;
+            border-left-color: #d1d9e6;
+        }
+
+        .produto-card .card-footer {
+            padding: 10px 18px 14px;
+            border-top: 1px solid #f1f5f9;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        /* Empty state */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: #94a3b8;
+            grid-column: 1 / -1;
         }
 
         .empty-state .icone {
-            font-size: 48px;
-            opacity: 0.5;
-            margin-bottom: 12px;
+            font-size: 56px;
+            opacity: 0.4;
+            margin-bottom: 16px;
         }
 
         .empty-state h3 {
             color: #475569;
-            margin-bottom: 4px;
+            font-size: 18px;
+            margin-bottom: 6px;
         }
 
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* MODAL PRODUTO */
         .modal-produto .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 14px;
         }
 
-        .color-palette {
+        .modal-produto .form-row-3 {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 14px;
+        }
+
+        .modal-produto .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .modal-produto .image-preview {
+            width: 100%;
+            max-height: 150px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px dashed #d1d9e6;
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            padding: 5px 0;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-top: 4px;
+            padding: 8px;
         }
 
-        .color-palette .color-swatch {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            border: 2px solid #dee2e6;
-            cursor: pointer;
-            transition: all 0.2s;
+        .modal-produto .image-preview img {
+            max-height: 140px;
+            max-width: 100%;
+            object-fit: contain;
         }
 
-        .color-palette .color-swatch:hover {
-            transform: scale(1.1);
-            border-color: #4f46e5;
+        .modal-produto .image-preview .placeholder {
+            color: #94a3b8;
+            font-size: 13px;
         }
 
-        .color-palette .color-swatch.selected {
-            border-color: #0f172a;
-            box-shadow: 0 0 0 2px white, 0 0 0 4px #4f46e5;
+        /* Geração de código */
+        .codigo-gerado {
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #4f46e5;
+            background: #eef2ff;
+            padding: 4px 16px;
+            border-radius: 8px;
+            letter-spacing: 2px;
+            display: inline-block;
         }
 
+        /* Responsivo */
         @media (max-width: 768px) {
-            .page-header {
+            .page-content {
+                padding: 16px;
+            }
+
+            .search-bar {
                 flex-direction: column;
                 align-items: stretch;
+                padding: 12px 16px;
             }
 
-            .produtos-table {
-                font-size: 12px;
+            .search-bar .search-stats {
+                text-align: center;
             }
 
-            .produtos-table th,
-            .produtos-table td {
-                padding: 6px 8px;
+            .produtos-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
             }
 
-            .modal-produto .form-row {
+            .modal-produto .form-row,
+            .modal-produto .form-row-3 {
                 grid-template-columns: 1fr;
             }
+        }
+
+        @media (max-width: 480px) {
+            .produto-card .card-header {
+                flex-wrap: wrap;
+            }
+
+            .produto-card .card-header .acoes-topo {
+                width: 100%;
+                justify-content: flex-end;
+            }
+
+            .produto-card .card-body .imagem-area {
+                height: 100px;
+            }
+        }
+
+        /* Dark Mode */
+        body.dark-mode .page-header {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .page-header h2 {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .search-bar {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .search-bar .search-input-wrapper input {
+            background: #0f172a;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .search-bar .search-input-wrapper input:focus {
+            border-color: #818cf8;
+            background: #0f172a;
+        }
+
+        body.dark-mode .search-bar .search-stats {
+            background: #334155;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .search-bar .search-stats strong {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .produto-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .produto-card:hover {
+            border-color: #818cf8;
+        }
+
+        body.dark-mode .produto-card .card-header {
+            border-color: #334155;
+        }
+
+        body.dark-mode .produto-card .card-header .codigo {
+            background: #1a2332;
+            color: #818cf8;
+        }
+
+        body.dark-mode .produto-card .card-body .imagem-area {
+            background: #0f172a;
+            border-color: #334155;
+        }
+
+        body.dark-mode .produto-card .card-body .info-principal .nome {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .produto-card .card-body .info-principal .marca {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .produto-card .card-body .info-principal .detalhes .tag {
+            background: #334155;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .produto-card .card-body .info-principal .detalhes .tag.preco {
+            background: #1a2332;
+            color: #818cf8;
+        }
+
+        body.dark-mode .produto-card .especificacoes-area {
+            border-color: #334155;
+        }
+
+        body.dark-mode .produto-card .especificacoes-area .btn-especificacoes {
+            background: #0f172a;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .produto-card .especificacoes-area .btn-especificacoes:hover {
+            background: #1a2332;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .produto-card .especificacoes-area .especificacoes-content .texto {
+            background: #0f172a;
+            color: #cbd5e1;
+            border-left-color: #818cf8;
+        }
+
+        body.dark-mode .produto-card .especificacoes-area .especificacoes-content .texto.empty {
+            color: #64748b;
+            border-left-color: #334155;
+        }
+
+        body.dark-mode .produto-card .card-footer {
+            border-color: #334155;
+        }
+
+        body.dark-mode .modal-produto .image-preview {
+            background: #0f172a;
+            border-color: #334155;
+        }
+
+        body.dark-mode .empty-state h3 {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .empty-state p {
+            color: #64748b;
         }
     </style>
 </head>
@@ -191,79 +616,75 @@
     </div>
 
     <div class="page-content">
-        <div class="filter-bar">
-            <input type="text" id="searchProduto" placeholder="🔍 Buscar produto..." oninput="filtrarProdutos()">
-            <select id="filterComodo" onchange="filtrarProdutos()">
-                <option value="">Todos os Cômodos</option>
-            </select>
-            <select id="filterProtocolo" onchange="filtrarProdutos()">
-                <option value="">Todos os Protocolos</option>
-                <option value="Wi-Fi">Wi-Fi</option>
-                <option value="Zigbee">Zigbee</option>
-                <option value="RF">RF</option>
-            </select>
+        <!-- BARRA DE BUSCA -->
+        <div class="search-bar">
+            <div class="search-input-wrapper">
+                <i class="fas fa-search"></i>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="🔍 Buscar por código, nome, marca ou especificações..."
+                    oninput="filtrarProdutos()"
+                >
+            </div>
+            <span class="search-stats" id="searchStats">
+                <strong id="totalProdutosDisplay">0</strong> produtos
+            </span>
+            <button class="btn-limpar-busca" id="btnLimparBusca" onclick="limparBusca()">
+                ✕ Limpar
+            </button>
         </div>
 
-        <div class="table-responsive">
-            <table class="produtos-table">
-                <thead>
-                    <tr>
-                        <th>Cômodo</th>
-                        <th>Dispositivo</th>
-                        <th>Marca</th>
-                        <th>Protocolo</th>
-                        <th>Qtd</th>
-                        <th>Preço</th>
-                        <th>Cor</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="produtosBody">
-                    <tr>
-                        <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8;">
-                            Carregando produtos...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <!-- GRADE DE PRODUTOS -->
+        <div class="produtos-grid" id="produtosContainer">
+            <div class="empty-state">
+                <div class="icone">📦</div>
+                <h3>Nenhum produto cadastrado</h3>
+                <p>Clique em "Novo Produto" para adicionar</p>
+            </div>
         </div>
     </div>
 
     <!-- MODAL PRODUTO -->
     <div class="modal modal-produto" id="modalProduto">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 700px;">
             <h2 id="modalProdutoTitle">Novo Produto</h2>
             <form id="produtoForm" onsubmit="salvarProduto(event)">
-                <div class="form-group">
-                    <label>Cômodo *</label>
-                    <select id="formComodo" required>
-                        <option value="">Selecione um cômodo</option>
-                        <option value="Sala de Estar / Home Theater">Sala de Estar / Home Theater</option>
-                        <option value="Quarto (Suíte Principal)">Quarto (Suíte Principal)</option>
-                        <option value="Cozinha / Área de Serviço">Cozinha / Área de Serviço</option>
-                        <option value="Banheiro">Banheiro</option>
-                        <option value="Área Gourmet / Externa">Área Gourmet / Externa</option>
-                        <option value="Escritório">Escritório</option>
-                        <option value="Garagem">Garagem</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Dispositivo *</label>
-                    <input type="text" id="formDispositivo" required placeholder="Ex: Interruptor inteligente">
-                </div>
-                <div class="form-group">
-                    <label>Marca</label>
-                    <input type="text" id="formMarca" placeholder="Ex: Sonoff, Philips, Aqara">
-                </div>
-                <div class="form-group">
-                    <label>Protocolo *</label>
-                    <select id="formProtocolo" required>
-                        <option value="Wi-Fi">Wi-Fi</option>
-                        <option value="Zigbee" selected>Zigbee</option>
-                        <option value="RF">RF</option>
-                    </select>
-                </div>
                 <div class="form-row">
+                    <div class="form-group">
+                        <label>Código do Produto *</label>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="text" id="formCodigo" required placeholder="Ex: PRD001" 
+                                   style="flex: 1; font-family: 'Courier New', monospace; text-transform: uppercase;"
+                                   maxlength="6">
+                            <button type="button" class="btn btn-outline btn-sm" onclick="gerarCodigoAleatorio()" 
+                                    style="white-space: nowrap; padding: 6px 12px; font-size: 12px;">
+                                🔄 Gerar
+                            </button>
+                        </div>
+                        <small style="color: #94a3b8;">6 caracteres alfanuméricos (ex: PRD001)</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Marca *</label>
+                        <input type="text" id="formMarca" required placeholder="Ex: Sonoff, Philips, Aqara">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Nome do Dispositivo *</label>
+                    <input type="text" id="formNome" required placeholder="Ex: Interruptor Inteligente Wi-Fi 2 Teclas">
+                </div>
+                <div class="form-row-3">
+                    <div class="form-group">
+                        <label>Protocolo</label>
+                        <select id="formProtocolo">
+                            <option value="Wi-Fi">Wi-Fi</option>
+                            <option value="Zigbee" selected>Zigbee</option>
+                            <option value="RF">RF</option>
+                            <option value="Bluetooth">Bluetooth</option>
+                            <option value="Z-Wave">Z-Wave</option>
+                            <option value="Cabeado">Cabeado</option>
+                        </select>
+                    </div>
                     <div class="form-group">
                         <label>Quantidade Padrão</label>
                         <input type="number" id="formQuantidade" value="1" min="0" step="1">
@@ -274,23 +695,18 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Infraestrutura Necessária</label>
-                    <input type="text" id="formInfra" placeholder="Ex: Fio neutro, caixa 4x2">
+                    <label>Imagem (URL)</label>
+                    <input type="url" id="formImagem" placeholder="https://exemplo.com/imagem.jpg" 
+                           onchange="previewImagem(this.value)">
+                    <div class="image-preview" id="imagePreview">
+                        <span class="placeholder">🖼️ Nenhuma imagem selecionada</span>
+                    </div>
                 </div>
                 <div class="form-group">
-                    <label>Cor na Planta</label>
-                    <div class="color-palette" id="colorPalette"></div>
-                    <input type="hidden" id="formCor" value="#4f46e5">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Posição X (%)</label>
-                        <input type="number" id="formPosX" value="50" min="0" max="100">
-                    </div>
-                    <div class="form-group">
-                        <label>Posição Y (%)</label>
-                        <input type="number" id="formPosY" value="50" min="0" max="100">
-                    </div>
+                    <label>Especificações Técnicas</label>
+                    <textarea id="formEspecificacoes" rows="3" 
+                              placeholder="Descreva as especificações técnicas do produto...&#10;Ex: Alimentação: 110-220V&#10;Consumo: 5W&#10;Dimensões: 5x5x3cm&#10;Compatibilidade: Alexa, Google Home"></textarea>
+                    <small style="color: #94a3b8;">Informações técnicas, compatibilidades, requisitos de instalação, etc.</small>
                 </div>
                 <input type="hidden" id="formEditIndex" value="-1">
                 <div class="modal-actions">
@@ -302,167 +718,306 @@
     </div>
 
     <script>
+        // ============ ESTADO ============
         let produtosData = [];
         let produtosFiltrados = [];
-        let produtoEditando = null;
 
-        const CORES = [
-            '#4f46e5', '#7c3aed', '#ec4899', '#f59e0b',
-            '#10b981', '#3b82f6', '#8b5cf6', '#ef4444',
-            '#14b8a6', '#f97316', '#6366f1', '#a855f7'
-        ];
+        // ============ GERAR CÓDIGO ============
+        function gerarCodigoAleatorio() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let codigo = '';
+            for (let i = 0; i < 6; i++) {
+                codigo += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('formCodigo').value = codigo;
+        }
+
+        // ============ ACESSO AO DB ============
+        function getDb() {
+            try {
+                if (window.parent && window.parent.getDadosGlobais) {
+                    return window.parent.getDadosGlobais().db;
+                }
+                if (window.db) {
+                    return window.db;
+                }
+                throw new Error('Database não disponível');
+            } catch (error) {
+                console.error('Erro ao acessar database:', error);
+                mostrarNotificacao('❌ Erro ao conectar ao banco de dados', 'error');
+                return null;
+            }
+        }
+
+        // ============ NOTIFICAÇÕES ============
+        function mostrarNotificacao(mensagem, tipo = 'info') {
+            const cores = {
+                success: '#0b9e5e',
+                error: '#dc2626',
+                warning: '#f59e0b',
+                info: '#4f46e5'
+            };
+
+            const icones = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${cores[tipo] || cores.info};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 12px;
+                font-size: 14px;
+                font-family: 'Inter', sans-serif;
+                box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+                z-index: 9999;
+                max-width: 400px;
+                animation: slideIn 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            `;
+            
+            toast.innerHTML = `<span>${icones[tipo] || 'ℹ️'}</span> ${mensagem}`;
+            
+            const existing = document.querySelector('.toast-notification');
+            if (existing) existing.remove();
+            
+            toast.className = 'toast-notification';
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
 
         // ============ CARREGAR PRODUTOS ============
         async function carregarProdutos() {
             try {
-                const db = window.parent.db;
-                
+                const db = getDb();
+                if (!db) {
+                    throw new Error('Database não disponível');
+                }
+
                 produtosData = await db.getProdutos();
                 produtosFiltrados = [...produtosData];
+                
                 renderizarProdutos();
-                atualizarFiltros();
-                window.parent.atualizarStatus('✅ Produtos carregados');
+                atualizarStats();
+                
+                const total = produtosData.length;
+                const msg = total > 0 ? `✅ ${total} produtos carregados` : '📭 Nenhum produto cadastrado';
+                mostrarNotificacao(msg, total > 0 ? 'success' : 'info');
+                
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus(`✅ ${total} produtos carregados`);
+                }
             } catch (error) {
                 console.error('Erro ao carregar produtos:', error);
-                window.parent.atualizarStatus('❌ Erro ao carregar produtos');
+                mostrarNotificacao('❌ Erro ao carregar produtos: ' + error.message, 'error');
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('❌ Erro ao carregar produtos');
+                }
             }
         }
 
+        // ============ FILTRAR ============
+        function filtrarProdutos() {
+            const termo = document.getElementById('searchInput').value.toLowerCase().trim();
+            const btnLimpar = document.getElementById('btnLimparBusca');
+
+            if (termo.length > 0) {
+                btnLimpar.classList.add('visible');
+            } else {
+                btnLimpar.classList.remove('visible');
+            }
+
+            if (termo === '') {
+                produtosFiltrados = [...produtosData];
+            } else {
+                produtosFiltrados = produtosData.filter(p => {
+                    const codigo = (p.codigo || '').toLowerCase();
+                    const nome = (p.nome || p.dispositivo || '').toLowerCase();
+                    const marca = (p.marca || '').toLowerCase();
+                    const espec = (p.especificacoes || '').toLowerCase();
+                    const protocolo = (p.protocolo || '').toLowerCase();
+                    
+                    return codigo.includes(termo) ||
+                           nome.includes(termo) ||
+                           marca.includes(termo) ||
+                           espec.includes(termo) ||
+                           protocolo.includes(termo);
+                });
+            }
+
+            renderizarProdutos();
+            atualizarStats();
+        }
+
+        function limparBusca() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('btnLimparBusca').classList.remove('visible');
+            produtosFiltrados = [...produtosData];
+            renderizarProdutos();
+            atualizarStats();
+            document.getElementById('searchInput').focus();
+        }
+
+        function atualizarStats() {
+            document.getElementById('totalProdutosDisplay').textContent = produtosFiltrados.length;
+        }
+
+        // ============ RENDERIZAR ============
         function renderizarProdutos() {
-            const tbody = document.getElementById('produtosBody');
-            
+            const container = document.getElementById('produtosContainer');
+
             if (produtosFiltrados.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8;">
-                            ${produtosData.length === 0 ? 'Nenhum produto cadastrado. Clique em "Novo Produto" para adicionar.' : 'Nenhum produto encontrado com os filtros atuais.'}
-                        </td>
-                    </tr>
+                const termo = document.getElementById('searchInput').value.trim();
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icone">${termo ? '🔍' : '📦'}</div>
+                        <h3>${termo ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}</h3>
+                        <p>${termo ? 'Tente buscar por outro termo' : 'Clique em "Novo Produto" para adicionar'}</p>
+                        ${termo ? `<button class="btn btn-outline" onclick="limparBusca()" style="margin-top: 12px;">Limpar busca</button>` : ''}
+                    </div>
                 `;
                 return;
             }
 
             const protocolClasses = {
-                'Wi-Fi': 'wifi',
-                'Zigbee': 'zigbee',
-                'RF': 'rf'
+                'Wi-Fi': 'protocolo-wifi',
+                'Zigbee': 'protocolo-zigbee',
+                'RF': 'protocolo-rf',
+                'Bluetooth': 'protocolo-wifi',
+                'Z-Wave': 'protocolo-zigbee',
+                'Cabeado': 'protocolo-rf'
             };
 
-            tbody.innerHTML = produtosFiltrados.map(prod => `
-                <tr>
-                    <td><strong>${prod.comodo || '-'}</strong></td>
-                    <td>${prod.dispositivo}</td>
-                    <td>${prod.marca || '-'}</td>
-                    <td><span class="badge-protocolo ${protocolClasses[prod.protocolo] || ''}">${prod.protocolo || '-'}</span></td>
-                    <td>${prod.qtdPadrao || 0}</td>
-                    <td>R$ ${(prod.preco || 0).toFixed(2)}</td>
-                    <td><span class="color-dot" style="background: ${prod.cor || '#4f46e5'};"></span></td>
-                    <td>
-                        <button class="btn btn-primary btn-sm" onclick="editarProduto('${prod.id}')">✏️</button>
-                        <button class="btn btn-danger btn-sm" onclick="excluirProduto('${prod.id}')">🗑️</button>
-                    </td>
-                </tr>
-            `).join('');
+            container.innerHTML = produtosFiltrados.map(p => {
+                const codigo = p.codigo || p.id?.slice(0, 6)?.toUpperCase() || '------';
+                const nome = p.nome || p.dispositivo || 'Sem nome';
+                const marca = p.marca || 'Sem marca';
+                const protocolo = p.protocolo || 'Wi-Fi';
+                const preco = p.preco || 0;
+                const qtd = p.qtdPadrao || 0;
+                const imagem = p.imagem || '';
+                const especificacoes = p.especificacoes || '';
+                const temEspec = especificacoes.length > 0;
+
+                return `
+                    <div class="produto-card" data-id="${p.id}">
+                        <div class="card-header">
+                            <span class="codigo">#${codigo}</span>
+                            <div class="acoes-topo">
+                                <button class="btn btn-primary btn-sm" onclick="editarProduto('${p.id}')" title="Editar">
+                                    ✏️
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="excluirProduto('${p.id}')" title="Excluir">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="imagem-area">
+                                ${imagem ? 
+                                    `<img src="${imagem}" alt="${nome}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : 
+                                    ''
+                                }
+                                <span class="placeholder" ${imagem ? 'style="display:none"' : ''}>
+                                    ${imagem ? '' : '🖼️'}
+                                </span>
+                            </div>
+                            <div class="info-principal">
+                                <div class="nome">${nome}</div>
+                                <div class="marca"><i class="fas fa-tag"></i> ${marca}</div>
+                                <div class="detalhes">
+                                    <span class="tag ${protocolClasses[protocolo] || ''}">${protocolo}</span>
+                                    <span class="tag preco">R$ ${preco.toFixed(2)}</span>
+                                    <span class="tag qtd">📦 ${qtd} un</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="especificacoes-area">
+                            <button class="btn-especificacoes" onclick="toggleEspecificacoes(this)">
+                                <span>📋 Especificações Técnicas</span>
+                                <span class="icone">▼</span>
+                            </button>
+                            <div class="especificacoes-content">
+                                <div class="texto ${temEspec ? '' : 'empty'}">
+                                    ${temEspec ? especificacoes : 'Nenhuma especificação cadastrada'}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <span style="font-size: 12px; color: #94a3b8;">
+                                ID: ${p.id?.slice(0, 8) || '---'}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        // ============ FILTROS ============
-        function atualizarFiltros() {
-            const comodos = [...new Set(produtosData.map(p => p.comodo).filter(Boolean))];
-            const select = document.getElementById('filterComodo');
-            const currentVal = select.value;
+        // ============ ESPECIFICAÇÕES ============
+        function toggleEspecificacoes(btn) {
+            const content = btn.parentElement.querySelector('.especificacoes-content');
+            const icon = btn.querySelector('.icone');
             
-            select.innerHTML = '<option value="">Todos os Cômodos</option>';
-            comodos.sort().forEach(c => {
-                select.innerHTML += `<option value="${c}">${c}</option>`;
-            });
-            select.value = currentVal;
+            content.classList.toggle('open');
+            icon.classList.toggle('open');
         }
 
-        function filtrarProdutos() {
-            const search = document.getElementById('searchProduto').value.toLowerCase();
-            const comodo = document.getElementById('filterComodo').value;
-            const protocolo = document.getElementById('filterProtocolo').value;
-
-            produtosFiltrados = produtosData.filter(p => {
-                const matchSearch = p.dispositivo.toLowerCase().includes(search) ||
-                    (p.marca && p.marca.toLowerCase().includes(search));
-                const matchComodo = !comodo || p.comodo === comodo;
-                const matchProtocolo = !protocolo || p.protocolo === protocolo;
-                return matchSearch && matchComodo && matchProtocolo;
-            });
-
-            renderizarProdutos();
-        }
-
-        // ============ MODAL ============
-        function setupColorPalette() {
-            const container = document.getElementById('colorPalette');
-            container.innerHTML = '';
-            CORES.forEach(cor => {
-                const div = document.createElement('div');
-                div.className = 'color-swatch';
-                div.style.backgroundColor = cor;
-                div.dataset.cor = cor;
-                div.onclick = function() {
-                    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-                    this.classList.add('selected');
-                    document.getElementById('formCor').value = cor;
-                };
-                container.appendChild(div);
-            });
-            // Selecionar primeiro
-            const first = container.querySelector('.color-swatch');
-            if (first) {
-                first.classList.add('selected');
-                document.getElementById('formCor').value = CORES[0];
+        // ============ IMAGEM ============
+        function previewImagem(url) {
+            const preview = document.getElementById('imagePreview');
+            if (url && url.trim()) {
+                preview.innerHTML = `<img src="${url}" alt="Preview" onerror="this.style.display='none';this.parentElement.innerHTML='<span class=\\'placeholder\\'>❌ Erro ao carregar imagem</span>'">`;
+            } else {
+                preview.innerHTML = `<span class="placeholder">🖼️ Nenhuma imagem selecionada</span>`;
             }
         }
 
+        // ============ MODAL ============
         function abrirModalProduto(data = null) {
             const modal = document.getElementById('modalProduto');
             document.getElementById('modalProdutoTitle').textContent = data ? 'Editar Produto' : 'Novo Produto';
 
-            // Resetar seleção de cor
-            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
-
             if (data) {
-                document.getElementById('formComodo').value = data.comodo || '';
-                document.getElementById('formDispositivo').value = data.dispositivo || '';
+                document.getElementById('formCodigo').value = data.codigo || data.id?.slice(0, 6)?.toUpperCase() || '';
                 document.getElementById('formMarca').value = data.marca || '';
-                document.getElementById('formProtocolo').value = data.protocolo || 'Zigbee';
-                document.getElementById('formQuantidade').value = data.qtdPadrao || 1;
+                document.getElementById('formNome').value = data.nome || data.dispositivo || '';
+                document.getElementById('formProtocolo').value = data.protocolo || 'Wi-Fi';
+                document.getElementById('formQuantidade').value = data.qtdPadrao || 0;
                 document.getElementById('formPreco').value = data.preco || 0;
-                document.getElementById('formInfra').value = data.infra || '';
-                document.getElementById('formPosX').value = data.posX || 50;
-                document.getElementById('formPosY').value = data.posY || 50;
+                document.getElementById('formImagem').value = data.imagem || '';
+                document.getElementById('formEspecificacoes').value = data.especificacoes || '';
                 document.getElementById('formEditIndex').value = data.id;
-                
-                // Selecionar cor
-                const cor = data.cor || CORES[0];
-                document.getElementById('formCor').value = cor;
-                document.querySelectorAll('.color-swatch').forEach(s => {
-                    if (s.dataset.cor === cor) s.classList.add('selected');
-                });
+                previewImagem(data.imagem || '');
             } else {
-                document.getElementById('formComodo').value = '';
-                document.getElementById('formDispositivo').value = '';
+                document.getElementById('formCodigo').value = '';
                 document.getElementById('formMarca').value = '';
+                document.getElementById('formNome').value = '';
                 document.getElementById('formProtocolo').value = 'Zigbee';
                 document.getElementById('formQuantidade').value = 1;
                 document.getElementById('formPreco').value = 150;
-                document.getElementById('formInfra').value = '';
-                document.getElementById('formPosX').value = 50;
-                document.getElementById('formPosY').value = 50;
+                document.getElementById('formImagem').value = '';
+                document.getElementById('formEspecificacoes').value = '';
                 document.getElementById('formEditIndex').value = '-1';
-                
-                const cor = CORES[0];
-                document.getElementById('formCor').value = cor;
-                document.querySelectorAll('.color-swatch').forEach(s => {
-                    if (s.dataset.cor === cor) s.classList.add('selected');
-                });
+                document.getElementById('imagePreview').innerHTML = `<span class="placeholder">🖼️ Nenhuma imagem selecionada</span>`;
+                gerarCodigoAleatorio();
             }
 
             modal.classList.add('active');
+            setTimeout(() => document.getElementById('formCodigo').focus(), 100);
         }
 
         function fecharModal(id) {
@@ -473,44 +1028,93 @@
         async function salvarProduto(event) {
             event.preventDefault();
             
-            const data = {
-                comodo: document.getElementById('formComodo').value,
-                dispositivo: document.getElementById('formDispositivo').value.trim(),
-                marca: document.getElementById('formMarca').value.trim(),
-                protocolo: document.getElementById('formProtocolo').value,
-                qtdPadrao: parseFloat(document.getElementById('formQuantidade').value) || 0,
-                preco: parseFloat(document.getElementById('formPreco').value) || 0,
-                infra: document.getElementById('formInfra').value.trim(),
-                posX: parseInt(document.getElementById('formPosX').value) || 50,
-                posY: parseInt(document.getElementById('formPosY').value) || 50,
-                cor: document.getElementById('formCor').value || CORES[0]
-            };
+            const codigo = document.getElementById('formCodigo').value.trim().toUpperCase();
+            const marca = document.getElementById('formMarca').value.trim();
+            const nome = document.getElementById('formNome').value.trim();
+            const protocolo = document.getElementById('formProtocolo').value;
+            const qtdPadrao = parseInt(document.getElementById('formQuantidade').value) || 0;
+            const preco = parseFloat(document.getElementById('formPreco').value) || 0;
+            const imagem = document.getElementById('formImagem').value.trim();
+            const especificacoes = document.getElementById('formEspecificacoes').value.trim();
 
-            if (!data.dispositivo || !data.comodo) {
-                alert('Dispositivo e Cômodo são obrigatórios!');
+            if (!codigo || codigo.length !== 6) {
+                mostrarNotificacao('⚠️ Código deve ter 6 caracteres!', 'warning');
+                document.getElementById('formCodigo').focus();
+                return;
+            }
+
+            if (!marca) {
+                mostrarNotificacao('⚠️ Marca é obrigatória!', 'warning');
+                document.getElementById('formMarca').focus();
+                return;
+            }
+
+            if (!nome) {
+                mostrarNotificacao('⚠️ Nome do dispositivo é obrigatório!', 'warning');
+                document.getElementById('formNome').focus();
+                return;
+            }
+
+            // Verificar código duplicado
+            const id = document.getElementById('formEditIndex').value;
+            const existe = produtosData.some(p => 
+                p.codigo === codigo && p.id !== id
+            );
+            if (existe) {
+                mostrarNotificacao('⚠️ Código já está em uso!', 'warning');
+                document.getElementById('formCodigo').focus();
                 return;
             }
 
             try {
-                const app = window.parent.getDadosGlobais();
-                const db = app.db;
-                const id = document.getElementById('formEditIndex').value;
+                const db = getDb();
+                if (!db) {
+                    throw new Error('Database não disponível');
+                }
+
+                const data = {
+                    codigo: codigo,
+                    marca: marca,
+                    nome: nome,
+                    dispositivo: nome,
+                    protocolo: protocolo,
+                    qtdPadrao: qtdPadrao,
+                    preco: preco,
+                    imagem: imagem,
+                    especificacoes: especificacoes,
+                    // Campos legados para compatibilidade
+                    comodo: 'Geral',
+                    cor: '#4f46e5',
+                    posX: 50,
+                    posY: 50,
+                    infra: ''
+                };
+
+                let mensagem = '';
 
                 if (id && id !== '-1') {
                     data.id = id;
                     await db.salvarProduto(data);
-                    window.parent.atualizarStatus('✅ Produto atualizado');
+                    mensagem = '✅ Produto atualizado com sucesso!';
                 } else {
                     await db.salvarProduto(data);
-                    window.parent.atualizarStatus('✅ Produto criado');
+                    mensagem = '✅ Produto criado com sucesso!';
+                }
+
+                mostrarNotificacao(mensagem, 'success');
+                
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus(mensagem);
                 }
 
                 fecharModal('modalProduto');
                 await carregarProdutos();
             } catch (error) {
                 console.error('Erro ao salvar produto:', error);
-                alert('Erro ao salvar: ' + error.message);
-                window.parent.atualizarStatus('❌ Erro ao salvar produto');
+                mostrarNotificacao('❌ Erro ao salvar: ' + error.message, 'error');
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('❌ Erro ao salvar produto');
+                }
             }
         }
 
@@ -519,6 +1123,8 @@
             const produto = produtosData.find(p => p.id === id);
             if (produto) {
                 abrirModalProduto(produto);
+            } else {
+                mostrarNotificacao('❌ Produto não encontrado', 'error');
             }
         }
 
@@ -527,28 +1133,60 @@
             if (!confirm('Tem certeza que deseja excluir este produto?')) return;
             
             try {
-                const app = window.parent.getDadosGlobais();
-                const db = app.db;
+                const db = getDb();
+                if (!db) {
+                    throw new Error('Database não disponível');
+                }
+
                 await db.deletarProduto(id);
-                window.parent.atualizarStatus('🗑️ Produto excluído');
+                mostrarNotificacao('🗑️ Produto excluído com sucesso!', 'success');
+                
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('🗑️ Produto excluído');
+                }
+
                 await carregarProdutos();
             } catch (error) {
                 console.error('Erro ao excluir produto:', error);
-                alert('Erro ao excluir: ' + error.message);
-                window.parent.atualizarStatus('❌ Erro ao excluir produto');
+                mostrarNotificacao('❌ Erro ao excluir: ' + error.message, 'error');
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('❌ Erro ao excluir produto');
+                }
             }
         }
 
         // ============ INICIALIZAR ============
-        setupColorPalette();
-        carregarProdutos();
-
-        // Fechar modal ao clicar fora
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('modal')) {
-                e.target.classList.remove('active');
+        document.addEventListener('DOMContentLoaded', function() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
             }
+
+            carregarProdutos();
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal.active').forEach(modal => {
+                        modal.classList.remove('active');
+                    });
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal')) {
+                    e.target.classList.remove('active');
+                }
+            });
         });
+
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateX(30px); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
