@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orçamento - SmartHome</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            padding: 30px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .print-container {
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* ===== HEADER ===== */
+        .orcamento-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            padding: 35px 40px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .orcamento-header .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .orcamento-header .logo-placeholder {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .orcamento-header .empresa-nome {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .orcamento-header .empresa-nome small {
+            display: block;
+            font-size: 13px;
+            font-weight: 400;
+            opacity: 0.7;
+            letter-spacing: 0;
+            margin-top: 2px;
+        }
+
+        .orcamento-header .orcamento-numero {
+            text-align: right;
+            font-size: 14px;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        .orcamento-header .orcamento-numero strong {
+            font-size: 18px;
+            opacity: 1;
+            color: #fff;
+        }
+
+        .orcamento-header .orcamento-numero .status {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 4px;
+        }
+
+        .status.aprovado {
+            background: #10b981;
+            color: white;
+        }
+
+        .status.pendente {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .status.cancelado {
+            background: #ef4444;
+            color: white;
+        }
+
+        /* ===== INFORMAÇÕES DO CLIENTE ===== */
+        .cliente-area {
+            padding: 25px 40px;
+            background: #f8fafc;
+            border-bottom: 2px solid #e9edf2;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px 30px;
+        }
+
+        .cliente-area .cliente-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .cliente-area .cliente-info label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #64748b;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .cliente-area .cliente-info .valor {
+            font-size: 15px;
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        .cliente-area .cliente-info .valor.destaque {
+            font-size: 18px;
+            color: #0f3460;
+        }
+
+        /* ===== CONDIÇÕES ===== */
+        .condicoes-area {
+            padding: 18px 40px;
+            background: #fefcf3;
+            border-bottom: 2px solid #f0ede5;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 30px;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .condicoes-area .condicao-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .condicoes-area .condicao-item .icone {
+            font-size: 18px;
+        }
+
+        .condicoes-area .condicao-item strong {
+            color: #0f172a;
+        }
+
+        /* ===== VENDEDOR ===== */
+        .vendedor-area {
+            padding: 12px 40px;
+            background: #f0f4ff;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .vendedor-area .label {
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .vendedor-area .nome {
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        /* ===== TABELA ===== */
+        .table-wrapper {
+            padding: 20px 40px 10px 40px;
+            overflow-x: auto;
+        }
+
+        .table-wrapper table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .table-wrapper table th {
+            background: #f1f4f9;
+            color: #1e293b;
+            font-weight: 600;
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 2px solid #dce2ec;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .table-wrapper table td {
+            padding: 11px 14px;
+            border-bottom: 1px solid #edf2f7;
+            vertical-align: middle;
+        }
+
+        .table-wrapper table tr:hover td {
+            background: #fafbff;
+        }
+
+        .table-wrapper table .protocolo-badge {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .protocolo-badge.wifi {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .protocolo-badge.zigbee {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .protocolo-badge.rf {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .table-wrapper table .total-col {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .table-wrapper table .subtotal-row td {
+            background: #f8fafc;
+            font-weight: 500;
+        }
+
+        .table-wrapper table .subtotal-row .label-sub {
+            text-align: right;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        /* ===== TOTAIS ===== */
+        .totais-area {
+            padding: 20px 40px 30px 40px;
+            display: flex;
+            justify-content: flex-end;
+            border-top: 2px solid #e9edf2;
+            background: #fafcff;
+        }
+
+        .totais-area .totais-box {
+            min-width: 280px;
+        }
+
+        .totais-area .totais-box .linha {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 15px;
+            color: #334155;
+        }
+
+        .totais-area .totais-box .linha.total {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0f172a;
+            border-top: 2px solid #dce2ec;
+            padding-top: 12px;
+            margin-top: 6px;
+        }
+
+        .totais-area .totais-box .linha.total .valor {
+            color: #0f3460;
+        }
+
+        /* ===== OBSERVAÇÕES ===== */
+        .observacoes-area {
+            padding: 16px 40px 24px;
+            background: #fafcff;
+            border-top: 1px solid #e9edf2;
+        }
+
+        .observacoes-area .label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #64748b;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+        }
+
+        .observacoes-area .texto {
+            font-size: 14px;
+            color: #334155;
+            line-height: 1.6;
+            padding: 8px 14px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 3px solid #4f46e5;
+        }
+
+        /* ===== RODAPÉ ===== */
+        .orcamento-footer {
+            padding: 25px 40px;
+            background: #f8fafc;
+            border-top: 2px solid #e9edf2;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .orcamento-footer .validade {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .orcamento-footer .assinatura {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .orcamento-footer .assinatura .assinatura-item {
+            text-align: center;
+        }
+
+        .orcamento-footer .assinatura .assinatura-item .nome {
+            font-weight: 500;
+            color: #0f172a;
+            margin-bottom: 2px;
+        }
+
+        .orcamento-footer .assinatura .linha-assinatura {
+            width: 160px;
+            border-bottom: 2px solid #cbd5e1;
+            margin: 4px auto 0;
+        }
+
+        .orcamento-footer .assinatura .label-assinatura {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+        }
+
+        /* ===== BOTÃO DE IMPRESSÃO ===== */
+        .print-actions {
+            padding: 16px 40px;
+            background: white;
+            border-top: 1px solid #e9edf2;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .print-actions .btn {
+            padding: 10px 30px;
+            border: none;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .print-actions .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .print-actions .btn-primary:hover {
+            background: #4338ca;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(79, 70, 229, 0.25);
+        }
+
+        .print-actions .btn-outline {
+            background: transparent;
+            border: 2px solid #cbd5e1;
+            color: #334155;
+        }
+
+        .print-actions .btn-outline:hover {
+            background: #f1f5f9;
+        }
+
+        /* ===== EMPTY ===== */
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: #94a3b8;
+        }
+
+        .empty-state .icone {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.4;
+        }
+
+        .empty-state h3 {
+            color: #475569;
+            margin-bottom: 6px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+            }
+
+            .orcamento-header {
+                padding: 25px 20px;
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .orcamento-header .logo-area {
+                justify-content: center;
+            }
+
+            .orcamento-header .orcamento-numero {
+                text-align: center;
+            }
+
+            .cliente-area {
+                padding: 20px;
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .condicoes-area {
+                padding: 16px 20px;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .vendedor-area {
+                padding: 12px 20px;
+                flex-wrap: wrap;
+            }
+
+            .table-wrapper {
+                padding: 15px 12px;
+            }
+
+            .totais-area {
+                padding: 15px 20px;
+                justify-content: center;
+            }
+
+            .observacoes-area {
+                padding: 14px 20px 20px;
+            }
+
+            .orcamento-footer {
+                padding: 16px 20px;
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .orcamento-footer .assinatura {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .orcamento-footer .assinatura .linha-assinatura {
+                width: 120px;
+            }
+
+            .print-actions {
+                padding: 12px 20px;
+                flex-wrap: wrap;
+            }
+
+            .table-wrapper table {
+                font-size: 12px;
+            }
+
+            .table-wrapper table th,
+            .table-wrapper table td {
+                padding: 6px 8px;
+            }
+        }
+
+        /* ===== IMPRESSÃO ===== */
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .print-container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+
+            .print-actions {
+                display: none !important;
+            }
+
+            .orcamento-header {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .status {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .protocolo-badge {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+
+            .table-wrapper table tr:hover td {
+                background: transparent;
+            }
+
+            .orcamento-footer {
+                page-break-inside: avoid;
+            }
+
+            .cliente-area .cliente-info .valor.destaque {
+                color: #0f3460;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="print-container" id="printContainer">
+        <!-- CONTEÚDO DO ORÇAMENTO -->
+        <div id="orcamentoContent">
+            <div class="empty-state">
+                <div class="icone">📄</div>
+                <h3>Nenhum orçamento carregado</h3>
+                <p>Selecione um cliente e produtos para visualizar o orçamento.</p>
+            </div>
+        </div>
+
+        <!-- BOTÕES DE AÇÃO -->
+        <div class="print-actions" id="printActions">
+            <button class="btn btn-primary" onclick="imprimirOrcamento()">🖨️ Imprimir Orçamento</button>
+            <button class="btn btn-outline" onclick="window.close()">✕ Fechar</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== RECEBER DADOS DO PARENT =====
+        function getDadosOrcamento() {
+            try {
+                if (window.parent && window.parent.getDadosOrcamentoPrint) {
+                    return window.parent.getDadosOrcamentoPrint();
+                }
+                // Fallback: tentar pegar do localStorage
+                const saved = localStorage.getItem('orcamentoPrintData');
+                if (saved) {
+                    return JSON.parse(saved);
+                }
+                return null;
+            } catch (e) {
+                console.error('Erro ao buscar dados:', e);
+                return null;
+            }
+        }
+
+        // ===== RENDERIZAR ORÇAMENTO =====
+        function renderizarOrcamento(dados) {
+            const container = document.getElementById('orcamentoContent');
+
+            if (!dados || !dados.produtos || dados.produtos.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icone">📄</div>
+                        <h3>Nenhum orçamento carregado</h3>
+                        <p>Selecione um cliente e produtos para visualizar o orçamento.</p>
+                    </div>
+                `;
+                document.getElementById('printActions').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('printActions').style.display = 'flex';
+
+            const cliente = dados.cliente || { nome: 'Cliente não selecionado', id: '---', endereco: '---', telefone: '---',
+                email: '---' };
+            const vendedor = dados.vendedor || 'Não informado';
+            const condicoes = dados.condicoes || {
+                validade: '30 dias',
+                pagamento: '50% entrada + 50% na entrega',
+                garantia: '12 meses',
+                prazo: '15 dias úteis',
+                observacao: 'Valores sujeitos a alteração conforme cotação do dia'
+            };
+            const status = dados.status || 'pendente';
+            const observacoes = dados.observacoes || '';
+
+            const dataAtual = new Date().toLocaleDateString('pt-BR');
+            const numeroOrcamento = dados.numero || 'ORC-' + String(Math.floor(100000 + Math.random() * 900000));
+
+            // Calcular totais
+            let totalEquipamentos = 0;
+            let totalGeral = 0;
+            dados.produtos.forEach(item => {
+                totalEquipamentos += item.qtd || 0;
+                totalGeral += (item.qtd || 0) * (item.preco || 0);
+            });
+
+            // Agrupar por cômodo para subtotais
+            const comodos = {};
+            dados.produtos.forEach(item => {
+                const comodo = item.comodo || 'Sem Cômodo';
+                if (!comodos[comodo]) comodos[comodo] = [];
+                comodos[comodo].push(item);
+            });
+
+            // Montar tabela
+            let tableRows = '';
+            let comodoSubtotal = 0;
+
+            Object.keys(comodos).sort().forEach(comodo => {
+                const itens = comodos[comodo];
+                let subtotalComodo = 0;
+
+                itens.forEach(item => {
+                    const total = (item.qtd || 0) * (item.preco || 0);
+                    subtotalComodo += total;
+                    const badgeClass = {
+                        'Wi-Fi': 'wifi',
+                        'Zigbee': 'zigbee',
+                        'RF': 'rf'
+                    } [item.protocolo] || '';
+
+                    tableRows += `
+                        <tr>
+                            <td>${comodo}</td>
+                            <td><strong>${item.dispositivo || item.nome || 'Sem nome'}</strong></td>
+                            <td>${item.marca || '-'}</td>
+                            <td>${item.especificacoes || item.infra || '-'}</td>
+                            <td><span class="protocolo-badge ${badgeClass}">${item.protocolo || 'Wi-Fi'}</span></td>
+                            <td style="text-align:center;">${item.qtd || 0}</td>
+                            <td style="text-align:right;">R$ ${(item.preco || 0).toFixed(2)}</td>
+                            <td style="text-align:right; font-weight:600;">R$ ${total.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+
+                // Linha de subtotal do cômodo
+                tableRows += `
+                    <tr class="subtotal-row">
+                        <td colspan="7" class="label-sub">Subtotal ${comodo}</td>
+                        <td style="text-align:right; font-weight:600; color:#4f46e5;">R$ ${subtotalComodo.toFixed(2)}</td>
+                    </tr>
+                `;
+            });
+
+            const statusClasses = {
+                'aprovado': 'aprovado',
+                'pendente': 'pendente',
+                'cancelado': 'cancelado'
+            };
+
+            const statusLabels = {
+                'aprovado': '✅ Aprovado',
+                'pendente': '⏳ Pendente',
+                'cancelado': '❌ Cancelado'
+            };
+
+            const html = `
+                <!-- HEADER -->
+                <div class="orcamento-header">
+                    <div class="logo-area">
+                        <div class="logo-placeholder">🏠</div>
+                        <div class="empresa-nome">
+                            ${dados.empresaNome || 'SmartHome Automação'}
+                            <small>${dados.empresaSub || 'Projetos e instalação de automação residencial'}</small>
+                        </div>
+                    </div>
+                    <div class="orcamento-numero">
+                        <strong>${numeroOrcamento}</strong><br>
+                        Emissão: ${dataAtual}
+                        <br>
+                        <span class="status ${statusClasses[status] || 'pendente'}">${statusLabels[status] || status}</span>
+                    </div>
+                </div>
+
+                <!-- CLIENTE -->
+                <div class="cliente-area">
+                    <div class="cliente-info">
+                        <label>Cliente</label>
+                        <span class="valor destaque">${cliente.nome}</span>
+                    </div>
+                    <div class="cliente-info">
+                        <label>ID do Cliente</label>
+                        <span class="valor">${cliente.id || '---'}</span>
+                    </div>
+                    <div class="cliente-info">
+                        <label>Endereço</label>
+                        <span class="valor">${cliente.endereco || '---'}</span>
+                    </div>
+                    <div class="cliente-info">
+                        <label>Telefone</label>
+                        <span class="valor">${cliente.telefone || '---'}</span>
+                    </div>
+                    <div class="cliente-info">
+                        <label>E-mail</label>
+                        <span class="valor">${cliente.email || '---'}</span>
+                    </div>
+                    <div class="cliente-info">
+                        <label>Documento</label>
+                        <span class="valor">${cliente.documento || '---'}</span>
+                    </div>
+                </div>
+
+                <!-- VENDEDOR -->
+                <div class="vendedor-area">
+                    <span class="label">👤 Vendedor:</span>
+                    <span class="nome">${vendedor}</span>
+                </div>
+
+                <!-- CONDIÇÕES -->
+                <div class="condicoes-area">
+                    <div class="condicao-item">
+                        <span class="icone">📅</span>
+                        <span><strong>Validade:</strong> ${condicoes.validade || '30 dias'}</span>
+                    </div>
+                    <div class="condicao-item">
+                        <span class="icone">💳</span>
+                        <span><strong>Pagamento:</strong> ${condicoes.pagamento || '50% entrada + 50% na entrega'}</span>
+                    </div>
+                    <div class="condicao-item">
+                        <span class="icone">🔧</span>
+                        <span><strong>Garantia:</strong> ${condicoes.garantia || '12 meses (mão de obra) + garantia dos fabricantes'}</span>
+                    </div>
+                    <div class="condicao-item">
+                        <span class="icone">📦</span>
+                        <span><strong>Prazo de entrega:</strong> ${condicoes.prazo || '15 dias úteis após aprovação'}</span>
+                    </div>
+                    <div class="condicao-item">
+                        <span class="icone">📝</span>
+                        <span><strong>Observação:</strong> ${condicoes.observacao || 'Valores sujeitos a alteração conforme cotação do dia'}</span>
+                    </div>
+                </div>
+
+                <!-- TABELA -->
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Cômodo</th>
+                                <th>Dispositivo</th>
+                                <th>Marca</th>
+                                <th>Especificações</th>
+                                <th>Protocolo</th>
+                                <th style="text-align:center;">Qtd</th>
+                                <th style="text-align:right;">Unitário</th>
+                                <th style="text-align:right;">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${tableRows}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- TOTAIS -->
+                <div class="totais-area">
+                    <div class="totais-box">
+                        <div class="linha">
+                            <span>Total de equipamentos</span>
+                            <span><strong>${totalEquipamentos}</strong></span>
+                        </div>
+                        <div class="linha">
+                            <span>Subtotal</span>
+                            <span>R$ ${totalGeral.toFixed(2)}</span>
+                        </div>
+                        <div class="linha">
+                            <span>Desconto (0%)</span>
+                            <span>R$ 0,00</span>
+                        </div>
+                        <div class="linha total">
+                            <span>VALOR TOTAL</span>
+                            <span class="valor">R$ ${totalGeral.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OBSERVAÇÕES -->
+                ${observacoes ? `
+                <div class="observacoes-area">
+                    <div class="label">📋 Observações</div>
+                    <div class="texto">${observacoes}</div>
+                </div>
+                ` : ''}
+
+                <!-- RODAPÉ -->
+                <div class="orcamento-footer">
+                    <div class="validade">
+                        📅 Orçamento válido por ${condicoes.validade || '30 dias'} a partir da emissão.
+                    </div>
+                    <div class="assinatura">
+                        <div class="assinatura-item">
+                            <div class="nome">${dados.empresaNome || 'SmartHome Automação'}</div>
+                            <div class="linha-assinatura"></div>
+                            <div class="label-assinatura">Assinatura do responsável</div>
+                        </div>
+                        <div class="assinatura-item">
+                            <div class="nome">${cliente.nome}</div>
+                            <div class="linha-assinatura"></div>
+                            <div class="label-assinatura">Assinatura do cliente</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // ===== IMPRIMIR =====
+        function imprimirOrcamento() {
+            window.print();
+        }
+
+        // ===== INICIALIZAR =====
+        document.addEventListener('DOMContentLoaded', function() {
+            const dados = getDadosOrcamento();
+            if (dados) {
+                renderizarOrcamento(dados);
+                // Salvar no localStorage para fallback
+                localStorage.setItem('orcamentoPrintData', JSON.stringify(dados));
+            } else {
+                // Tentar ler query params
+                const params = new URLSearchParams(window.location.search);
+                const dadosParam = params.get('dados');
+                if (dadosParam) {
+                    try {
+                        const dadosDecoded = JSON.parse(decodeURIComponent(dadosParam));
+                        renderizarOrcamento(dadosDecoded);
+                        localStorage.setItem('orcamentoPrintData', JSON.stringify(dadosDecoded));
+                    } catch (e) {
+                        console.error('Erro ao ler dados da URL:', e);
+                    }
+                }
+            }
+
+            // Escutar mensagens do parent
+            window.addEventListener('message', function(event) {
+                if (event.data && event.data.type === 'orcamentoData') {
+                    renderizarOrcamento(event.data.dados);
+                    localStorage.setItem('orcamentoPrintData', JSON.stringify(event.data.dados));
+                }
+            });
+        });
+
+        // ===== FECHAR COM ESC =====
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                window.close();
+            }
+        });
+    </script>
+
+</body>
+</html>
