@@ -1214,6 +1214,67 @@
                 const data = {
                     codigo: codigo,
                     marca: marca,
+                    nome: nome,          // Campo principal
+                    dispositivo: nome,   // Sincronizado com nome
+                    categoria: categoria,
+                    protocolo: protocolo,
+                    qtdPadrao: qtdPadrao,
+                    preco: preco,
+                    imagem: imagem,
+                    especificacoes: especificacoes,
+                    cor: '#4f46e5',
+                    posX: 50,
+                    posY: 50
+                };
+
+                let mensagem = '';
+
+                if (id && id !== '-1') {
+                    data.id = id;
+                    await db.salvarProduto(data);
+                    mensagem = '✅ Produto atualizado com sucesso!';
+                } else {
+                    await db.salvarProduto(data);
+                    mensagem = '✅ Produto criado com sucesso!';
+                }
+
+                mostrarNotificacao(mensagem, 'success');
+                
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus(mensagem);
+                }
+
+                fecharModal('modalProduto');
+                await carregarProdutos();
+            } catch (error) {
+                console.error('Erro ao salvar produto:', error);
+                mostrarNotificacao('❌ Erro ao salvar: ' + error.message, 'error');
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('❌ Erro ao salvar produto');
+                }
+            }
+        }
+
+            // Verificar código duplicado
+            const id = document.getElementById('formEditIndex').value;
+            const existe = produtosData.some(p => 
+                p.codigo === codigo && p.id !== id
+            );
+            if (existe) {
+                mostrarNotificacao('⚠️ Código já está em uso!', 'warning');
+                document.getElementById('formCodigo').focus();
+                return;
+            }
+
+            try {
+                const db = getDb();
+                if (!db) {
+                    throw new Error('Database não disponível');
+                }
+
+                const data = {
+                    codigo: codigo,
+                    marca: marca,
                     nome: nome,
                     dispositivo: nome,
                     categoria: categoria,

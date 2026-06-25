@@ -183,7 +183,9 @@ class Database {
             const dataToSave = {
                 codigo: codigo,
                 dispositivo: data.dispositivo || data.nome || '',
+                nome: data.nome || data.dispositivo || '',
                 marca: data.marca || '',
+                categoria: data.categoria || 'Outros',
                 protocolo: data.protocolo || 'Wi-Fi',
                 imagem: data.imagem || '',
                 especificacoes: data.especificacoes || '',
@@ -236,7 +238,8 @@ class Database {
 
     async getProdutoPorCodigo(codigo) {
         try {
-            const produtos = await this.getProdutos(true);
+            // Não forçar refresh para evitar loops
+            const produtos = await this.getProdutos(false);
             return produtos.find(p => p.codigo === codigo) || null;
         } catch (error) {
             console.error('Erro ao buscar produto por código:', error);
@@ -492,7 +495,9 @@ class Database {
                     const dataToUpdate = {
                         codigo: p.codigo || this._generateCodigo(),
                         dispositivo: p.dispositivo || p.nome || 'Sem nome',
+                        nome: p.nome || p.dispositivo || 'Sem nome',
                         marca: p.marca || 'Sem marca',
+                        categoria: p.categoria || 'Outros',
                         protocolo: p.protocolo || 'Wi-Fi',
                         imagem: p.imagem || '',
                         especificacoes: p.especificacoes || '',
@@ -534,26 +539,8 @@ window.Database = Database;
 console.log('✅ Database (Realtime) inicializado - v3.0');
 console.log('📦 Estrutura simplificada:');
 console.log('   - Clientes: nome, documento, telefone, email, endereco, observacoes');
-console.log('   - Produtos: codigo, dispositivo, marca, protocolo, imagem, especificacoes, cor, posX, posY, qtdPadrao, preco');
+console.log('   - Produtos: codigo, dispositivo, nome, marca, categoria, protocolo, imagem, especificacoes, cor, posX, posY, qtdPadrao, preco');
 console.log('   - Orçamentos: clienteId, clienteNome, vendedor, condicoes, prazo, observacoes, status, valorTotal, dataCriacao');
 console.log('   - Configurações: chave -> valor');
 
-// Verificar e migrar produtos automaticamente
-(async function() {
-    try {
-        const produtos = await db.getProdutos(true);
-        const precisaMigrar = produtos.some(p => p.nome || p.comodo || p.infra);
-        
-        if (precisaMigrar && produtos.length > 0) {
-            console.log('⚠️ Produtos em formato legado detectados. Iniciando migração...');
-            const migrados = await db.migrarProdutosLegado();
-            if (migrados > 0) {
-                console.log(`🎉 ${migrados} produtos migrados com sucesso!`);
-                // Limpar cache após migração
-                db._clearCache();
-            }
-        }
-    } catch (e) {
-        console.log('ℹ️ Verificação de migração não realizada:', e.message);
-    }
-})();
+// Migração automática removida para evitar loops

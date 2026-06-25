@@ -589,17 +589,45 @@
     </div>
 
     <script>
-        // ===== RECEBER DADOS DO PARENT =====
+        // ===== LISTENER PARA MENSAGENS DO PARENT =====
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'orcamentoData') {
+                renderizarOrcamento(event.data.dados);
+                localStorage.setItem('orcamentoPrintData', JSON.stringify(event.data.dados));
+            }
+            
+            if (event.data && event.data.type === 'getOrcamentoData') {
+                const dados = getDadosOrcamento();
+                if (event.source) {
+                    event.source.postMessage({
+                        type: 'orcamentoDataResponse',
+                        dados: dados
+                    }, '*');
+                }
+            }
+        });
+
+        // ===== FUNÇÃO MELHORADA PARA BUSCAR DADOS =====
         function getDadosOrcamento() {
             try {
-                if (window.parent && window.parent.getDadosOrcamentoPrint) {
-                    return window.parent.getDadosOrcamentoPrint();
+                // Verificar se o parent tem os dados
+                if (window.parent && window.parent.getDadosOrcamentoAtual) {
+                    return window.parent.getDadosOrcamentoAtual();
                 }
-                // Fallback: tentar pegar do localStorage
+                
+                // Tentar do localStorage
                 const saved = localStorage.getItem('orcamentoPrintData');
                 if (saved) {
                     return JSON.parse(saved);
                 }
+                
+                // Tentar da URL
+                const params = new URLSearchParams(window.location.search);
+                const dadosParam = params.get('dados');
+                if (dadosParam) {
+                    return JSON.parse(decodeURIComponent(dadosParam));
+                }
+                
                 return null;
             } catch (e) {
                 console.error('Erro ao buscar dados:', e);
@@ -885,14 +913,6 @@
                     }
                 }
             }
-
-            // Escutar mensagens do parent
-            window.addEventListener('message', function(event) {
-                if (event.data && event.data.type === 'orcamentoData') {
-                    renderizarOrcamento(event.data.dados);
-                    localStorage.setItem('orcamentoPrintData', JSON.stringify(event.data.dados));
-                }
-            });
         });
 
         // ===== FECHAR COM ESC =====
