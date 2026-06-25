@@ -180,6 +180,29 @@
             margin-bottom: 12px;
         }
 
+        /* TOAST */
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            z-index: 9999;
+            max-width: 400px;
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
         @media (max-width: 768px) {
             .page-header {
                 flex-direction: column;
@@ -208,6 +231,71 @@
             .resumo-orcamento {
                 grid-template-columns: 1fr;
             }
+        }
+
+        /* Dark Mode */
+        body.dark-mode .page-header {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .page-header h2 {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .orcamento-form {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .orcamento-form select,
+        body.dark-mode .orcamento-form input {
+            background: #0f172a;
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .resumo-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .resumo-card .valor {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .orcamento-table th {
+            background: #0f172a;
+            color: #94a3b8;
+            border-color: #334155;
+        }
+
+        body.dark-mode .orcamento-table td {
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .orcamento-table tr:hover td {
+            background: #0f172a;
+        }
+
+        body.dark-mode .orcamento-table .total-row {
+            background: #1a2332;
+        }
+
+        body.dark-mode .badge-status.aprovado {
+            background: #065f46;
+            color: #d1fae5;
+        }
+
+        body.dark-mode .badge-status.pendente {
+            background: #92400e;
+            color: #fef3c7;
+        }
+
+        body.dark-mode .badge-status.cancelado {
+            background: #991b1b;
+            color: #fee2e2;
         }
     </style>
 </head>
@@ -242,9 +330,9 @@
                 <label>Status</label>
                 <select id="filterStatus" onchange="filtrarOrcamentos()">
                     <option value="">Todos os status</option>
-                    <option value="aprovado">Aprovado</option>
-                    <option value="pendente">Pendente</option>
-                    <option value="cancelado">Cancelado</option>
+                    <option value="aprovado">✅ Aprovado</option>
+                    <option value="pendente">⏳ Pendente</option>
+                    <option value="cancelado">❌ Cancelado</option>
                 </select>
             </div>
         </div>
@@ -340,9 +428,9 @@
                 <div class="form-group">
                     <label>Status</label>
                     <select id="formStatus">
-                        <option value="pendente">Pendente</option>
-                        <option value="aprovado">Aprovado</option>
-                        <option value="cancelado">Cancelado</option>
+                        <option value="pendente">⏳ Pendente</option>
+                        <option value="aprovado">✅ Aprovado</option>
+                        <option value="cancelado">❌ Cancelado</option>
                     </select>
                 </div>
                 <div class="form-group" style="background: #f8fafc; padding: 12px; border-radius: 8px;">
@@ -364,11 +452,81 @@
         let orcamentosFiltrados = [];
         let clientesData = [];
 
+        // ============ ACESSO AO DB ============
+        function getDb() {
+            try {
+                if (window.parent && window.parent.getDadosGlobais) {
+                    return window.parent.getDadosGlobais().db;
+                }
+                if (window.db) {
+                    return window.db;
+                }
+                throw new Error('Database não disponível');
+            } catch (error) {
+                console.error('Erro ao acessar database:', error);
+                mostrarNotificacao('❌ Erro ao conectar ao banco de dados', 'error');
+                return null;
+            }
+        }
+
+        // ============ NOTIFICAÇÕES ============
+        function mostrarNotificacao(mensagem, tipo = 'info') {
+            const cores = {
+                success: '#0b9e5e',
+                error: '#dc2626',
+                warning: '#f59e0b',
+                info: '#4f46e5'
+            };
+
+            const icones = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${cores[tipo] || cores.info};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 12px;
+                font-size: 14px;
+                font-family: 'Inter', sans-serif;
+                box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+                z-index: 9999;
+                max-width: 400px;
+                animation: slideIn 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            `;
+            
+            toast.innerHTML = `<span>${icones[tipo] || 'ℹ️'}</span> ${mensagem}`;
+            
+            const existing = document.querySelector('.toast-notification');
+            if (existing) existing.remove();
+            
+            toast.className = 'toast-notification';
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
         // ============ CARREGAR ORÇAMENTOS ============
         async function carregarOrcamentos() {
             try {
-                const app = window.parent.getDadosGlobais();
-                const db = app.db;
+                const db = getDb();
+                if (!db) {
+                    throw new Error('Database não disponível');
+                }
 
                 const [orcamentos, clientes] = await Promise.all([
                     db.getOrcamentos(),
@@ -382,10 +540,16 @@
                 atualizarFiltros();
                 renderizarOrcamentos();
                 atualizarResumo();
-                window.parent.atualizarStatus('✅ Orçamentos carregados');
+                
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus(`✅ ${orcamentos.length} orçamentos carregados`);
+                }
             } catch (error) {
                 console.error('Erro ao carregar orçamentos:', error);
-                window.parent.atualizarStatus('❌ Erro ao carregar orçamentos');
+                mostrarNotificacao('❌ Erro ao carregar orçamentos: ' + error.message, 'error');
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('❌ Erro ao carregar orçamentos');
+                }
             }
         }
 
@@ -463,13 +627,14 @@
                         <td>${idx + 1}</td>
                         <td><strong>${clienteNome}</strong></td>
                         <td>${orc.vendedor || '-'}</td>
-                        <td style="font-size: 13px;">${orc.condicoes || '-'}<br><small>${orc.prazo || ''}</small></td>
+                        <td style="font-size: 13px;">${orc.condicoes || '-'}<br><small style="color: #94a3b8;">${orc.prazo || ''}</small></td>
                         <td><strong>R$ ${(orc.valorTotal || 0).toFixed(2)}</strong></td>
                         <td><span class="badge-status ${statusClasses[orc.status] || ''}">${statusLabel}</span></td>
                         <td>${orc.dataCriacao ? new Date(orc.dataCriacao).toLocaleDateString('pt-BR') : '-'}</td>
                         <td>
-                            <button class="btn btn-primary btn-sm" onclick="editarOrcamento('${orc.id}')">✏️</button>
-                            <button class="btn btn-danger btn-sm" onclick="excluirOrcamento('${orc.id}')">🗑️</button>
+                            <button class="btn btn-primary btn-sm" onclick="editarOrcamento('${orc.id}')" title="Editar">✏️</button>
+                            <button class="btn btn-success btn-sm" onclick="imprimirOrcamento('${orc.id}')" title="Imprimir">🖨️</button>
+                            <button class="btn btn-danger btn-sm" onclick="excluirOrcamento('${orc.id}')" title="Excluir">🗑️</button>
                         </td>
                     </tr>
                 `;
@@ -558,35 +723,52 @@
             };
 
             if (!data.clienteId || !data.vendedor) {
-                alert('Cliente e Vendedor são obrigatórios!');
+                mostrarNotificacao('⚠️ Cliente e Vendedor são obrigatórios!', 'warning');
                 return;
             }
 
             if (data.valorTotal <= 0) {
-                alert('Informe um valor total válido!');
+                mostrarNotificacao('⚠️ Informe um valor total válido!', 'warning');
                 return;
             }
 
             try {
-                const app = window.parent.getDadosGlobais();
-                const db = app.db;
+                const db = getDb();
+                if (!db) {
+                    throw new Error('Database não disponível');
+                }
+
                 const id = document.getElementById('formEditIndex').value;
+                let mensagem = '';
+
+                // Buscar nome do cliente
+                const cliente = clientesData.find(c => c.id === data.clienteId);
+                data.clienteNome = cliente ? cliente.nome : '';
 
                 if (id && id !== '-1') {
                     data.id = id;
                     await db.salvarOrcamento(data);
-                    window.parent.atualizarStatus('✅ Orçamento atualizado');
+                    mensagem = '✅ Orçamento atualizado com sucesso!';
                 } else {
+                    data.dataCriacao = new Date().toISOString();
                     await db.salvarOrcamento(data);
-                    window.parent.atualizarStatus('✅ Orçamento criado');
+                    mensagem = '✅ Orçamento criado com sucesso!';
+                }
+
+                mostrarNotificacao(mensagem, 'success');
+                
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus(mensagem);
                 }
 
                 fecharModal('modalOrcamento');
                 await carregarOrcamentos();
             } catch (error) {
                 console.error('Erro ao salvar orçamento:', error);
-                alert('Erro ao salvar: ' + error.message);
-                window.parent.atualizarStatus('❌ Erro ao salvar orçamento');
+                mostrarNotificacao('❌ Erro ao salvar: ' + error.message, 'error');
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('❌ Erro ao salvar orçamento');
+                }
             }
         }
 
@@ -595,29 +777,160 @@
             if (!confirm('Tem certeza que deseja excluir este orçamento?')) return;
 
             try {
-                const app = window.parent.getDadosGlobais();
-                const db = app.db;
+                const db = getDb();
+                if (!db) {
+                    throw new Error('Database não disponível');
+                }
+
                 await db.deletarOrcamento(id);
-                window.parent.atualizarStatus('🗑️ Orçamento excluído');
+                mostrarNotificacao('🗑️ Orçamento excluído com sucesso!', 'success');
+                
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('🗑️ Orçamento excluído');
+                }
+
                 await carregarOrcamentos();
             } catch (error) {
                 console.error('Erro ao excluir orçamento:', error);
-                alert('Erro ao excluir: ' + error.message);
-                window.parent.atualizarStatus('❌ Erro ao excluir orçamento');
+                mostrarNotificacao('❌ Erro ao excluir: ' + error.message, 'error');
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('❌ Erro ao excluir orçamento');
+                }
+            }
+        }
+
+        // ============ IMPRIMIR ORÇAMENTO ============
+        async function imprimirOrcamento(id) {
+            try {
+                const orc = orcamentosData.find(o => o.id === id);
+                if (!orc) {
+                    mostrarNotificacao('❌ Orçamento não encontrado', 'error');
+                    return;
+                }
+
+                // Buscar cliente
+                const cliente = clientesData.find(c => c.id === orc.clienteId);
+                
+                // Buscar produtos do orçamento
+                const produtos = await buscarProdutosDoOrcamento(id);
+                
+                // Montar dados para impressão
+                const dadosImpressao = {
+                    id: orc.id,
+                    cliente: cliente || { nome: orc.clienteNome || 'Cliente não encontrado' },
+                    vendedor: orc.vendedor || 'Não informado',
+                    status: orc.status || 'pendente',
+                    produtos: produtos.length > 0 ? produtos : [],
+                    condicoes: {
+                        validade: '30 dias',
+                        pagamento: orc.condicoes || '50% entrada + 50% na entrega',
+                        garantia: '12 meses',
+                        prazo: orc.prazo || '15 dias úteis',
+                        observacao: 'Valores sujeitos a alteração conforme cotação do dia'
+                    },
+                    observacoes: orc.observacoes || '',
+                    empresaNome: 'SmartHome Automação',
+                    empresaSub: 'Projetos e instalação de automação residencial',
+                    numero: orc.id || 'ORC-' + String(Math.floor(100000 + Math.random() * 900000)),
+                    valorTotal: orc.valorTotal || 0,
+                    dataCriacao: orc.dataCriacao || new Date().toISOString()
+                };
+
+                // Verificar se há produtos
+                if (produtos.length === 0) {
+                    mostrarNotificacao('⚠️ Este orçamento não possui produtos associados. A impressão mostrará apenas o resumo.', 'warning');
+                }
+
+                // Abrir página de impressão com os dados
+                if (window.parent && window.parent.abrirImpressaoComDados) {
+                    window.parent.abrirImpressaoComDados(dadosImpressao);
+                } else {
+                    // Fallback: abrir em nova janela
+                    const dadosParam = encodeURIComponent(JSON.stringify(dadosImpressao));
+                    window.open(`pages/orcamento-print.html?dados=${dadosParam}`, '_blank');
+                }
+
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('🖨️ Abrindo impressão do orçamento');
+                }
+                
+            } catch (error) {
+                console.error('❌ Erro ao imprimir orçamento:', error);
+                mostrarNotificacao('❌ Erro ao imprimir: ' + error.message, 'error');
+            }
+        }
+
+        // ============ BUSCAR PRODUTOS DO ORÇAMENTO ============
+        async function buscarProdutosDoOrcamento(orcamentoId) {
+            try {
+                const db = getDb();
+                if (!db) return [];
+
+                // Buscar do localStorage (orcamento-comodo)
+                const saved = localStorage.getItem(`orcamento_comodo_v3_${orcamentoId}`);
+                if (saved) {
+                    const data = JSON.parse(saved);
+                    const produtos = [];
+                    const todosProdutos = await db.getProdutos(true);
+                    
+                    Object.entries(data).forEach(([key, entry]) => {
+                        if (entry && entry.qtd > 0) {
+                            // Tentar encontrar o produto pelo ID
+                            let produto = todosProdutos.find(p => p.id === entry.id);
+                            
+                            // Se não encontrar, tentar pelo ID da chave
+                            if (!produto) {
+                                const idFromKey = key.split('_')[0];
+                                produto = todosProdutos.find(p => p.id === idFromKey);
+                            }
+                            
+                            if (produto) {
+                                produtos.push({
+                                    ...produto,
+                                    qtd: entry.qtd,
+                                    comodo: entry.comodo || produto.comodo || 'Sem Cômodo'
+                                });
+                            }
+                        }
+                    });
+                    
+                    return produtos;
+                }
+                return [];
+            } catch (error) {
+                console.error('Erro ao buscar produtos do orçamento:', error);
+                return [];
             }
         }
 
         // ============ EXPORTAR ============
         function exportarOrcamentoTotal() {
             if (orcamentosFiltrados.length === 0) {
-                alert('Nenhum orçamento para exportar.');
+                mostrarNotificacao('⚠️ Nenhum orçamento para exportar.', 'warning');
                 return;
             }
 
             let html = `
-                <h2>Relatório de Orçamentos</h2>
-                <p>Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
-                <table border="1" cellpadding="5">
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Relatório de Orçamentos</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 30px; }
+                        h1 { color: #1a1a2e; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th { background: #4f46e5; color: white; padding: 10px; text-align: left; }
+                        td { padding: 8px 10px; border-bottom: 1px solid #ddd; }
+                        .total { font-weight: bold; background: #f0f4ff; }
+                        .footer { margin-top: 30px; color: #888; font-size: 12px; }
+                    </style>
+                </head>
+                <body>
+                <h1>📊 Relatório de Orçamentos</h1>
+                <p><strong>Gerado em:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+                <p><strong>Total de orçamentos:</strong> ${orcamentosFiltrados.length}</p>
+                <hr>
+                <table>
                     <tr>
                         <th>#</th>
                         <th>Cliente</th>
@@ -634,48 +947,86 @@
                 const cliente = clientesData.find(c => c.id === orc.clienteId);
                 const clienteNome = cliente ? cliente.nome : 'Cliente removido';
                 totalGeral += orc.valorTotal || 0;
+                
+                const statusLabels = {
+                    'aprovado': '✅ Aprovado',
+                    'pendente': '⏳ Pendente',
+                    'cancelado': '❌ Cancelado'
+                };
+                
                 html += `
                     <tr>
                         <td>${idx + 1}</td>
-                        <td>${clienteNome}</td>
+                        <td><strong>${clienteNome}</strong></td>
                         <td>${orc.vendedor || '-'}</td>
                         <td>${orc.condicoes || '-'}</td>
-                        <td>R$ ${(orc.valorTotal || 0).toFixed(2)}</td>
-                        <td>${orc.status || '-'}</td>
+                        <td><strong>R$ ${(orc.valorTotal || 0).toFixed(2)}</strong></td>
+                        <td>${statusLabels[orc.status] || orc.status || '-'}</td>
                         <td>${orc.dataCriacao ? new Date(orc.dataCriacao).toLocaleDateString('pt-BR') : '-'}</td>
                     </tr>
                 `;
             });
 
             html += `
-                    <tr style="font-weight: bold; background: #f0f0f0;">
-                        <td colspan="4">TOTAL GERAL</td>
-                        <td>R$ ${totalGeral.toFixed(2)}</td>
+                    <tr class="total">
+                        <td colspan="4" style="text-align: right;">TOTAL GERAL</td>
+                        <td><strong>R$ ${totalGeral.toFixed(2)}</strong></td>
                         <td colspan="2"></td>
                     </tr>
                 </table>
+                <div class="footer">Gerado pelo SmartHome Orçamentos v2.0</div>
+                </body></html>
             `;
 
-            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `orcamentos_${new Date().toISOString().slice(0, 10)}.xls`;
+            a.download = `orcamentos_${new Date().toISOString().slice(0, 10)}.html`;
             a.click();
             URL.revokeObjectURL(url);
 
-            window.parent.atualizarStatus('📊 Relatório exportado');
+            mostrarNotificacao('📊 Relatório exportado com sucesso!', 'success');
+            if (window.parent && window.parent.atualizarStatus) {
+                window.parent.atualizarStatus('📊 Relatório exportado');
+            }
         }
 
         // ============ INICIALIZAR ============
-        carregarOrcamentos();
-
-        // Fechar modal ao clicar fora
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('modal')) {
-                e.target.classList.remove('active');
+        document.addEventListener('DOMContentLoaded', function() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
             }
+
+            carregarOrcamentos();
+
+            // Fechar modal com ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    document.querySelectorAll('.modal.active').forEach(modal => {
+                        modal.classList.remove('active');
+                    });
+                }
+            });
+
+            // Fechar modal ao clicar fora
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal')) {
+                    e.target.classList.remove('active');
+                }
+            });
         });
+
+        // Adicionar estilo para animação
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateX(30px); }
+                to { opacity: 1; transform: translateX(0); }
+            }
+        `;
+        document.head.appendChild(styleSheet);
     </script>
 </body>
 </html>
