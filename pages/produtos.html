@@ -792,599 +792,560 @@
     </div>
 
     <script>
-        // ============ ESTADO ============
-        let produtosData = [];
-        let produtosFiltrados = [];
+    // ============ ESTADO ============
+    let produtosData = [];
+    let produtosFiltrados = [];
 
-        // ============ GERAR CÓDIGO ============
-        function gerarCodigoAleatorio() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let codigo = '';
-            for (let i = 0; i < 6; i++) {
-                codigo += chars.charAt(Math.floor(Math.random() * chars.length));
-            }
-            document.getElementById('formCodigo').value = codigo;
+    // ============ GERAR CÓDIGO ============
+    function gerarCodigoAleatorio() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let codigo = '';
+        for (let i = 0; i < 6; i++) {
+            codigo += chars.charAt(Math.floor(Math.random() * chars.length));
         }
+        document.getElementById('formCodigo').value = codigo;
+    }
 
-        // ============ ACESSO AO DB ============
-        function getDb() {
-            try {
-                if (window.parent && window.parent.getDadosGlobais) {
-                    return window.parent.getDadosGlobais().db;
-                }
-                if (window.db) {
-                    return window.db;
-                }
+    // ============ ACESSO AO DB ============
+    function getDb() {
+        try {
+            if (window.parent && window.parent.getDadosGlobais) {
+                return window.parent.getDadosGlobais().db;
+            }
+            if (window.db) {
+                return window.db;
+            }
+            throw new Error('Database não disponível');
+        } catch (error) {
+            console.error('Erro ao acessar database:', error);
+            mostrarNotificacao('❌ Erro ao conectar ao banco de dados', 'error');
+            return null;
+        }
+    }
+
+    // ============ NOTIFICAÇÕES ============
+    function mostrarNotificacao(mensagem, tipo = 'info') {
+        const cores = {
+            success: '#0b9e5e',
+            error: '#dc2626',
+            warning: '#f59e0b',
+            info: '#4f46e5'
+        };
+
+        const icones = {
+            success: '✅',
+            error: '❌',
+            warning: '⚠️',
+            info: 'ℹ️'
+        };
+
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: ${cores[tipo] || cores.info};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            z-index: 9999;
+            max-width: 400px;
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        `;
+        
+        toast.innerHTML = `<span>${icones[tipo] || 'ℹ️'}</span> ${mensagem}`;
+        
+        const existing = document.querySelector('.toast-notification');
+        if (existing) existing.remove();
+        
+        toast.className = 'toast-notification';
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    // ============ CARREGAR PRODUTOS - CORRIGIDO ============
+    async function carregarProdutos() {
+        try {
+            const db = getDb();
+            if (!db) {
                 throw new Error('Database não disponível');
-            } catch (error) {
-                console.error('Erro ao acessar database:', error);
-                mostrarNotificacao('❌ Erro ao conectar ao banco de dados', 'error');
-                return null;
-            }
-        }
-
-        // ============ NOTIFICAÇÕES ============
-        function mostrarNotificacao(mensagem, tipo = 'info') {
-            const cores = {
-                success: '#0b9e5e',
-                error: '#dc2626',
-                warning: '#f59e0b',
-                info: '#4f46e5'
-            };
-
-            const icones = {
-                success: '✅',
-                error: '❌',
-                warning: '⚠️',
-                info: 'ℹ️'
-            };
-
-            const toast = document.createElement('div');
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 20px;
-                right: 20px;
-                background: ${cores[tipo] || cores.info};
-                color: white;
-                padding: 12px 20px;
-                border-radius: 12px;
-                font-size: 14px;
-                font-family: 'Inter', sans-serif;
-                box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-                z-index: 9999;
-                max-width: 400px;
-                animation: slideIn 0.3s ease;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            `;
-            
-            toast.innerHTML = `<span>${icones[tipo] || 'ℹ️'}</span> ${mensagem}`;
-            
-            const existing = document.querySelector('.toast-notification');
-            if (existing) existing.remove();
-            
-            toast.className = 'toast-notification';
-            document.body.appendChild(toast);
-
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.3s';
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
-        }
-
-        // ============ CARREGAR PRODUTOS ============
-        async function carregarProdutos() {
-            try {
-                const db = getDb();
-                if (!db) {
-                    throw new Error('Database não disponível');
-                }
-
-                produtosData = await db.getProdutos();
-                produtosFiltrados = [...produtosData];
-                
-                atualizarFiltroCategorias();
-                renderizarProdutos();
-                atualizarStats();
-                
-                const total = produtosData.length;
-                const msg = total > 0 ? `✅ ${total} produtos carregados` : '📭 Nenhum produto cadastrado';
-                mostrarNotificacao(msg, total > 0 ? 'success' : 'info');
-                
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus(`✅ ${total} produtos carregados`);
-                }
-            } catch (error) {
-                console.error('Erro ao carregar produtos:', error);
-                mostrarNotificacao('❌ Erro ao carregar produtos: ' + error.message, 'error');
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus('❌ Erro ao carregar produtos');
-                }
-            }
-        }
-
-        // ============ ATUALIZAR FILTRO DE CATEGORIAS ============
-        function atualizarFiltroCategorias() {
-            const select = document.getElementById('filtroCategoria');
-            const valorAtual = select.value;
-            
-            // Extrair categorias únicas
-            const categorias = [...new Set(produtosData.map(p => p.categoria).filter(Boolean))].sort();
-            
-            select.innerHTML = '<option value="">📂 Todas as categorias</option>';
-            categorias.forEach(cat => {
-                const selected = cat === valorAtual ? 'selected' : '';
-                select.innerHTML += `<option value="${cat}" ${selected}>${cat}</option>`;
-            });
-        }
-
-        // ============ FILTRAR ============
-        function filtrarProdutos() {
-            const termo = document.getElementById('searchInput').value.toLowerCase().trim();
-            const categoria = document.getElementById('filtroCategoria').value;
-            const btnLimpar = document.getElementById('btnLimparBusca');
-
-            if (termo.length > 0 || categoria) {
-                btnLimpar.classList.add('visible');
-            } else {
-                btnLimpar.classList.remove('visible');
             }
 
-            produtosFiltrados = produtosData.filter(p => {
-                // Filtro por termo
-                let matchTermo = true;
-                if (termo) {
-                    const codigo = (p.codigo || '').toLowerCase();
-                    const nome = (p.nome || p.dispositivo || '').toLowerCase();
-                    const marca = (p.marca || '').toLowerCase();
-                    const espec = (p.especificacoes || '').toLowerCase();
-                    const protocolo = (p.protocolo || '').toLowerCase();
-                    const categoriaProd = (p.categoria || '').toLowerCase();
-                    
-                    matchTermo = codigo.includes(termo) ||
-                                 nome.includes(termo) ||
-                                 marca.includes(termo) ||
-                                 espec.includes(termo) ||
-                                 protocolo.includes(termo) ||
-                                 categoriaProd.includes(termo);
-                }
-                
-                // Filtro por categoria
-                let matchCategoria = true;
-                if (categoria) {
-                    matchCategoria = (p.categoria || '') === categoria;
-                }
-                
-                return matchTermo && matchCategoria;
-            });
-
-            renderizarProdutos();
-            atualizarStats();
-        }
-
-        function limparBusca() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('filtroCategoria').value = '';
-            document.getElementById('btnLimparBusca').classList.remove('visible');
+            console.log('📦 Carregando produtos...');
+            
+            // Forçar refresh para buscar do Firebase
+            produtosData = await db.getProdutos(true);
+            console.log(`📦 ${produtosData.length} produtos carregados`);
+            
+            // Se não houver produtos, mostrar mensagem
+            if (produtosData.length === 0) {
+                console.log('📭 Nenhum produto cadastrado');
+                mostrarNotificacao('📭 Nenhum produto cadastrado. Clique em "Novo Produto" para adicionar.', 'info');
+            }
+            
             produtosFiltrados = [...produtosData];
+            
+            atualizarFiltroCategorias();
             renderizarProdutos();
             atualizarStats();
-            document.getElementById('searchInput').focus();
-        }
-
-        function atualizarStats() {
-            document.getElementById('totalProdutosDisplay').textContent = produtosFiltrados.length;
-        }
-
-        // ============ RENDERIZAR ============
-        function renderizarProdutos() {
-            const container = document.getElementById('produtosContainer');
-
-            if (produtosFiltrados.length === 0) {
-                const termo = document.getElementById('searchInput').value.trim();
-                const categoria = document.getElementById('filtroCategoria').value;
-                const temFiltro = termo || categoria;
-                
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="icone">${temFiltro ? '🔍' : '📦'}</div>
-                        <h3>${temFiltro ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}</h3>
-                        <p>${temFiltro ? 'Tente buscar por outro termo ou categoria' : 'Clique em "Novo Produto" para adicionar'}</p>
-                        ${temFiltro ? `<button class="btn btn-outline" onclick="limparBusca()" style="margin-top: 12px;">Limpar filtros</button>` : ''}
-                    </div>
-                `;
-                return;
-            }
-
-            const protocolClasses = {
-                'Wi-Fi': 'protocolo-wifi',
-                'Zigbee': 'protocolo-zigbee',
-                'RF': 'protocolo-rf',
-                'Bluetooth': 'protocolo-wifi',
-                'Z-Wave': 'protocolo-zigbee',
-                'Cabeado': 'protocolo-rf'
-            };
-
-            // Ícones para categorias
-            const categoriaIcones = {
-                'Interruptores': '🔌',
-                'Tomadas': '🔌',
-                'Lâmpadas': '💡',
-                'Sensores': '📡',
-                'Câmeras': '📷',
-                'Automação': '🤖',
-                'Áudio e Vídeo': '🔊',
-                'Segurança': '🔒',
-                'Iluminação': '💡',
-                'Climatização': '❄️',
-                'Cortinas': '🪟',
-                'Acessórios': '🔧',
-                'Outros': '📦'
-            };
-
-            container.innerHTML = produtosFiltrados.map(p => {
-                const codigo = p.codigo || p.id?.slice(0, 6)?.toUpperCase() || '------';
-                const nome = p.nome || p.dispositivo || 'Sem nome';
-                const marca = p.marca || 'Sem marca';
-                const protocolo = p.protocolo || 'Wi-Fi';
-                const preco = p.preco || 0;
-                const qtd = p.qtdPadrao || 0;
-                const imagem = p.imagem || '';
-                const especificacoes = p.especificacoes || '';
-                const temEspec = especificacoes.length > 0;
-                const categoria = p.categoria || 'Outros';
-                const iconeCategoria = categoriaIcones[categoria] || '📦';
-
-                return `
-                    <div class="produto-card" data-id="${p.id}">
-                        <div class="card-header">
-                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                <span class="codigo">#${codigo}</span>
-                                <span class="categoria-badge">${iconeCategoria} ${categoria}</span>
-                            </div>
-                            <div class="acoes-topo">
-                                <button class="btn btn-primary btn-sm" onclick="editarProduto('${p.id}')" title="Editar">
-                                    ✏️
-                                </button>
-                                <button class="btn btn-danger btn-sm" onclick="excluirProduto('${p.id}')" title="Excluir">
-                                    🗑️
-                                </button>
-                            </div>
-                        </div>
-                        <div class="card-body">
-                            <div class="imagem-area">
-                                ${imagem ? 
-                                    `<img src="${imagem}" alt="${nome}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : 
-                                    ''
-                                }
-                                <span class="placeholder" ${imagem ? 'style="display:none"' : ''}>
-                                    ${imagem ? '' : '🖼️'}
-                                </span>
-                            </div>
-                            <div class="info-principal">
-                                <div class="nome">${nome}</div>
-                                <div class="marca"><i class="fas fa-tag"></i> ${marca}</div>
-                                <div class="detalhes">
-                                    <span class="tag ${protocolClasses[protocolo] || ''}">${protocolo}</span>
-                                    <span class="tag preco">R$ ${preco.toFixed(2)}</span>
-                                    <span class="tag qtd">📦 ${qtd} un</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="especificacoes-area">
-                            <button class="btn-especificacoes" onclick="toggleEspecificacoes(this)">
-                                <span>📋 Especificações Técnicas</span>
-                                <span class="icone">▼</span>
-                            </button>
-                            <div class="especificacoes-content">
-                                <div class="texto ${temEspec ? '' : 'empty'}">
-                                    ${temEspec ? especificacoes : 'Nenhuma especificação cadastrada'}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-footer">
-                            <span class="categoria-tag">
-                                <i class="fas fa-folder"></i> ${categoria}
-                            </span>
-                            <span style="font-size: 12px; color: #94a3b8;">
-                                ID: ${p.id?.slice(0, 8) || '---'}
-                            </span>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // ============ ESPECIFICAÇÕES ============
-        function toggleEspecificacoes(btn) {
-            const content = btn.parentElement.querySelector('.especificacoes-content');
-            const icon = btn.querySelector('.icone');
             
-            content.classList.toggle('open');
-            icon.classList.toggle('open');
-        }
-
-        // ============ IMAGEM ============
-        function previewImagem(url) {
-            const preview = document.getElementById('imagePreview');
-            if (url && url.trim()) {
-                preview.innerHTML = `<img src="${url}" alt="Preview" onerror="this.style.display='none';this.parentElement.innerHTML='<span class=\\'placeholder\\'>❌ Erro ao carregar imagem</span>'">`;
-            } else {
-                preview.innerHTML = `<span class="placeholder">🖼️ Nenhuma imagem selecionada</span>`;
-            }
-        }
-
-        // ============ MODAL ============
-        function abrirModalProduto(data = null) {
-            const modal = document.getElementById('modalProduto');
-            document.getElementById('modalProdutoTitle').textContent = data ? 'Editar Produto' : 'Novo Produto';
-
-            if (data) {
-                document.getElementById('formCodigo').value = data.codigo || data.id?.slice(0, 6)?.toUpperCase() || '';
-                document.getElementById('formMarca').value = data.marca || '';
-                document.getElementById('formNome').value = data.nome || data.dispositivo || '';
-                document.getElementById('formCategoria').value = data.categoria || '';
-                document.getElementById('formProtocolo').value = data.protocolo || 'Wi-Fi';
-                document.getElementById('formQuantidade').value = data.qtdPadrao || 0;
-                document.getElementById('formPreco').value = data.preco || 0;
-                document.getElementById('formImagem').value = data.imagem || '';
-                document.getElementById('formEspecificacoes').value = data.especificacoes || '';
-                document.getElementById('formEditIndex').value = data.id;
-                previewImagem(data.imagem || '');
-            } else {
-                document.getElementById('formCodigo').value = '';
-                document.getElementById('formMarca').value = '';
-                document.getElementById('formNome').value = '';
-                document.getElementById('formCategoria').value = '';
-                document.getElementById('formProtocolo').value = 'Zigbee';
-                document.getElementById('formQuantidade').value = 1;
-                document.getElementById('formPreco').value = 150;
-                document.getElementById('formImagem').value = '';
-                document.getElementById('formEspecificacoes').value = '';
-                document.getElementById('formEditIndex').value = '-1';
-                document.getElementById('imagePreview').innerHTML = `<span class="placeholder">🖼️ Nenhuma imagem selecionada</span>`;
-                gerarCodigoAleatorio();
-            }
-
-            modal.classList.add('active');
-            setTimeout(() => document.getElementById('formCodigo').focus(), 100);
-        }
-
-        function fecharModal(id) {
-            document.getElementById(id).classList.remove('active');
-        }
-
-        // ============ SALVAR PRODUTO ============
-        async function salvarProduto(event) {
-            event.preventDefault();
+            const total = produtosData.length;
+            const msg = total > 0 ? `✅ ${total} produtos carregados` : '📭 Nenhum produto cadastrado';
+            mostrarNotificacao(msg, total > 0 ? 'success' : 'info');
             
-            const codigo = document.getElementById('formCodigo').value.trim().toUpperCase();
-            const marca = document.getElementById('formMarca').value.trim();
-            const nome = document.getElementById('formNome').value.trim();
-            const categoria = document.getElementById('formCategoria').value;
-            const protocolo = document.getElementById('formProtocolo').value;
-            const qtdPadrao = parseInt(document.getElementById('formQuantidade').value) || 0;
-            const preco = parseFloat(document.getElementById('formPreco').value) || 0;
-            const imagem = document.getElementById('formImagem').value.trim();
-            const especificacoes = document.getElementById('formEspecificacoes').value.trim();
-
-            if (!codigo || codigo.length !== 6) {
-                mostrarNotificacao('⚠️ Código deve ter 6 caracteres!', 'warning');
-                document.getElementById('formCodigo').focus();
-                return;
+            if (window.parent && window.parent.atualizarStatus) {
+                window.parent.atualizarStatus(`✅ ${total} produtos carregados`);
             }
-
-            if (!marca) {
-                mostrarNotificacao('⚠️ Marca é obrigatória!', 'warning');
-                document.getElementById('formMarca').focus();
-                return;
+        } catch (error) {
+            console.error('❌ Erro ao carregar produtos:', error);
+            mostrarNotificacao('❌ Erro ao carregar produtos: ' + error.message, 'error');
+            if (window.parent && window.parent.atualizarStatus) {
+                window.parent.atualizarStatus('❌ Erro ao carregar produtos');
             }
-
-            if (!nome) {
-                mostrarNotificacao('⚠️ Nome do dispositivo é obrigatório!', 'warning');
-                document.getElementById('formNome').focus();
-                return;
-            }
-
-            if (!categoria) {
-                mostrarNotificacao('⚠️ Selecione uma categoria!', 'warning');
-                document.getElementById('formCategoria').focus();
-                return;
-            }
-
-            // Verificar código duplicado
-            const id = document.getElementById('formEditIndex').value;
-            const existe = produtosData.some(p => 
-                p.codigo === codigo && p.id !== id
-            );
-            if (existe) {
-                mostrarNotificacao('⚠️ Código já está em uso!', 'warning');
-                document.getElementById('formCodigo').focus();
-                return;
-            }
-
-            try {
-                const db = getDb();
-                if (!db) {
-                    throw new Error('Database não disponível');
-                }
-
-                const data = {
-                    codigo: codigo,
-                    marca: marca,
-                    nome: nome,          // Campo principal
-                    dispositivo: nome,   // Sincronizado com nome
-                    categoria: categoria,
-                    protocolo: protocolo,
-                    qtdPadrao: qtdPadrao,
-                    preco: preco,
-                    imagem: imagem,
-                    especificacoes: especificacoes,
-                    cor: '#4f46e5',
-                    posX: 50,
-                    posY: 50
-                };
-
-                let mensagem = '';
-
-                if (id && id !== '-1') {
-                    data.id = id;
-                    await db.salvarProduto(data);
-                    mensagem = '✅ Produto atualizado com sucesso!';
-                } else {
-                    await db.salvarProduto(data);
-                    mensagem = '✅ Produto criado com sucesso!';
-                }
-
-                mostrarNotificacao(mensagem, 'success');
-                
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus(mensagem);
-                }
-
-                fecharModal('modalProduto');
-                await carregarProdutos();
-            } catch (error) {
-                console.error('Erro ao salvar produto:', error);
-                mostrarNotificacao('❌ Erro ao salvar: ' + error.message, 'error');
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus('❌ Erro ao salvar produto');
-                }
-            }
-        }
-
-            // Verificar código duplicado
-            const id = document.getElementById('formEditIndex').value;
-            const existe = produtosData.some(p => 
-                p.codigo === codigo && p.id !== id
-            );
-            if (existe) {
-                mostrarNotificacao('⚠️ Código já está em uso!', 'warning');
-                document.getElementById('formCodigo').focus();
-                return;
-            }
-
-            try {
-                const db = getDb();
-                if (!db) {
-                    throw new Error('Database não disponível');
-                }
-
-                const data = {
-                    codigo: codigo,
-                    marca: marca,
-                    nome: nome,
-                    dispositivo: nome,
-                    categoria: categoria,
-                    protocolo: protocolo,
-                    qtdPadrao: qtdPadrao,
-                    preco: preco,
-                    imagem: imagem,
-                    especificacoes: especificacoes,
-                    cor: '#4f46e5',
-                    posX: 50,
-                    posY: 50
-                };
-
-                let mensagem = '';
-
-                if (id && id !== '-1') {
-                    data.id = id;
-                    await db.salvarProduto(data);
-                    mensagem = '✅ Produto atualizado com sucesso!';
-                } else {
-                    await db.salvarProduto(data);
-                    mensagem = '✅ Produto criado com sucesso!';
-                }
-
-                mostrarNotificacao(mensagem, 'success');
-                
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus(mensagem);
-                }
-
-                fecharModal('modalProduto');
-                await carregarProdutos();
-            } catch (error) {
-                console.error('Erro ao salvar produto:', error);
-                mostrarNotificacao('❌ Erro ao salvar: ' + error.message, 'error');
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus('❌ Erro ao salvar produto');
-                }
-            }
-        }
-
-        // ============ EDITAR ============
-        function editarProduto(id) {
-            const produto = produtosData.find(p => p.id === id);
-            if (produto) {
-                abrirModalProduto(produto);
-            } else {
-                mostrarNotificacao('❌ Produto não encontrado', 'error');
-            }
-        }
-
-        // ============ EXCLUIR ============
-        async function excluirProduto(id) {
-            if (!confirm('Tem certeza que deseja excluir este produto?')) return;
             
-            try {
-                const db = getDb();
-                if (!db) {
-                    throw new Error('Database não disponível');
-                }
+            // Tenta recarregar após 2 segundos
+            setTimeout(() => {
+                console.log('🔄 Tentando recarregar produtos...');
+                carregarProdutos();
+            }, 2000);
+        }
+    }
 
-                await db.deletarProduto(id);
-                mostrarNotificacao('🗑️ Produto excluído com sucesso!', 'success');
-                
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus('🗑️ Produto excluído');
-                }
+    // ============ ATUALIZAR FILTRO DE CATEGORIAS ============
+    function atualizarFiltroCategorias() {
+        const select = document.getElementById('filtroCategoria');
+        const valorAtual = select.value;
+        
+        // Extrair categorias únicas
+        const categorias = [...new Set(produtosData.map(p => p.categoria).filter(Boolean))].sort();
+        
+        select.innerHTML = '<option value="">📂 Todas as categorias</option>';
+        categorias.forEach(cat => {
+            const selected = cat === valorAtual ? 'selected' : '';
+            select.innerHTML += `<option value="${cat}" ${selected}>${cat}</option>`;
+        });
+    }
 
-                await carregarProdutos();
-            } catch (error) {
-                console.error('Erro ao excluir produto:', error);
-                mostrarNotificacao('❌ Erro ao excluir: ' + error.message, 'error');
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus('❌ Erro ao excluir produto');
-                }
-            }
+    // ============ FILTRAR ============
+    function filtrarProdutos() {
+        const termo = document.getElementById('searchInput').value.toLowerCase().trim();
+        const categoria = document.getElementById('filtroCategoria').value;
+        const btnLimpar = document.getElementById('btnLimparBusca');
+
+        if (termo.length > 0 || categoria) {
+            btnLimpar.classList.add('visible');
+        } else {
+            btnLimpar.classList.remove('visible');
         }
 
-        // ============ INICIALIZAR ============
-        document.addEventListener('DOMContentLoaded', function() {
-            const isDark = localStorage.getItem('darkMode') === 'true';
-            if (isDark) {
-                document.body.classList.add('dark-mode');
+        produtosFiltrados = produtosData.filter(p => {
+            let matchTermo = true;
+            if (termo) {
+                const codigo = (p.codigo || '').toLowerCase();
+                const nome = (p.nome || p.dispositivo || '').toLowerCase();
+                const marca = (p.marca || '').toLowerCase();
+                const espec = (p.especificacoes || '').toLowerCase();
+                const protocolo = (p.protocolo || '').toLowerCase();
+                const categoriaProd = (p.categoria || '').toLowerCase();
+                const comodo = (p.comodo || '').toLowerCase();
+                
+                matchTermo = codigo.includes(termo) ||
+                             nome.includes(termo) ||
+                             marca.includes(termo) ||
+                             espec.includes(termo) ||
+                             protocolo.includes(termo) ||
+                             categoriaProd.includes(termo) ||
+                             comodo.includes(termo);
             }
-
-            carregarProdutos();
-
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    document.querySelectorAll('.modal.active').forEach(modal => {
-                        modal.classList.remove('active');
-                    });
-                }
-            });
-
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('modal')) {
-                    e.target.classList.remove('active');
-                }
-            });
+            
+            let matchCategoria = true;
+            if (categoria) {
+                matchCategoria = (p.categoria || '') === categoria;
+            }
+            
+            return matchTermo && matchCategoria;
         });
 
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes slideIn {
-                from { opacity: 0; transform: translateX(30px); }
-                to { opacity: 1; transform: translateX(0); }
+        renderizarProdutos();
+        atualizarStats();
+    }
+
+    function limparBusca() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('filtroCategoria').value = '';
+        document.getElementById('btnLimparBusca').classList.remove('visible');
+        produtosFiltrados = [...produtosData];
+        renderizarProdutos();
+        atualizarStats();
+        document.getElementById('searchInput').focus();
+    }
+
+    function atualizarStats() {
+        document.getElementById('totalProdutosDisplay').textContent = produtosFiltrados.length;
+    }
+
+    // ============ RENDERIZAR ============
+    function renderizarProdutos() {
+        const container = document.getElementById('produtosContainer');
+
+        if (produtosFiltrados.length === 0) {
+            const termo = document.getElementById('searchInput').value.trim();
+            const categoria = document.getElementById('filtroCategoria').value;
+            const temFiltro = termo || categoria;
+            
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="icone">${temFiltro ? '🔍' : '📦'}</div>
+                    <h3>${temFiltro ? 'Nenhum produto encontrado' : 'Nenhum produto cadastrado'}</h3>
+                    <p>${temFiltro ? 'Tente buscar por outro termo ou categoria' : 'Clique em "Novo Produto" para adicionar'}</p>
+                    ${temFiltro ? `<button class="btn btn-outline" onclick="limparBusca()" style="margin-top: 12px;">Limpar filtros</button>` : ''}
+                </div>
+            `;
+            return;
+        }
+
+        const protocolClasses = {
+            'Wi-Fi': 'protocolo-wifi',
+            'Zigbee': 'protocolo-zigbee',
+            'RF': 'protocolo-rf',
+            'Bluetooth': 'protocolo-wifi',
+            'Z-Wave': 'protocolo-zigbee',
+            'Cabeado': 'protocolo-rf'
+        };
+
+        const categoriaIcones = {
+            'Interruptores': '🔌',
+            'Tomadas': '🔌',
+            'Lâmpadas': '💡',
+            'Sensores': '📡',
+            'Câmeras': '📷',
+            'Automação': '🤖',
+            'Áudio e Vídeo': '🔊',
+            'Segurança': '🔒',
+            'Iluminação': '💡',
+            'Climatização': '❄️',
+            'Cortinas': '🪟',
+            'Acessórios': '🔧',
+            'Outros': '📦'
+        };
+
+        container.innerHTML = produtosFiltrados.map(p => {
+            const codigo = p.codigo || p.id?.slice(0, 6)?.toUpperCase() || '------';
+            const nome = p.nome || p.dispositivo || 'Sem nome';
+            const marca = p.marca || 'Sem marca';
+            const protocolo = p.protocolo || 'Wi-Fi';
+            const preco = p.preco || 0;
+            const qtd = p.qtdPadrao || 0;
+            const imagem = p.imagem || '';
+            const especificacoes = p.especificacoes || '';
+            const temEspec = especificacoes.length > 0;
+            const categoria = p.categoria || 'Outros';
+            const iconeCategoria = categoriaIcones[categoria] || '📦';
+            const comodo = p.comodo || '';
+
+            return `
+                <div class="produto-card" data-id="${p.id}">
+                    <div class="card-header">
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span class="codigo">#${codigo}</span>
+                            <span class="categoria-badge">${iconeCategoria} ${categoria}</span>
+                            ${comodo ? `<span class="categoria-badge" style="background: #dbeafe; color: #1e40af;">🏠 ${comodo}</span>` : ''}
+                        </div>
+                        <div class="acoes-topo">
+                            <button class="btn btn-primary btn-sm" onclick="editarProduto('${p.id}')" title="Editar">
+                                ✏️
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="excluirProduto('${p.id}')" title="Excluir">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="imagem-area">
+                            ${imagem ? 
+                                `<img src="${imagem}" alt="${nome}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">` : 
+                                ''
+                            }
+                            <span class="placeholder" ${imagem ? 'style="display:none"' : ''}>
+                                ${imagem ? '' : '🖼️'}
+                            </span>
+                        </div>
+                        <div class="info-principal">
+                            <div class="nome">${nome}</div>
+                            <div class="marca"><i class="fas fa-tag"></i> ${marca}</div>
+                            <div class="detalhes">
+                                <span class="tag ${protocolClasses[protocolo] || ''}">${protocolo}</span>
+                                <span class="tag preco">R$ ${preco.toFixed(2)}</span>
+                                <span class="tag qtd">📦 ${qtd} un</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="especificacoes-area">
+                        <button class="btn-especificacoes" onclick="toggleEspecificacoes(this)">
+                            <span>📋 Especificações Técnicas</span>
+                            <span class="icone">▼</span>
+                        </button>
+                        <div class="especificacoes-content">
+                            <div class="texto ${temEspec ? '' : 'empty'}">
+                                ${temEspec ? especificacoes.replace(/\n/g, '<br>') : 'Nenhuma especificação cadastrada'}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <span class="categoria-tag">
+                            <i class="fas fa-folder"></i> ${categoria}
+                        </span>
+                        <span style="font-size: 12px; color: #94a3b8;">
+                            ID: ${p.id?.slice(0, 8) || '---'}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // ============ ESPECIFICAÇÕES ============
+    function toggleEspecificacoes(btn) {
+        const content = btn.parentElement.querySelector('.especificacoes-content');
+        const icon = btn.querySelector('.icone');
+        
+        content.classList.toggle('open');
+        icon.classList.toggle('open');
+    }
+
+    // ============ IMAGEM ============
+    function previewImagem(url) {
+        const preview = document.getElementById('imagePreview');
+        if (url && url.trim()) {
+            preview.innerHTML = `<img src="${url}" alt="Preview" onerror="this.style.display='none';this.parentElement.innerHTML='<span class=\\'placeholder\\'>❌ Erro ao carregar imagem</span>'">`;
+        } else {
+            preview.innerHTML = `<span class="placeholder">🖼️ Nenhuma imagem selecionada</span>`;
+        }
+    }
+
+    // ============ MODAL ============
+    function abrirModalProduto(data = null) {
+        const modal = document.getElementById('modalProduto');
+        document.getElementById('modalProdutoTitle').textContent = data ? 'Editar Produto' : 'Novo Produto';
+
+        if (data) {
+            document.getElementById('formCodigo').value = data.codigo || data.id?.slice(0, 6)?.toUpperCase() || '';
+            document.getElementById('formMarca').value = data.marca || '';
+            document.getElementById('formNome').value = data.nome || data.dispositivo || '';
+            document.getElementById('formCategoria').value = data.categoria || '';
+            document.getElementById('formProtocolo').value = data.protocolo || 'Wi-Fi';
+            document.getElementById('formQuantidade').value = data.qtdPadrao || 0;
+            document.getElementById('formPreco').value = data.preco || 0;
+            document.getElementById('formImagem').value = data.imagem || '';
+            document.getElementById('formEspecificacoes').value = data.especificacoes || '';
+            document.getElementById('formEditIndex').value = data.id;
+            previewImagem(data.imagem || '');
+        } else {
+            document.getElementById('formCodigo').value = '';
+            document.getElementById('formMarca').value = '';
+            document.getElementById('formNome').value = '';
+            document.getElementById('formCategoria').value = '';
+            document.getElementById('formProtocolo').value = 'Zigbee';
+            document.getElementById('formQuantidade').value = 1;
+            document.getElementById('formPreco').value = 150;
+            document.getElementById('formImagem').value = '';
+            document.getElementById('formEspecificacoes').value = '';
+            document.getElementById('formEditIndex').value = '-1';
+            document.getElementById('imagePreview').innerHTML = `<span class="placeholder">🖼️ Nenhuma imagem selecionada</span>`;
+            gerarCodigoAleatorio();
+        }
+
+        modal.classList.add('active');
+        setTimeout(() => document.getElementById('formCodigo').focus(), 100);
+    }
+
+    function fecharModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
+
+    // ============ SALVAR PRODUTO ============
+    async function salvarProduto(event) {
+        event.preventDefault();
+        
+        const codigo = document.getElementById('formCodigo').value.trim().toUpperCase();
+        const marca = document.getElementById('formMarca').value.trim();
+        const nome = document.getElementById('formNome').value.trim();
+        const categoria = document.getElementById('formCategoria').value;
+        const protocolo = document.getElementById('formProtocolo').value;
+        const qtdPadrao = parseInt(document.getElementById('formQuantidade').value) || 0;
+        const preco = parseFloat(document.getElementById('formPreco').value) || 0;
+        const imagem = document.getElementById('formImagem').value.trim();
+        const especificacoes = document.getElementById('formEspecificacoes').value.trim();
+
+        if (!codigo || codigo.length !== 6) {
+            mostrarNotificacao('⚠️ Código deve ter 6 caracteres!', 'warning');
+            document.getElementById('formCodigo').focus();
+            return;
+        }
+
+        if (!marca) {
+            mostrarNotificacao('⚠️ Marca é obrigatória!', 'warning');
+            document.getElementById('formMarca').focus();
+            return;
+        }
+
+        if (!nome) {
+            mostrarNotificacao('⚠️ Nome do dispositivo é obrigatório!', 'warning');
+            document.getElementById('formNome').focus();
+            return;
+        }
+
+        if (!categoria) {
+            mostrarNotificacao('⚠️ Selecione uma categoria!', 'warning');
+            document.getElementById('formCategoria').focus();
+            return;
+        }
+
+        // Verificar código duplicado
+        const id = document.getElementById('formEditIndex').value;
+        const existe = produtosData.some(p => 
+            p.codigo === codigo && p.id !== id
+        );
+        if (existe) {
+            mostrarNotificacao('⚠️ Código já está em uso!', 'warning');
+            document.getElementById('formCodigo').focus();
+            return;
+        }
+
+        try {
+            const db = getDb();
+            if (!db) {
+                throw new Error('Database não disponível');
             }
-        `;
-        document.head.appendChild(style);
+
+            const data = {
+                codigo: codigo,
+                marca: marca,
+                nome: nome,
+                dispositivo: nome,
+                categoria: categoria,
+                protocolo: protocolo,
+                qtdPadrao: qtdPadrao,
+                preco: preco,
+                imagem: imagem,
+                especificacoes: especificacoes,
+                cor: '#4f46e5',
+                posX: 50,
+                posY: 50,
+                comodo: 'Sem Cômodo'
+            };
+
+            let mensagem = '';
+
+            if (id && id !== '-1') {
+                data.id = id;
+                await db.salvarProduto(data);
+                mensagem = '✅ Produto atualizado com sucesso!';
+            } else {
+                await db.salvarProduto(data);
+                mensagem = '✅ Produto criado com sucesso!';
+            }
+
+            mostrarNotificacao(mensagem, 'success');
+            
+            if (window.parent && window.parent.atualizarStatus) {
+                window.parent.atualizarStatus(mensagem);
+            }
+
+            fecharModal('modalProduto');
+            await carregarProdutos();
+        } catch (error) {
+            console.error('❌ Erro ao salvar produto:', error);
+            mostrarNotificacao('❌ Erro ao salvar: ' + error.message, 'error');
+            if (window.parent && window.parent.atualizarStatus) {
+                window.parent.atualizarStatus('❌ Erro ao salvar produto');
+            }
+        }
+    }
+
+    // ============ EDITAR ============
+    function editarProduto(id) {
+        const produto = produtosData.find(p => p.id === id);
+        if (produto) {
+            abrirModalProduto(produto);
+        } else {
+            mostrarNotificacao('❌ Produto não encontrado', 'error');
+        }
+    }
+
+    // ============ EXCLUIR ============
+    async function excluirProduto(id) {
+        if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+        
+        try {
+            const db = getDb();
+            if (!db) {
+                throw new Error('Database não disponível');
+            }
+
+            await db.deletarProduto(id);
+            mostrarNotificacao('🗑️ Produto excluído com sucesso!', 'success');
+            
+            if (window.parent && window.parent.atualizarStatus) {
+                window.parent.atualizarStatus('🗑️ Produto excluído');
+            }
+
+            await carregarProdutos();
+        } catch (error) {
+            console.error('❌ Erro ao excluir produto:', error);
+            mostrarNotificacao('❌ Erro ao excluir: ' + error.message, 'error');
+            if (window.parent && window.parent.atualizarStatus) {
+                window.parent.atualizarStatus('❌ Erro ao excluir produto');
+            }
+        }
+    }
+
+    // ============ INICIALIZAR ============
+    document.addEventListener('DOMContentLoaded', function() {
+        const isDark = localStorage.getItem('darkMode') === 'true';
+        if (isDark) {
+            document.body.classList.add('dark-mode');
+        }
+
+        // Aguardar um pouco para garantir que o db está pronto
+        setTimeout(() => {
+            carregarProdutos();
+        }, 500);
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+    });
+
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+    `;
+    document.head.appendChild(style);
     </script>
 </body>
 </html>

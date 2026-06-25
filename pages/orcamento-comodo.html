@@ -1087,18 +1087,25 @@
         }
 
         // ============ CARREGAR DADOS ============
+        // ============ CARREGAR DADOS - CORRIGIDO ============
         async function carregarDados() {
             try {
                 const app = window.parent.getDadosGlobais();
                 const db = app.db;
 
+                console.log('🏗️ Carregando dados para orçamento...');
+                
                 const [produtos, clientes] = await Promise.all([
-                    db.getProdutos(),
+                    db.getProdutos(true),  // Forçar refresh
                     db.getClientes()
                 ]);
 
                 produtosData = produtos;
                 clientesData = clientes;
+                
+                console.log(`📦 ${produtosData.length} produtos carregados`);
+                console.log(`👤 ${clientesData.length} clientes carregados`);
+                
                 atualizarSelectClientes();
                 
                 // Carregar orçamento salvo
@@ -1111,10 +1118,11 @@
                 
                 renderizarCatalogo();
                 renderizarOrcamentoComodo();
-                window.parent.atualizarStatus('✅ Dados carregados');
+                window.parent.atualizarStatus(`✅ ${produtosData.length} produtos e ${clientesData.length} clientes carregados`);
             } catch (error) {
-                console.error('Erro ao carregar dados:', error);
+                console.error('❌ Erro ao carregar dados:', error);
                 window.parent.atualizarStatus('❌ Erro ao carregar dados');
+                mostrarNotificacao('❌ Erro ao carregar dados: ' + error.message, 'error');
             }
         }
 

@@ -13,6 +13,21 @@ class Database {
             timestamp: 0
         };
         this.CACHE_TTL = 60000; // 1 minuto
+        this._initialized = false;
+    }
+
+    // ============ INICIALIZAÇÃO ============
+    async init() {
+        if (this._initialized) return;
+        try {
+            // Verificar conexão
+            await this.database.ref('.info/connected').once('value');
+            this._initialized = true;
+            console.log('✅ Database inicializado');
+        } catch (error) {
+            console.error('❌ Erro ao inicializar database:', error);
+            throw error;
+        }
     }
 
     // ============ CACHE ============
@@ -46,6 +61,7 @@ class Database {
 
     _snapshotToArray(snapshot) {
         const data = [];
+        if (!snapshot.exists()) return data;
         snapshot.forEach(child => {
             data.push({
                 id: child.key,
@@ -126,22 +142,35 @@ class Database {
         }
     }
 
-    // ============ PRODUTOS (VERSÃO SIMPLIFICADA) ============
+    // ============ PRODUTOS - CORRIGIDO ============
     async getProdutos(forceRefresh = false) {
         if (!forceRefresh && this._cache.produtos && this._isCacheValid()) {
+            console.log('📦 Usando cache de produtos:', this._cache.produtos.length);
             return this._cache.produtos;
         }
 
         try {
+            console.log('📦 Buscando produtos do Firebase...');
             const snapshot = await this.database.ref('produtos').once('value');
+            
+            if (!snapshot.exists()) {
+                console.log('📦 Nenhum produto encontrado no Firebase');
+                this._cache.produtos = [];
+                this._cache.timestamp = Date.now();
+                return [];
+            }
+
             const data = this._snapshotToArray(snapshot);
+            console.log(`📦 ${data.length} produtos carregados do Firebase`);
+            
             // Ordenar por código
             data.sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
+            
             this._cache.produtos = data;
             this._cache.timestamp = Date.now();
             return data;
         } catch (error) {
-            console.error('Erro ao buscar produtos:', error);
+            console.error('❌ Erro ao buscar produtos:', error);
             return this._cache.produtos || [];
         }
     }
@@ -156,34 +185,14 @@ class Database {
                 codigo = this._generateCodigo();
             }
             
-            // Verificar código duplicado (apenas para novos produtos ou mudança de código)
-            if (!data.id) {
-                const conflito = await this.getProdutoPorCodigo(codigo);
-                if (conflito) {
-                    // Gerar novo código automaticamente
-                    let tentativas = 0;
-                    while (tentativas < 10) {
-                        codigo = this._generateCodigo();
-                        const existe = await this.getProdutoPorCodigo(codigo);
-                        if (!existe) break;
-                        tentativas++;
-                    }
-                }
-            } else {
-                // Editando - verificar se o código mudou
-                const existing = await this.getProdutoPorId(data.id);
-                if (existing && existing.codigo !== codigo) {
-                    const conflito = await this.getProdutoPorCodigo(codigo);
-                    if (conflito) {
-                        throw new Error('Código já está em uso por outro produto');
-                    }
-                }
-            }
+            // Garantir que nome e dispositivo estão alinhados
+            const nome = data.nome || data.dispositivo || 'Produto sem nome';
+            const dispositivo = data.dispositivo || nome;
 
             const dataToSave = {
-                codigo: codigo,
-                dispositivo: data.dispositivo || data.nome || '',
-                nome: data.nome || data.dispositivo || '',
+                codigo: codigo.toUpperCase(),
+                nome: nome,
+                dispositivo: dispositivo,
                 marca: data.marca || '',
                 categoria: data.categoria || 'Outros',
                 protocolo: data.protocolo || 'Wi-Fi',
@@ -194,20 +203,23 @@ class Database {
                 posY: data.posY || 50,
                 qtdPadrao: data.qtdPadrao || 0,
                 preco: data.preco || 0,
+                comodo: data.comodo || 'Sem Cômodo',
                 updatedAt: new Date().toISOString()
             };
             
             if (data.id) {
                 await this.database.ref(`produtos/${data.id}`).set(dataToSave);
+                console.log(`✅ Produto ${codigo} atualizado`);
                 return data.id;
             } else {
                 const id = this._generateId();
                 dataToSave.createdAt = new Date().toISOString();
                 await this.database.ref(`produtos/${id}`).set(dataToSave);
+                console.log(`✅ Produto ${codigo} criado com ID: ${id}`);
                 return id;
             }
         } catch (error) {
-            console.error('Erro ao salvar produto:', error);
+            console.error('❌ Erro ao salvar produto:', error);
             throw error;
         }
     }
@@ -216,8 +228,9 @@ class Database {
         try {
             this._clearCache();
             await this.database.ref(`produtos/${id}`).remove();
+            console.log(`🗑️ Produto ${id} deletado`);
         } catch (error) {
-            console.error('Erro ao deletar produto:', error);
+            console.error('❌ Erro ao deletar produto:', error);
             throw error;
         }
     }
@@ -231,42 +244,27 @@ class Database {
             }
             return null;
         } catch (error) {
-            console.error('Erro ao buscar produto por ID:', error);
+            console.error('❌ Erro ao buscar produto por ID:', error);
             return null;
         }
     }
 
     async getProdutoPorCodigo(codigo) {
         try {
-            // Não forçar refresh para evitar loops
             const produtos = await this.getProdutos(false);
             return produtos.find(p => p.codigo === codigo) || null;
         } catch (error) {
-            console.error('Erro ao buscar produto por código:', error);
+            console.error('❌ Erro ao buscar produto por código:', error);
             return null;
         }
     }
 
-    async getProdutosPorMarca(marca) {
+    async getProdutosPorCategoria(categoria) {
         try {
             const produtos = await this.getProdutos();
-            return produtos.filter(p => 
-                (p.marca || '').toLowerCase().includes(marca.toLowerCase())
-            );
+            return produtos.filter(p => (p.categoria || '').toLowerCase() === categoria.toLowerCase());
         } catch (error) {
-            console.error('Erro ao buscar produtos por marca:', error);
-            return [];
-        }
-    }
-
-    async getProdutosPorProtocolo(protocolo) {
-        try {
-            const produtos = await this.getProdutos();
-            return produtos.filter(p => 
-                (p.protocolo || '').toLowerCase() === protocolo.toLowerCase()
-            );
-        } catch (error) {
-            console.error('Erro ao buscar produtos por protocolo:', error);
+            console.error('❌ Erro ao buscar produtos por categoria:', error);
             return [];
         }
     }
@@ -280,7 +278,6 @@ class Database {
         try {
             const snapshot = await this.database.ref('orcamentos').once('value');
             const data = this._snapshotToArray(snapshot);
-            // Ordenar por data de criação (mais recentes primeiro)
             data.sort((a, b) => {
                 const dateA = new Date(a.dataCriacao || 0);
                 const dateB = new Date(b.dataCriacao || 0);
@@ -336,16 +333,6 @@ class Database {
         }
     }
 
-    async getOrcamentosPorCliente(clienteId) {
-        try {
-            const orcamentos = await this.getOrcamentos();
-            return orcamentos.filter(o => o.clienteId === clienteId);
-        } catch (error) {
-            console.error('Erro ao buscar orçamentos por cliente:', error);
-            return [];
-        }
-    }
-
     // ============ CONFIGURAÇÕES ============
     async getConfiguracoes(forceRefresh = false) {
         if (!forceRefresh && this._cache.configuracoes && this._isCacheValid()) {
@@ -395,7 +382,6 @@ class Database {
             console.log('Erro ao verificar autorização:', e);
         }
 
-        // Fallback para emails hardcoded
         const emailsGerentes = [
             "paulooliviof@hotmail.com",
             "paulooliviof@gmail.com",
@@ -423,107 +409,95 @@ class Database {
         }
     }
 
-    // ============ UTILITÁRIOS ============
-    async exportarDados() {
-        const [clientes, produtos, orcamentos, configs] = await Promise.all([
-            this.getClientes(true),
-            this.getProdutos(true),
-            this.getOrcamentos(true),
-            this.getConfiguracoes(true)
-        ]);
-
-        return {
-            _exported: true,
-            _timestamp: new Date().toISOString(),
-            _version: '3.0',
-            data: {
-                clients: clientes,
-                products: produtos,
-                budgets: orcamentos,
-                configs: configs
-            }
-        };
-    }
-
-    async importarDados(data) {
+    // ============ SEED DE DADOS EXEMPLO ============
+    async seedDadosExemplo() {
         try {
-            this._clearCache();
+            console.log('🌱 Iniciando seed de dados exemplo...');
             
-            if (data.data?.clients) {
-                for (const c of data.data.clients) {
-                    await this.salvarCliente(c);
-                }
+            // Verificar se já existem produtos
+            const produtos = await this.getProdutos(true);
+            if (produtos.length > 0) {
+                console.log('📦 Produtos já existem, pulando seed');
+                return;
             }
 
-            if (data.data?.products) {
-                for (const p of data.data.products) {
-                    await this.salvarProduto(p);
+            // Produtos exemplo
+            const produtosExemplo = [
+                {
+                    codigo: 'PRD001',
+                    nome: 'Interruptor Inteligente Wi-Fi',
+                    dispositivo: 'Interruptor Inteligente Wi-Fi',
+                    marca: 'Sonoff',
+                    categoria: 'Interruptores',
+                    protocolo: 'Wi-Fi',
+                    preco: 180,
+                    qtdPadrao: 1,
+                    especificacoes: 'Alimentação: 110-220V\nConsumo: 5W\nCompatível com Alexa e Google Home',
+                    comodo: 'Sala de Estar',
+                    cor: '#4f46e5'
+                },
+                {
+                    codigo: 'PRD002',
+                    nome: 'Sensor de Presença Zigbee',
+                    dispositivo: 'Sensor de Presença Zigbee',
+                    marca: 'Aqara',
+                    categoria: 'Sensores',
+                    protocolo: 'Zigbee',
+                    preco: 150,
+                    qtdPadrao: 1,
+                    especificacoes: 'Alimentação: Bateria CR2032\nÂngulo: 120°\nAlcance: 7m',
+                    comodo: 'Sala de Estar',
+                    cor: '#10b981'
+                },
+                {
+                    codigo: 'PRD003',
+                    nome: 'Tomada Inteligente 10A',
+                    dispositivo: 'Tomada Inteligente 10A',
+                    marca: 'Sonoff',
+                    categoria: 'Tomadas',
+                    protocolo: 'Wi-Fi',
+                    preco: 90,
+                    qtdPadrao: 2,
+                    especificacoes: 'Alimentação: 110-220V\nCorrente: 10A\nPotência: 2200W',
+                    comodo: 'Cozinha',
+                    cor: '#f59e0b'
+                },
+                {
+                    codigo: 'PRD004',
+                    nome: 'Lâmpada LED Inteligente',
+                    dispositivo: 'Lâmpada LED Inteligente',
+                    marca: 'Philips',
+                    categoria: 'Lâmpadas',
+                    protocolo: 'Zigbee',
+                    preco: 120,
+                    qtdPadrao: 0,
+                    especificacoes: 'Potência: 9W\nFluxo Luminoso: 800lm\nTemperatura: 2700-6500K',
+                    comodo: 'Quarto',
+                    cor: '#8b5cf6'
+                },
+                {
+                    codigo: 'PRD005',
+                    nome: 'Câmera Wi-Fi 1080p',
+                    dispositivo: 'Câmera Wi-Fi 1080p',
+                    marca: 'Intelbras',
+                    categoria: 'Câmeras',
+                    protocolo: 'Wi-Fi',
+                    preco: 450,
+                    qtdPadrao: 0,
+                    especificacoes: 'Resolução: 1080p\nVisão Noturna: 10m\nÂngulo: 110°\nArmazenamento: MicroSD',
+                    comodo: 'Área Externa',
+                    cor: '#ef4444'
                 }
+            ];
+
+            for (const p of produtosExemplo) {
+                await this.salvarProduto(p);
             }
 
-            if (data.data?.budgets) {
-                for (const o of data.data.budgets) {
-                    await this.salvarOrcamento(o);
-                }
-            }
-
-            if (data.data?.configs) {
-                for (const [key, value] of Object.entries(data.data.configs)) {
-                    await this.salvarConfiguracao(key, value);
-                }
-            }
-
+            console.log('✅ Seed concluído com sucesso!');
             return true;
         } catch (error) {
-            console.error('Erro ao importar dados:', error);
-            throw error;
-        }
-    }
-
-    // ============ MIGRAÇÃO DE PRODUTOS (VERSÃO SIMPLIFICADA) ============
-    async migrarProdutosLegado() {
-        try {
-            console.log('🔄 Iniciando migração de produtos para novo formato...');
-            const produtos = await this.getProdutos(true);
-            let migrados = 0;
-
-            for (const p of produtos) {
-                // Verificar se tem campos legados que precisam ser migrados
-                const precisaMigrar = p.nome || p.dispositivo_antigo || p.comodo || p.infra;
-                
-                if (precisaMigrar) {
-                    const dataToUpdate = {
-                        codigo: p.codigo || this._generateCodigo(),
-                        dispositivo: p.dispositivo || p.nome || 'Sem nome',
-                        nome: p.nome || p.dispositivo || 'Sem nome',
-                        marca: p.marca || 'Sem marca',
-                        categoria: p.categoria || 'Outros',
-                        protocolo: p.protocolo || 'Wi-Fi',
-                        imagem: p.imagem || '',
-                        especificacoes: p.especificacoes || '',
-                        cor: p.cor || '#4f46e5',
-                        posX: p.posX || 50,
-                        posY: p.posY || 50,
-                        qtdPadrao: p.qtdPadrao || 0,
-                        preco: p.preco || 0,
-                        updatedAt: new Date().toISOString()
-                    };
-
-                    // Manter createdAt se existir
-                    if (p.createdAt) {
-                        dataToUpdate.createdAt = p.createdAt;
-                    }
-
-                    await this.database.ref(`produtos/${p.id}`).set(dataToUpdate);
-                    migrados++;
-                    console.log(`   ✅ Produto ${p.id} (${dataToUpdate.codigo}) migrado`);
-                }
-            }
-
-            console.log(`✅ Migração concluída: ${migrados} produtos atualizados`);
-            return migrados;
-        } catch (error) {
-            console.error('❌ Erro na migração:', error);
+            console.error('❌ Erro ao fazer seed:', error);
             throw error;
         }
     }
@@ -537,10 +511,24 @@ window.db = db;
 window.Database = Database;
 
 console.log('✅ Database (Realtime) inicializado - v3.0');
-console.log('📦 Estrutura simplificada:');
+console.log('📦 Estrutura:');
 console.log('   - Clientes: nome, documento, telefone, email, endereco, observacoes');
-console.log('   - Produtos: codigo, dispositivo, nome, marca, categoria, protocolo, imagem, especificacoes, cor, posX, posY, qtdPadrao, preco');
-console.log('   - Orçamentos: clienteId, clienteNome, vendedor, condicoes, prazo, observacoes, status, valorTotal, dataCriacao');
-console.log('   - Configurações: chave -> valor');
+console.log('   - Produtos: codigo, nome, dispositivo, marca, categoria, protocolo, preco, comodo');
+console.log('   - Orçamentos: clienteId, clienteNome, vendedor, condicoes, status, valorTotal');
 
-// Migração automática removida para evitar loops
+// Inicializar e fazer seed automático
+(async function() {
+    try {
+        await db.init();
+        // Tentar fazer seed após inicialização
+        setTimeout(async () => {
+            try {
+                await db.seedDadosExemplo();
+            } catch (e) {
+                console.warn('Seed não executado:', e.message);
+            }
+        }, 2000);
+    } catch (error) {
+        console.error('❌ Erro na inicialização:', error);
+    }
+})();
