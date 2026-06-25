@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        /* Estilos específicos da página */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 20px;
+            padding: 24px;
+        }
+
+        .card-dashboard {
+            background: #ffffff;
+            border: 1px solid #e9edf2;
+            border-radius: 12px;
+            padding: 20px 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            transition: all 0.2s;
+        }
+
+        .card-dashboard:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        .card-dashboard .numero {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0f172a;
+            margin-top: 4px;
+        }
+
+        .card-dashboard .label {
+            font-size: 13px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .card-dashboard .icone {
+            font-size: 28px;
+            opacity: 0.6;
+            float: right;
+        }
+
+        .card-dashboard.primary .numero { color: #4f46e5; }
+        .card-dashboard.success .numero { color: #0b9e5e; }
+        .card-dashboard.warning .numero { color: #f59e0b; }
+        .card-dashboard.danger .numero { color: #dc2626; }
+
+        .dashboard-content {
+            padding: 24px;
+        }
+
+        .dashboard-content h2 {
+            color: #0f172a;
+            font-size: 18px;
+            margin-bottom: 16px;
+        }
+
+        .lista-ultimos {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 0;
+        }
+
+        .lista-ultimos li {
+            list-style: none;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e9edf2;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+
+        .lista-ultimos li:last-child {
+            border-bottom: none;
+        }
+
+        .lista-ultimos .cliente {
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        .lista-ultimos .valor {
+            font-weight: 600;
+            color: #4f46e5;
+        }
+
+        .lista-ultimos .data {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr 1fr;
+                padding: 16px;
+                gap: 12px;
+            }
+
+            .card-dashboard .numero {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div style="padding: 16px 24px; background: #f8fafc; border-bottom: 2px solid #e9edf2;">
+        <h2 style="color: #0f172a;">📊 Dashboard</h2>
+        <p style="color: #64748b; font-size: 14px;">Visão geral do sistema de orçamento</p>
+    </div>
+
+    <div class="dashboard-grid" id="dashboardStats">
+        <div class="card-dashboard primary">
+            <span class="icone">👤</span>
+            <div class="label">Clientes</div>
+            <div class="numero" id="totalClientes">0</div>
+        </div>
+        <div class="card-dashboard success">
+            <span class="icone">📦</span>
+            <div class="label">Produtos</div>
+            <div class="numero" id="totalProdutos">0</div>
+        </div>
+        <div class="card-dashboard warning">
+            <span class="icone">📄</span>
+            <div class="label">Orçamentos</div>
+            <div class="numero" id="totalOrcamentos">0</div>
+        </div>
+        <div class="card-dashboard danger">
+            <span class="icone">💰</span>
+            <div class="label">Valor Total</div>
+            <div class="numero" id="valorTotal">R$ 0</div>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <h2>📋 Últimos Orçamentos</h2>
+        <ul class="lista-ultimos" id="ultimosOrcamentos">
+            <li style="text-align: center; color: #94a3b8; padding: 24px;">
+                Carregando...
+            </li>
+        </ul>
+    </div>
+
+    <script>
+        // ============ CARREGAR DADOS ============
+        async function carregarDashboard() {
+            try {
+                const app = window.parent.getDadosGlobais();
+                const db = app.db;
+
+                // Carregar dados em paralelo
+                const [clientes, produtos, orcamentos] = await Promise.all([
+                    db.getClientes(),
+                    db.getProdutos(),
+                    db.getOrcamentos()
+                ]);
+
+                // Atualizar stats
+                document.getElementById('totalClientes').textContent = clientes.length;
+                document.getElementById('totalProdutos').textContent = produtos.length;
+                document.getElementById('totalOrcamentos').textContent = orcamentos.length;
+
+                // Calcular valor total
+                let totalGeral = 0;
+                orcamentos.forEach(orc => {
+                    if (orc.valorTotal) totalGeral += orc.valorTotal;
+                });
+                document.getElementById('valorTotal').textContent = 
+                    'R$ ' + totalGeral.toFixed(2).replace('.', ',');
+
+                // Últimos orçamentos
+                const lista = document.getElementById('ultimosOrcamentos');
+                if (orcamentos.length === 0) {
+                    lista.innerHTML = `
+                        <li style="text-align: center; color: #94a3b8; padding: 24px;">
+                            Nenhum orçamento cadastrado ainda.
+                        </li>
+                    `;
+                    return;
+                }
+
+                const ultimos = orcamentos.slice(0, 5);
+                lista.innerHTML = ultimos.map(orc => `
+                    <li>
+                        <span>
+                            <span class="cliente">${orc.clienteNome || 'Cliente não definido'}</span>
+                            <span class="data">${orc.dataCriacao ? new Date(orc.dataCriacao).toLocaleDateString('pt-BR') : ''}</span>
+                        </span>
+                        <span class="valor">R$ ${(orc.valorTotal || 0).toFixed(2).replace('.', ',')}</span>
+                    </li>
+                `).join('');
+
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+                document.getElementById('ultimosOrcamentos').innerHTML = `
+                    <li style="text-align: center; color: #dc2626; padding: 24px;">
+                        ❌ Erro ao carregar dados: ${error.message}
+                    </li>
+                `;
+            }
+        }
+
+        // Carregar ao iniciar e a cada 30 segundos
+        carregarDashboard();
+        setInterval(carregarDashboard, 30000);
+    </script>
+</body>
+</html>

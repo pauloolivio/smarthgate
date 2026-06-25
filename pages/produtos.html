@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Produtos</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .page-header {
+            padding: 16px 24px;
+            background: #f8fafc;
+            border-bottom: 2px solid #e9edf2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-header h2 {
+            color: #0f172a;
+        }
+
+        .page-header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .page-content {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .filter-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-bar input,
+        .filter-bar select {
+            padding: 8px 14px;
+            border: 1px solid #d1d9e6;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .filter-bar input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-bar select {
+            min-width: 150px;
+        }
+
+        .produtos-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .produtos-table th {
+            background: #f8fafc;
+            color: #1e293b;
+            font-weight: 600;
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 2px solid #e9edf2;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .produtos-table td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #edf2f7;
+            vertical-align: middle;
+        }
+
+        .produtos-table tr:hover td {
+            background: #fafbff;
+        }
+
+        .badge-protocolo {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-protocolo.wifi { background: #dbeafe; color: #1e40af; }
+        .badge-protocolo.zigbee { background: #d1fae5; color: #065f46; }
+        .badge-protocolo.rf { background: #fef3c7; color: #92400e; }
+
+        .color-dot {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 1px solid #e9edf2;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state .icone {
+            font-size: 48px;
+            opacity: 0.5;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .modal-produto .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .color-palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 5px 0;
+        }
+
+        .color-palette .color-swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #dee2e6;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .color-palette .color-swatch:hover {
+            transform: scale(1.1);
+            border-color: #4f46e5;
+        }
+
+        .color-palette .color-swatch.selected {
+            border-color: #0f172a;
+            box-shadow: 0 0 0 2px white, 0 0 0 4px #4f46e5;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .produtos-table {
+                font-size: 12px;
+            }
+
+            .produtos-table th,
+            .produtos-table td {
+                padding: 6px 8px;
+            }
+
+            .modal-produto .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div>
+            <h2>📦 Gerenciar Produtos</h2>
+            <p>Cadastre equipamentos e dispositivos para automação</p>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="abrirModalProduto()">➕ Novo Produto</button>
+            <button class="btn btn-outline" onclick="carregarProdutos()">🔄 Atualizar</button>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <div class="filter-bar">
+            <input type="text" id="searchProduto" placeholder="🔍 Buscar produto..." oninput="filtrarProdutos()">
+            <select id="filterComodo" onchange="filtrarProdutos()">
+                <option value="">Todos os Cômodos</option>
+            </select>
+            <select id="filterProtocolo" onchange="filtrarProdutos()">
+                <option value="">Todos os Protocolos</option>
+                <option value="Wi-Fi">Wi-Fi</option>
+                <option value="Zigbee">Zigbee</option>
+                <option value="RF">RF</option>
+            </select>
+        </div>
+
+        <div class="table-responsive">
+            <table class="produtos-table">
+                <thead>
+                    <tr>
+                        <th>Cômodo</th>
+                        <th>Dispositivo</th>
+                        <th>Marca</th>
+                        <th>Protocolo</th>
+                        <th>Qtd</th>
+                        <th>Preço</th>
+                        <th>Cor</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="produtosBody">
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8;">
+                            Carregando produtos...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MODAL PRODUTO -->
+    <div class="modal modal-produto" id="modalProduto">
+        <div class="modal-content">
+            <h2 id="modalProdutoTitle">Novo Produto</h2>
+            <form id="produtoForm" onsubmit="salvarProduto(event)">
+                <div class="form-group">
+                    <label>Cômodo *</label>
+                    <select id="formComodo" required>
+                        <option value="">Selecione um cômodo</option>
+                        <option value="Sala de Estar / Home Theater">Sala de Estar / Home Theater</option>
+                        <option value="Quarto (Suíte Principal)">Quarto (Suíte Principal)</option>
+                        <option value="Cozinha / Área de Serviço">Cozinha / Área de Serviço</option>
+                        <option value="Banheiro">Banheiro</option>
+                        <option value="Área Gourmet / Externa">Área Gourmet / Externa</option>
+                        <option value="Escritório">Escritório</option>
+                        <option value="Garagem">Garagem</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Dispositivo *</label>
+                    <input type="text" id="formDispositivo" required placeholder="Ex: Interruptor inteligente">
+                </div>
+                <div class="form-group">
+                    <label>Marca</label>
+                    <input type="text" id="formMarca" placeholder="Ex: Sonoff, Philips, Aqara">
+                </div>
+                <div class="form-group">
+                    <label>Protocolo *</label>
+                    <select id="formProtocolo" required>
+                        <option value="Wi-Fi">Wi-Fi</option>
+                        <option value="Zigbee" selected>Zigbee</option>
+                        <option value="RF">RF</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Quantidade Padrão</label>
+                        <input type="number" id="formQuantidade" value="1" min="0" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Preço Unitário (R$)</label>
+                        <input type="number" id="formPreco" value="150" min="0" step="0.01">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Infraestrutura Necessária</label>
+                    <input type="text" id="formInfra" placeholder="Ex: Fio neutro, caixa 4x2">
+                </div>
+                <div class="form-group">
+                    <label>Cor na Planta</label>
+                    <div class="color-palette" id="colorPalette"></div>
+                    <input type="hidden" id="formCor" value="#4f46e5">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Posição X (%)</label>
+                        <input type="number" id="formPosX" value="50" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Posição Y (%)</label>
+                        <input type="number" id="formPosY" value="50" min="0" max="100">
+                    </div>
+                </div>
+                <input type="hidden" id="formEditIndex" value="-1">
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="fecharModal('modalProduto')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let produtosData = [];
+        let produtosFiltrados = [];
+        let produtoEditando = null;
+
+        const CORES = [
+            '#4f46e5', '#7c3aed', '#ec4899', '#f59e0b',
+            '#10b981', '#3b82f6', '#8b5cf6', '#ef4444',
+            '#14b8a6', '#f97316', '#6366f1', '#a855f7'
+        ];
+
+        // ============ CARREGAR PRODUTOS ============
+        async function carregarProdutos() {
+            try {
+                const app = window.parent.getDadosGlobais();
+                const db = app.db;
+                
+                produtosData = await db.getProdutos();
+                produtosFiltrados = [...produtosData];
+                renderizarProdutos();
+                atualizarFiltros();
+                window.parent.atualizarStatus('✅ Produtos carregados');
+            } catch (error) {
+                console.error('Erro ao carregar produtos:', error);
+                window.parent.atualizarStatus('❌ Erro ao carregar produtos');
+            }
+        }
+
+        function renderizarProdutos() {
+            const tbody = document.getElementById('produtosBody');
+            
+            if (produtosFiltrados.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8;">
+                            ${produtosData.length === 0 ? 'Nenhum produto cadastrado. Clique em "Novo Produto" para adicionar.' : 'Nenhum produto encontrado com os filtros atuais.'}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const protocolClasses = {
+                'Wi-Fi': 'wifi',
+                'Zigbee': 'zigbee',
+                'RF': 'rf'
+            };
+
+            tbody.innerHTML = produtosFiltrados.map(prod => `
+                <tr>
+                    <td><strong>${prod.comodo || '-'}</strong></td>
+                    <td>${prod.dispositivo}</td>
+                    <td>${prod.marca || '-'}</td>
+                    <td><span class="badge-protocolo ${protocolClasses[prod.protocolo] || ''}">${prod.protocolo || '-'}</span></td>
+                    <td>${prod.qtdPadrao || 0}</td>
+                    <td>R$ ${(prod.preco || 0).toFixed(2)}</td>
+                    <td><span class="color-dot" style="background: ${prod.cor || '#4f46e5'};"></span></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="editarProduto('${prod.id}')">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="excluirProduto('${prod.id}')">🗑️</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // ============ FILTROS ============
+        function atualizarFiltros() {
+            const comodos = [...new Set(produtosData.map(p => p.comodo).filter(Boolean))];
+            const select = document.getElementById('filterComodo');
+            const currentVal = select.value;
+            
+            select.innerHTML = '<option value="">Todos os Cômodos</option>';
+            comodos.sort().forEach(c => {
+                select.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+            select.value = currentVal;
+        }
+
+        function filtrarProdutos() {
+            const search = document.getElementById('searchProduto').value.toLowerCase();
+            const comodo = document.getElementById('filterComodo').value;
+            const protocolo = document.getElementById('filterProtocolo').value;
+
+            produtosFiltrados = produtosData.filter(p => {
+                const matchSearch = p.dispositivo.toLowerCase().includes(search) ||
+                    (p.marca && p.marca.toLowerCase().includes(search));
+                const matchComodo = !comodo || p.comodo === comodo;
+                const matchProtocolo = !protocolo || p.protocolo === protocolo;
+                return matchSearch && matchComodo && matchProtocolo;
+            });
+
+            renderizarProdutos();
+        }
+
+        // ============ MODAL ============
+        function setupColorPalette() {
+            const container = document.getElementById('colorPalette');
+            container.innerHTML = '';
+            CORES.forEach(cor => {
+                const div = document.createElement('div');
+                div.className = 'color-swatch';
+                div.style.backgroundColor = cor;
+                div.dataset.cor = cor;
+                div.onclick = function() {
+                    document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+                    this.classList.add('selected');
+                    document.getElementById('formCor').value = cor;
+                };
+                container.appendChild(div);
+            });
+            // Selecionar primeiro
+            const first = container.querySelector('.color-swatch');
+            if (first) {
+                first.classList.add('selected');
+                document.getElementById('formCor').value = CORES[0];
+            }
+        }
+
+        function abrirModalProduto(data = null) {
+            const modal = document.getElementById('modalProduto');
+            document.getElementById('modalProdutoTitle').textContent = data ? 'Editar Produto' : 'Novo Produto';
+
+            // Resetar seleção de cor
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+
+            if (data) {
+                document.getElementById('formComodo').value = data.comodo || '';
+                document.getElementById('formDispositivo').value = data.dispositivo || '';
+                document.getElementById('formMarca').value = data.marca || '';
+                document.getElementById('formProtocolo').value = data.protocolo || 'Zigbee';
+                document.getElementById('formQuantidade').value = data.qtdPadrao || 1;
+                document.getElementById('formPreco').value = data.preco || 0;
+                document.getElementById('formInfra').value = data.infra || '';
+                document.getElementById('formPosX').value = data.posX || 50;
+                document.getElementById('formPosY').value = data.posY || 50;
+                document.getElementById('formEditIndex').value = data.id;
+                
+                // Selecionar cor
+                const cor = data.cor || CORES[0];
+                document.getElementById('formCor').value = cor;
+                document.querySelectorAll('.color-swatch').forEach(s => {
+                    if (s.dataset.cor === cor) s.classList.add('selected');
+                });
+            } else {
+                document.getElementById('formComodo').value = '';
+                document.getElementById('formDispositivo').value = '';
+                document.getElementById('formMarca').value = '';
+                document.getElementById('formProtocolo').value = 'Zigbee';
+                document.getElementById('formQuantidade').value = 1;
+                document.getElementById('formPreco').value = 150;
+                document.getElementById('formInfra').value = '';
+                document.getElementById('formPosX').value = 50;
+                document.getElementById('formPosY').value = 50;
+                document.getElementById('formEditIndex').value = '-1';
+                
+                const cor = CORES[0];
+                document.getElementById('formCor').value = cor;
+                document.querySelectorAll('.color-swatch').forEach(s => {
+                    if (s.dataset.cor === cor) s.classList.add('selected');
+                });
+            }
+
+            modal.classList.add('active');
+        }
+
+        function fecharModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // ============ SALVAR PRODUTO ============
+        async function salvarProduto(event) {
+            event.preventDefault();
+            
+            const data = {
+                comodo: document.getElementById('formComodo').value,
+                dispositivo: document.getElementById('formDispositivo').value.trim(),
+                marca: document.getElementById('formMarca').value.trim(),
+                protocolo: document.getElementById('formProtocolo').value,
+                qtdPadrao: parseFloat(document.getElementById('formQuantidade').value) || 0,
+                preco: parseFloat(document.getElementById('formPreco').value) || 0,
+                infra: document.getElementById('formInfra').value.trim(),
+                posX: parseInt(document.getElementById('formPosX').value) || 50,
+                posY: parseInt(document.getElementById('formPosY').value) || 50,
+                cor: document.getElementById('formCor').value || CORES[0]
+            };
+
+            if (!data.dispositivo || !data.comodo) {
+                alert('Dispositivo e Cômodo são obrigatórios!');
+                return;
+            }
+
+            try {
+                const app = window.parent.getDadosGlobais();
+                const db = app.db;
+                const id = document.getElementById('formEditIndex').value;
+
+                if (id && id !== '-1') {
+                    data.id = id;
+                    await db.salvarProduto(data);
+                    window.parent.atualizarStatus('✅ Produto atualizado');
+                } else {
+                    await db.salvarProduto(data);
+                    window.parent.atualizarStatus('✅ Produto criado');
+                }
+
+                fecharModal('modalProduto');
+                await carregarProdutos();
+            } catch (error) {
+                console.error('Erro ao salvar produto:', error);
+                alert('Erro ao salvar: ' + error.message);
+                window.parent.atualizarStatus('❌ Erro ao salvar produto');
+            }
+        }
+
+        // ============ EDITAR ============
+        function editarProduto(id) {
+            const produto = produtosData.find(p => p.id === id);
+            if (produto) {
+                abrirModalProduto(produto);
+            }
+        }
+
+        // ============ EXCLUIR ============
+        async function excluirProduto(id) {
+            if (!confirm('Tem certeza que deseja excluir este produto?')) return;
+            
+            try {
+                const app = window.parent.getDadosGlobais();
+                const db = app.db;
+                await db.deletarProduto(id);
+                window.parent.atualizarStatus('🗑️ Produto excluído');
+                await carregarProdutos();
+            } catch (error) {
+                console.error('Erro ao excluir produto:', error);
+                alert('Erro ao excluir: ' + error.message);
+                window.parent.atualizarStatus('❌ Erro ao excluir produto');
+            }
+        }
+
+        // ============ INICIALIZAR ============
+        setupColorPalette();
+        carregarProdutos();
+
+        // Fechar modal ao clicar fora
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

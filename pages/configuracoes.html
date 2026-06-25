@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .page-header {
+            padding: 16px 24px;
+            background: #f8fafc;
+            border-bottom: 2px solid #e9edf2;
+        }
+
+        .page-header h2 {
+            color: #0f172a;
+        }
+
+        .page-header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .page-content {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .config-section {
+            background: white;
+            border: 1px solid #e9edf2;
+            border-radius: 12px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+        }
+
+        .config-section h3 {
+            color: #0f172a;
+            margin-bottom: 12px;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .config-section .desc {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .config-item:last-child {
+            border-bottom: none;
+        }
+
+        .config-item .label {
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        .config-item .value {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .config-item .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #d1d9e6;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .switch.active {
+            background: #4f46e5;
+        }
+
+        .switch .thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .switch.active .thumb {
+            left: 22px;
+        }
+
+        .config-input {
+            padding: 6px 12px;
+            border: 1px solid #d1d9e6;
+            border-radius: 6px;
+            font-size: 14px;
+            width: 200px;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+
+        .danger-zone {
+            border: 2px solid #fee2e2;
+            background: #fef2f2;
+        }
+
+        .danger-zone h3 {
+            color: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .config-item {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .config-item .actions {
+                justify-content: flex-start;
+            }
+
+            .config-input {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <h2>⚙️ Configurações</h2>
+        <p>Gerencie as configurações do sistema</p>
+    </div>
+
+    <div class="page-content">
+        <!-- GERAL -->
+        <div class="config-section">
+            <h3>📋 Geral</h3>
+            <div class="desc">Configurações básicas do sistema</div>
+
+            <div class="config-item">
+                <span class="label">Nome da Empresa</span>
+                <div>
+                    <input type="text" class="config-input" id="empresaNome" value="SmartHome Automação" 
+                           onchange="salvarConfiguracao('empresaNome', this.value)">
+                </div>
+            </div>
+
+            <div class="config-item">
+                <span class="label">Moeda Padrão</span>
+                <div>
+                    <select class="config-input" id="moedaPadrao" onchange="salvarConfiguracao('moedaPadrao', this.value)">
+                        <option value="BRL">R$ (BRL)</option>
+                        <option value="USD">$ (USD)</option>
+                        <option value="EUR">€ (EUR)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="config-item">
+                <span class="label">Modo Escuro</span>
+                <div class="switch" id="darkModeSwitch" onclick="toggleDarkMode()">
+                    <div class="thumb"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ORÇAMENTO -->
+        <div class="config-section">
+            <h3>💰 Orçamento</h3>
+            <div class="desc">Configurações padrão para orçamentos</div>
+
+            <div class="config-item">
+                <span class="label">Prazo Padrão de Entrega</span>
+                <div>
+                    <select class="config-input" id="prazoPadrao" onchange="salvarConfiguracao('prazoPadrao', this.value)">
+                        <option value="15">15 dias úteis</option>
+                        <option value="20">20 dias úteis</option>
+                        <option value="30" selected>30 dias úteis</option>
+                        <option value="45">45 dias úteis</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="config-item">
+                <span class="label">Condição de Pagamento Padrão</span>
+                <div>
+                    <select class="config-input" id="condicaoPadrao" onchange="salvarConfiguracao('condicaoPadrao', this.value)">
+                        <option value="50% entrada + 50% na entrega" selected>50% entrada + 50% na entrega</option>
+                        <option value="30% entrada + 70% na entrega">30% entrada + 70% na entrega</option>
+                        <option value="100% na entrega">100% na entrega</option>
+                        <option value="Parcelado em 3x sem juros">Parcelado em 3x sem juros</option>
+                        <option value="Parcelado em 6x sem juros">Parcelado em 6x sem juros</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="config-item">
+                <span class="label">Validade do Orçamento</span>
+                <div>
+                    <select class="config-input" id="validadePadrao" onchange="salvarConfiguracao('validadePadrao', this.value)">
+                        <option value="7">7 dias</option>
+                        <option value="15">15 dias</option>
+                        <option value="30" selected>30 dias</option>
+                        <option value="60">60 dias</option>
+                        <option value="90">90 dias</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTIFICAÇÕES -->
+        <div class="config-section">
+            <h3>🔔 Notificações</h3>
+            <div class="desc">Configurações de notificações</div>
+
+            <div class="config-item">
+                <span class="label">Notificar por e-mail</span>
+                <div class="switch" id="notificacaoEmail" onclick="toggleNotificacao('email')">
+                    <div class="thumb"></div>
+                </div>
+            </div>
+
+            <div class="config-item">
+                <span class="label">Notificar no sistema</span>
+                <div class="switch active" id="notificacaoSistema" onclick="toggleNotificacao('sistema')">
+                    <div class="thumb"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DADOS -->
+        <div class="config-section">
+            <h3>💾 Dados</h3>
+            <div class="desc">Gerenciamento de dados do sistema</div>
+
+            <div class="config-item">
+                <span class="label">Exportar todos os dados</span>
+                <div class="actions">
+                    <button class="btn btn-primary btn-sm" onclick="exportarTodosDados()">📤 Exportar</button>
+                </div>
+            </div>
+
+            <div class="config-item">
+                <span class="label">Importar dados</span>
+                <div class="actions">
+                    <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importarDados(event)">
+                    <button class="btn btn-outline btn-sm" onclick="document.getElementById('importFile').click()">📂 Importar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ZONA DE PERIGO -->
+        <div class="config-section danger-zone">
+            <h3>⚠️ Zona de Perigo</h3>
+            <div class="desc">Ações irreversíveis. Use com cuidado.</div>
+
+            <div class="config-item">
+                <span class="label">Limpar todos os dados</span>
+                <div class="actions">
+                    <button class="btn btn-danger btn-sm" onclick="limparTodosDados()">🗑️ Limpar Tudo</button>
+                </div>
+            </div>
+
+            <div class="config-item">
+                <span class="label">Resetar para padrão</span>
+                <div class="actions">
+                    <button class="btn btn-warning btn-sm" onclick="resetarPadrao()">🔄 Resetar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ CONFIGURAÇÕES ============
+        async function salvarConfiguracao(chave, valor) {
+            try {
+                const app = window.parent.getDadosGlobais();
+                await app.db.salvarConfiguracao(chave, { valor });
+                window.parent.atualizarStatus(`✅ Configuração "${chave}" salva`);
+            } catch (error) {
+                console.error('Erro ao salvar configuração:', error);
+                window.parent.atualizarStatus('❌ Erro ao salvar configuração');
+            }
+        }
+
+        // ============ DARK MODE ============
+        function toggleDarkMode() {
+            const el = document.getElementById('darkModeSwitch');
+            el.classList.toggle('active');
+            document.body.classList.toggle('dark-mode');
+            salvarConfiguracao('darkMode', el.classList.contains('active'));
+        }
+
+        // ============ NOTIFICAÇÕES ============
+        function toggleNotificacao(tipo) {
+            const el = document.getElementById(`notificacao${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
+            el.classList.toggle('active');
+            salvarConfiguracao(`notificacao_${tipo}`, el.classList.contains('active'));
+        }
+
+        // ============ EXPORTAR ============
+        async function exportarTodosDados() {
+            try {
+                const app = window.parent.getDadosGlobais();
+                const db = app.db;
+
+                const [clientes, produtos, orcamentos, configs] = await Promise.all([
+                    db.getClientes(),
+                    db.getProdutos(),
+                    db.getOrcamentos(),
+                    db.getConfiguracoes()
+                ]);
+
+                const data = {
+                    _exported: true,
+                    _timestamp: new Date().toISOString(),
+                    _version: '2.0',
+                    data: {
+                        clients: clientes,
+                        products: produtos,
+                        budgets: orcamentos,
+                        configs: configs
+                    }
+                };
+
+                const json = JSON.stringify(data, null, 2);
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `backup_dados_${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                window.parent.atualizarStatus('📤 Dados exportados com sucesso');
+            } catch (error) {
+                console.error('Erro ao exportar:', error);
+                alert('Erro ao exportar: ' + error.message);
+                window.parent.atualizarStatus('❌ Erro ao exportar dados');
+            }
+        }
+
+        // ============ IMPORTAR ============
+        async function importarDados(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!confirm('Isso irá substituir todos os dados atuais. Deseja continuar?')) return;
+
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+
+                const app = window.parent.getDadosGlobais();
+                const db = app.db;
+
+                // Importar cada coleção
+                if (data.data?.clients) {
+                    for (const c of data.data.clients) {
+                        await db.salvarCliente(c);
+                    }
+                }
+
+                if (data.data?.products) {
+                    for (const p of data.data.products) {
+                        await db.salvarProduto(p);
+                    }
+                }
+
+                if (data.data?.budgets) {
+                    for (const o of data.data.budgets) {
+                        await db.salvarOrcamento(o);
+                    }
+                }
+
+                window.parent.atualizarStatus('📂 Dados importados com sucesso');
+                alert('Dados importados com sucesso!');
+                
+                // Recarregar as páginas
+                window.parent.navegarPara('dashboard');
+            } catch (error) {
+                console.error('Erro ao importar:', error);
+                alert('Erro ao importar: ' + error.message);
+                window.parent.atualizarStatus('❌ Erro ao importar dados');
+            }
+
+            event.target.value = '';
+        }
+
+        // ============ LIMPAR ============
+        async function limparTodosDados() {
+            if (!confirm('⚠️ Isso irá DELETAR TODOS os dados. Esta ação é irreversível. Deseja continuar?')) return;
+            if (!confirm('Tem certeza absoluta?')) return;
+
+            try {
+                const app = window.parent.getDadosGlobais();
+                const db = app.db;
+
+                // Deletar todas as coleções
+                const [clientes, produtos, orcamentos] = await Promise.all([
+                    db.getClientes(),
+                    db.getProdutos(),
+                    db.getOrcamentos()
+                ]);
+
+                for (const c of clientes) await db.deletarCliente(c.id);
+                for (const p of produtos) await db.deletarProduto(p.id);
+                for (const o of orcamentos) await db.deletarOrcamento(o.id);
+
+                window.parent.atualizarStatus('🗑️ Todos os dados foram removidos');
+                alert('Todos os dados foram removidos com sucesso!');
+                
+                window.parent.navegarPara('dashboard');
+            } catch (error) {
+                console.error('Erro ao limpar:', error);
+                alert('Erro ao limpar: ' + error.message);
+                window.parent.atualizarStatus('❌ Erro ao limpar dados');
+            }
+        }
+
+        // ============ RESETAR ============
+        function resetarPadrao() {
+            if (!confirm('Isso irá restaurar as configurações padrão. Deseja continuar?')) return;
+
+            // Resetar switches
+            document.getElementById('darkModeSwitch').classList.remove('active');
+            document.getElementById('notificacaoEmail').classList.remove('active');
+            document.getElementById('notificacaoSistema').classList.add('active');
+
+            // Resetar selects
+            document.getElementById('empresaNome').value = 'SmartHome Automação';
+            document.getElementById('moedaPadrao').value = 'BRL';
+            document.getElementById('prazoPadrao').value = '30';
+            document.getElementById('condicaoPadrao').value = '50% entrada + 50% na entrega';
+            document.getElementById('validadePadrao').value = '30';
+
+            // Salvar todas
+            salvarConfiguracao('empresaNome', 'SmartHome Automação');
+            salvarConfiguracao('moedaPadrao', 'BRL');
+            salvarConfiguracao('prazoPadrao', '30');
+            salvarConfiguracao('condicaoPadrao', '50% entrada + 50% na entrega');
+            salvarConfiguracao('validadePadrao', '30');
+            salvarConfiguracao('darkMode', false);
+            salvarConfiguracao('notificacao_email', false);
+            salvarConfiguracao('notificacao_sistema', true);
+
+            window.parent.atualizarStatus('🔄 Configurações resetadas para o padrão');
+            alert('Configurações resetadas com sucesso!');
+        }
+
+        // ============ CARREGAR CONFIGURAÇÕES ============
+        async function carregarConfiguracoes() {
+            try {
+                const app = window.parent.getDadosGlobais();
+                const configs = await app.db.getConfiguracoes();
+
+                if (configs.empresaNome) {
+                    document.getElementById('empresaNome').value = configs.empresaNome.valor || 'SmartHome Automação';
+                }
+                if (configs.moedaPadrao) {
+                    document.getElementById('moedaPadrao').value = configs.moedaPadrao.valor || 'BRL';
+                }
+                if (configs.prazoPadrao) {
+                    document.getElementById('prazoPadrao').value = configs.prazoPadrao.valor || '30';
+                }
+                if (configs.condicaoPadrao) {
+                    document.getElementById('condicaoPadrao').value = configs.condicaoPadrao.valor || '50% entrada + 50% na entrega';
+                }
+                if (configs.validadePadrao) {
+                    document.getElementById('validadePadrao').value = configs.validadePadrao.valor || '30';
+                }
+                if (configs.darkMode?.valor) {
+                    document.getElementById('darkModeSwitch').classList.add('active');
+                }
+                if (configs.notificacao_email?.valor) {
+                    document.getElementById('notificacaoEmail').classList.add('active');
+                }
+                if (configs.notificacao_sistema?.valor !== false) {
+                    document.getElementById('notificacaoSistema').classList.add('active');
+                }
+
+                window.parent.atualizarStatus('✅ Configurações carregadas');
+            } catch (error) {
+                console.error('Erro ao carregar configurações:', error);
+            }
+        }
+
+        // ============ INICIALIZAR ============
+        carregarConfiguracoes();
+    </script>
+</body>
+</html>

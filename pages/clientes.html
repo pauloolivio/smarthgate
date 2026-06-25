@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clientes</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .page-header {
+            padding: 16px 24px;
+            background: #f8fafc;
+            border-bottom: 2px solid #e9edf2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-header h2 {
+            color: #0f172a;
+        }
+
+        .page-header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .page-content {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .clientes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .cliente-card {
+            background: #ffffff;
+            border: 1px solid #e9edf2;
+            border-radius: 12px;
+            padding: 18px 20px;
+            transition: all 0.2s;
+        }
+
+        .cliente-card:hover {
+            border-color: #4f46e5;
+            box-shadow: 0 4px 16px rgba(79, 70, 229, 0.08);
+        }
+
+        .cliente-card .nome {
+            font-size: 17px;
+            font-weight: 600;
+            color: #0f172a;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cliente-card .nome .id {
+            font-size: 12px;
+            font-weight: 400;
+            color: #94a3b8;
+            background: #f1f5f9;
+            padding: 2px 12px;
+            border-radius: 12px;
+        }
+
+        .cliente-card .info {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 8px;
+            line-height: 1.6;
+        }
+
+        .cliente-card .info span {
+            display: block;
+        }
+
+        .cliente-card .acoes {
+            margin-top: 12px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state .icone {
+            font-size: 48px;
+            opacity: 0.5;
+            margin-bottom: 12px;
+        }
+
+        .empty-state h3 {
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .modal-cliente .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .clientes-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-cliente .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div>
+            <h2>👤 Gerenciar Clientes</h2>
+            <p>Cadastre e gerencie seus clientes</p>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-primary" onclick="abrirModalCliente()">➕ Novo Cliente</button>
+            <button class="btn btn-outline" onclick="carregarClientes()">🔄 Atualizar</button>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <div id="clientesContainer">
+            <div class="empty-state">
+                <div class="icone">👤</div>
+                <h3>Nenhum cliente cadastrado</h3>
+                <p>Clique em "Novo Cliente" para adicionar</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CLIENTE -->
+    <div class="modal modal-cliente" id="modalCliente">
+        <div class="modal-content">
+            <h2 id="modalClienteTitle">Novo Cliente</h2>
+            <form id="clienteForm" onsubmit="salvarCliente(event)">
+                <div class="form-group">
+                    <label>Nome *</label>
+                    <input type="text" id="formNome" required placeholder="Ex: João Silva">
+                </div>
+                <div class="form-group">
+                    <label>Documento (CPF/CNPJ)</label>
+                    <input type="text" id="formDocumento" placeholder="000.000.000-00">
+                </div>
+                <div class="form-group">
+                    <label>Telefone *</label>
+                    <input type="text" id="formTelefone" required placeholder="(11) 98765-4321">
+                </div>
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="formEmail" placeholder="cliente@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Endereço</label>
+                    <input type="text" id="formEndereco" placeholder="Rua, número, bairro, cidade/UF">
+                </div>
+                <div class="form-group">
+                    <label>Observações</label>
+                    <textarea id="formObservacoes" rows="2" placeholder="Informações adicionais..."></textarea>
+                </div>
+                <input type="hidden" id="formEditIndex" value="-1">
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" onclick="fecharModal('modalCliente')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let clientesData = [];
+        let clienteEditando = null;
+
+        // ============ CARREGAR CLIENTES ============
+        async function carregarClientes() {
+            try {
+                const app = window.parent.getDadosGlobais();
+                const db = app.db;
+                
+                clientesData = await db.getClientes();
+                renderizarClientes();
+                window.parent.atualizarStatus('✅ Clientes carregados');
+            } catch (error) {
+                console.error('Erro ao carregar clientes:', error);
+                window.parent.atualizarStatus('❌ Erro ao carregar clientes');
+            }
+        }
+
+        function renderizarClientes() {
+            const container = document.getElementById('clientesContainer');
+            
+            if (clientesData.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icone">👤</div>
+                        <h3>Nenhum cliente cadastrado</h3>
+                        <p>Clique em "Novo Cliente" para adicionar</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="clientes-grid">
+                    ${clientesData.map(cliente => `
+                        <div class="cliente-card">
+                            <div class="nome">
+                                ${cliente.nome}
+                                <span class="id">#${cliente.id ? cliente.id.slice(0, 8) : '---'}</span>
+                            </div>
+                            <div class="info">
+                                ${cliente.telefone ? `<span>📞 ${cliente.telefone}</span>` : ''}
+                                ${cliente.email ? `<span>✉️ ${cliente.email}</span>` : ''}
+                                ${cliente.endereco ? `<span>📍 ${cliente.endereco}</span>` : ''}
+                                ${cliente.documento ? `<span>📄 ${cliente.documento}</span>` : ''}
+                            </div>
+                            <div class="acoes">
+                                <button class="btn btn-primary btn-sm" onclick="editarCliente('${cliente.id}')">✏️ Editar</button>
+                                <button class="btn btn-danger btn-sm" onclick="excluirCliente('${cliente.id}')">🗑️ Excluir</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        // ============ MODAL ============
+        function abrirModalCliente(data = null) {
+            const modal = document.getElementById('modalCliente');
+            document.getElementById('modalClienteTitle').textContent = data ? 'Editar Cliente' : 'Novo Cliente';
+
+            if (data) {
+                document.getElementById('formNome').value = data.nome || '';
+                document.getElementById('formDocumento').value = data.documento || '';
+                document.getElementById('formTelefone').value = data.telefone || '';
+                document.getElementById('formEmail').value = data.email || '';
+                document.getElementById('formEndereco').value = data.endereco || '';
+                document.getElementById('formObservacoes').value = data.observacoes || '';
+                document.getElementById('formEditIndex').value = data.id;
+            } else {
+                document.getElementById('formNome').value = '';
+                document.getElementById('formDocumento').value = '';
+                document.getElementById('formTelefone').value = '';
+                document.getElementById('formEmail').value = '';
+                document.getElementById('formEndereco').value = '';
+                document.getElementById('formObservacoes').value = '';
+                document.getElementById('formEditIndex').value = '-1';
+            }
+
+            modal.classList.add('active');
+        }
+
+        function fecharModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // ============ SALVAR CLIENTE ============
+        async function salvarCliente(event) {
+            event.preventDefault();
+            
+            const data = {
+                nome: document.getElementById('formNome').value.trim(),
+                documento: document.getElementById('formDocumento').value.trim(),
+                telefone: document.getElementById('formTelefone').value.trim(),
+                email: document.getElementById('formEmail').value.trim(),
+                endereco: document.getElementById('formEndereco').value.trim(),
+                observacoes: document.getElementById('formObservacoes').value.trim(),
+            };
+
+            if (!data.nome || !data.telefone) {
+                alert('Nome e Telefone são obrigatórios!');
+                return;
+            }
+
+            try {
+                const app = window.parent.getDadosGlobais();
+                const db = app.db;
+                const id = document.getElementById('formEditIndex').value;
+
+                if (id && id !== '-1') {
+                    data.id = id;
+                    await db.salvarCliente(data);
+                    window.parent.atualizarStatus('✅ Cliente atualizado');
+                } else {
+                    await db.salvarCliente(data);
+                    window.parent.atualizarStatus('✅ Cliente criado');
+                }
+
+                fecharModal('modalCliente');
+                await carregarClientes();
+            } catch (error) {
+                console.error('Erro ao salvar cliente:', error);
+                alert('Erro ao salvar: ' + error.message);
+                window.parent.atualizarStatus('❌ Erro ao salvar cliente');
+            }
+        }
+
+        // ============ EDITAR ============
+        function editarCliente(id) {
+            const cliente = clientesData.find(c => c.id === id);
+            if (cliente) {
+                abrirModalCliente(cliente);
+            }
+        }
+
+        // ============ EXCLUIR ============
+        async function excluirCliente(id) {
+            if (!confirm('Tem certeza que deseja excluir este cliente?')) return;
+            
+            try {
+                const app = window.parent.getDadosGlobais();
+                const db = app.db;
+                await db.deletarCliente(id);
+                window.parent.atualizarStatus('🗑️ Cliente excluído');
+                await carregarClientes();
+            } catch (error) {
+                console.error('Erro ao excluir cliente:', error);
+                alert('Erro ao excluir: ' + error.message);
+                window.parent.atualizarStatus('❌ Erro ao excluir cliente');
+            }
+        }
+
+        // ============ INICIALIZAR ============
+        carregarClientes();
+
+        // Fechar modal ao clicar fora
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

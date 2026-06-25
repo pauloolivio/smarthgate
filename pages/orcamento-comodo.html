@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orçamento por Cômodo</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <style>
+        .page-header {
+            padding: 16px 24px;
+            background: #f8fafc;
+            border-bottom: 2px solid #e9edf2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .page-header h2 {
+            color: #0f172a;
+        }
+
+        .page-header p {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .page-content {
+            padding: 24px;
+            overflow-y: auto;
+            max-height: calc(100vh - 200px);
+        }
+
+        .selecao-cliente {
+            background: #f8fafc;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 16px;
+            border: 1px solid #e9edf2;
+        }
+
+        .selecao-cliente select {
+            padding: 8px 14px;
+            border: 1px solid #d1d9e6;
+            border-radius: 8px;
+            font-size: 14px;
+            min-width: 200px;
+            flex: 1;
+        }
+
+        .comodo-card {
+            background: white;
+            border: 1px solid #e9edf2;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .comodo-card:hover {
+            border-color: #4f46e5;
+        }
+
+        .comodo-header {
+            padding: 14px 20px;
+            background: #f8fafc;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid #e9edf2;
+        }
+
+        .comodo-header h3 {
+            font-size: 16px;
+            color: #0f172a;
+        }
+
+        .comodo-header .total-comodo {
+            font-weight: 600;
+            color: #4f46e5;
+        }
+
+        .comodo-body {
+            padding: 16px 20px;
+        }
+
+        .comodo-body .item-linha {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .comodo-body .item-linha:last-child {
+            border-bottom: none;
+        }
+
+        .comodo-body .item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .comodo-body .item-info .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .comodo-body .item-info .nome {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .comodo-body .item-info .detalhe {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .comodo-body .item-valor {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .comodo-body .item-valor input {
+            width: 60px;
+            padding: 4px 8px;
+            border: 1px solid #d1d9e6;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .comodo-body .item-valor .preco {
+            font-weight: 600;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .comodo-body .item-valor .total-item {
+            font-weight: 600;
+            color: #4f46e5;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .total-geral-box {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .total-geral-box .label {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+
+        .total-geral-box .valor {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .total-geral-box .detalhes {
+            font-size: 13px;
+            opacity: 0.7;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state .icone {
+            font-size: 48px;
+            opacity: 0.5;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .selecao-cliente {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .comodo-body .item-linha {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+            }
+
+            .comodo-body .item-valor {
+                justify-content: space-between;
+            }
+
+            .total-geral-box {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-header">
+        <div>
+            <h2>🏗️ Orçamento por Cômodo</h2>
+            <p>Visualize e ajuste os equipamentos agrupados por cômodo</p>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button class="btn btn-success" onclick="exportarOrcamentoComodo()">📊 Exportar</button>
+            <button class="btn btn-outline" onclick="carregarDados()">🔄 Atualizar</button>
+        </div>
+    </div>
+
+    <div class="page-content">
+        <div class="selecao-cliente">
+            <label style="font-weight: 500; color: #334155;">👤 Cliente:</label>
+            <select id="clienteSelect" onchange="carregarDados()">
+                <option value="">Selecione um cliente</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="irParaClientes()">➕ Gerenciar</button>
+        </div>
+
+        <div id="comodosContainer">
+            <div class="empty-state">
+                <div class="icone">🏗️</div>
+                <h3>Nenhum dado disponível</h3>
+                <p>Cadastre produtos e selecione um cliente para começar</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let produtosData = [];
+        let clientesData = [];
+        let orcamentoData = {};
+
+        // ============ CARREGAR DADOS ============
+        async function carregarDados() {
+            try {
+                const app = window.parent.getDadosGlobais();
+                const db = app.db;
+
+                const [produtos, clientes] = await Promise.all([
+                    db.getProdutos(),
+                    db.getClientes()
+                ]);
+
+                produtosData = produtos;
+                clientesData = clientes;
+                atualizarSelectClientes();
+                renderizarOrcamentoComodo();
+                window.parent.atualizarStatus('✅ Dados carregados');
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                window.parent.atualizarStatus('❌ Erro ao carregar dados');
+            }
+        }
+
+        function atualizarSelectClientes() {
+            const select = document.getElementById('clienteSelect');
+            const valorAtual = select.value;
+            
+            select.innerHTML = '<option value="">Selecione um cliente</option>';
+            clientesData.forEach(c => {
+                select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
+            });
+            
+            if (valorAtual && clientesData.some(c => c.id === valorAtual)) {
+                select.value = valorAtual;
+            }
+        }
+
+        // ============ RENDERIZAR ============
+        function renderizarOrcamentoComodo() {
+            const container = document.getElementById('comodosContainer');
+            const clienteId = document.getElementById('clienteSelect').value;
+            const cliente = clientesData.find(c => c.id === clienteId);
+
+            if (produtosData.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icone">📦</div>
+                        <h3>Nenhum produto cadastrado</h3>
+                        <p>Adicione produtos na aba "Produtos" para começar</p>
+                        <button class="btn btn-primary" style="margin-top: 12px;" onclick="window.parent.navegarPara('produtos')">Ir para Produtos</button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Agrupar por cômodo
+            const comodos = {};
+            produtosData.forEach(p => {
+                const comodo = p.comodo || 'Sem Cômodo';
+                if (!comodos[comodo]) comodos[comodo] = [];
+                comodos[comodo].push(p);
+            });
+
+            // Ordenar cômodos
+            const comodosOrdenados = Object.keys(comodos).sort();
+
+            let totalGeral = 0;
+            let html = '';
+
+            if (cliente) {
+                html += `
+                    <div style="background: #f0f4ff; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; border-left: 4px solid #4f46e5;">
+                        <strong>👤 Cliente:</strong> ${cliente.nome} 
+                        ${cliente.telefone ? `| 📞 ${cliente.telefone}` : ''}
+                        ${cliente.email ? `| ✉️ ${cliente.email}` : ''}
+                    </div>
+                `;
+            }
+
+            comodosOrdenados.forEach(comodo => {
+                const itens = comodos[comodo];
+                let totalComodo = 0;
+
+                html += `
+                    <div class="comodo-card">
+                        <div class="comodo-header" onclick="toggleComodo(this)">
+                            <h3>🏠 ${comodo}</h3>
+                            <span class="total-comodo" id="total-${comodo.replace(/\s/g, '_')}">R$ 0,00</span>
+                        </div>
+                        <div class="comodo-body">
+                `;
+
+                itens.forEach((produto, idx) => {
+                    const qtd = orcamentoData[produto.id]?.qtd ?? produto.qtdPadrao ?? 0;
+                    const total = qtd * (produto.preco || 0);
+                    totalComodo += total;
+                    totalGeral += total;
+
+                    html += `
+                        <div class="item-linha" data-id="${produto.id}">
+                            <div class="item-info">
+                                <span class="dot" style="background: ${produto.cor || '#4f46e5'};"></span>
+                                <span class="nome">${produto.dispositivo}</span>
+                                <span class="detalhe">${produto.marca || ''} · ${produto.protocolo || ''}</span>
+                            </div>
+                            <div class="item-valor">
+                                <span>R$ ${(produto.preco || 0).toFixed(2)}</span>
+                                <input type="number" value="${qtd}" min="0" step="1" 
+                                       onchange="atualizarQuantidade('${produto.id}', this.value)">
+                                <span class="total-item" id="total-item-${produto.id}">R$ ${total.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        </div>
+                    </div>
+                `;
+
+                // Atualizar total do cômodo (via JS depois)
+                setTimeout(() => {
+                    const el = document.getElementById(`total-${comodo.replace(/\s/g, '_')}`);
+                    if (el) el.textContent = `R$ ${totalComodo.toFixed(2)}`;
+                }, 100);
+            });
+
+            // Total geral
+            html += `
+                <div class="total-geral-box">
+                    <div>
+                        <div class="label">💰 VALOR TOTAL DO PROJETO</div>
+                        <div class="valor" id="totalGeralDisplay">R$ ${totalGeral.toFixed(2)}</div>
+                    </div>
+                    <div class="detalhes">
+                        ${produtosData.length} produtos · ${comodosOrdenados.length} cômodos
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // ============ QUANTIDADE ============
+        function atualizarQuantidade(id, value) {
+            const qtd = parseFloat(value) || 0;
+            const produto = produtosData.find(p => p.id === id);
+            
+            if (!produto) return;
+
+            // Salvar no estado
+            if (!orcamentoData[id]) orcamentoData[id] = {};
+            orcamentoData[id].qtd = qtd;
+
+            // Atualizar total do item
+            const total = qtd * (produto.preco || 0);
+            const el = document.getElementById(`total-item-${id}`);
+            if (el) el.textContent = `R$ ${total.toFixed(2)}`;
+
+            // Recalcular totais
+            recalcularTotais();
+        }
+
+        function recalcularTotais() {
+            // Recalcular total por cômodo e geral
+            const comodos = {};
+            let totalGeral = 0;
+
+            produtosData.forEach(p => {
+                const comodo = p.comodo || 'Sem Cômodo';
+                const qtd = orcamentoData[p.id]?.qtd ?? p.qtdPadrao ?? 0;
+                const total = qtd * (p.preco || 0);
+                
+                if (!comodos[comodo]) comodos[comodo] = 0;
+                comodos[comodo] += total;
+                totalGeral += total;
+            });
+
+            // Atualizar cada cômodo
+            Object.keys(comodos).forEach(comodo => {
+                const el = document.getElementById(`total-${comodo.replace(/\s/g, '_')}`);
+                if (el) el.textContent = `R$ ${comodos[comodo].toFixed(2)}`;
+            });
+
+            // Atualizar total geral
+            const el = document.getElementById('totalGeralDisplay');
+            if (el) el.textContent = `R$ ${totalGeral.toFixed(2)}`;
+        }
+
+        // ============ TOGGLE ============
+        function toggleComodo(header) {
+            const body = header.nextElementSibling;
+            if (body.style.display === 'none') {
+                body.style.display = 'block';
+            } else {
+                body.style.display = body.style.display === 'none' ? 'block' : 'none';
+            }
+        }
+
+        // ============ EXPORTAR ============
+        function exportarOrcamentoComodo() {
+            const clienteId = document.getElementById('clienteSelect').value;
+            const cliente = clientesData.find(c => c.id === clienteId);
+            
+            const clienteNome = cliente ? cliente.nome : 'Cliente não selecionado';
+            const dataAtual = new Date().toLocaleDateString('pt-BR');
+
+            // Montar tabela
+            let html = `
+                <h2>Orçamento por Cômodo - ${clienteNome}</h2>
+                <p>Data: ${dataAtual}</p>
+                <table border="1" cellpadding="5">
+                    <tr>
+                        <th>Cômodo</th>
+                        <th>Dispositivo</th>
+                        <th>Qtd</th>
+                        <th>Unitário</th>
+                        <th>Total</th>
+                    </tr>
+            `;
+
+            let totalGeral = 0;
+            const comodos = {};
+            produtosData.forEach(p => {
+                const comodo = p.comodo || 'Sem Cômodo';
+                if (!comodos[comodo]) comodos[comodo] = [];
+                comodos[comodo].push(p);
+            });
+
+            Object.keys(comodos).sort().forEach(comodo => {
+                comodos[comodo].forEach(p => {
+                    const qtd = orcamentoData[p.id]?.qtd ?? p.qtdPadrao ?? 0;
+                    if (qtd === 0) return;
+                    const total = qtd * (p.preco || 0);
+                    totalGeral += total;
+                    html += `
+                        <tr>
+                            <td>${comodo}</td>
+                            <td>${p.dispositivo}</td>
+                            <td>${qtd}</td>
+                            <td>R$ ${(p.preco || 0).toFixed(2)}</td>
+                            <td>R$ ${total.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+            });
+
+            html += `
+                    <tr style="font-weight: bold; background: #f0f0f0;">
+                        <td colspan="4">TOTAL GERAL</td>
+                        <td>R$ ${totalGeral.toFixed(2)}</td>
+                    </tr>
+                </table>
+            `;
+
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `orcamento_comodo_${clienteNome}_${new Date().toISOString().slice(0, 10)}.xls`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            window.parent.atualizarStatus('📊 Orçamento exportado');
+        }
+
+        // ============ NAVEGAÇÃO ============
+        function irParaClientes() {
+            window.parent.navegarPara('clientes');
+        }
+
+        // ============ INICIALIZAR ============
+        carregarDados();
+
+        // Atualizar a cada 30 segundos
+        setInterval(carregarDados, 30000);
+    </script>
+</body>
+</html>

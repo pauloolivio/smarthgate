@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>SmartHome - Login</title>
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.15.0/firebase-database-compat.js"></script>
+    
+    <!-- Firebase Config -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+
+        .bg-animated {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .bg-animated .shape {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.05;
+            animation: floatShape 20s infinite ease-in-out;
+        }
+
+        .bg-animated .shape:nth-child(1) {
+            width: 400px;
+            height: 400px;
+            background: #4f46e5;
+            top: -100px;
+            left: -100px;
+            animation-delay: 0s;
+        }
+
+        .bg-animated .shape:nth-child(2) {
+            width: 300px;
+            height: 300px;
+            background: #7c3aed;
+            bottom: -50px;
+            right: -50px;
+            animation-delay: -5s;
+        }
+
+        .bg-animated .shape:nth-child(3) {
+            width: 200px;
+            height: 200px;
+            background: #ec4899;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: -10s;
+        }
+
+        @keyframes floatShape {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            25% { transform: translate(30px, -40px) scale(1.1); }
+            50% { transform: translate(-20px, 30px) scale(0.9); }
+            75% { transform: translate(40px, 20px) scale(1.05); }
+        }
+
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            padding: 40px 32px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.12);
+            animation: fadeInUp 0.6s ease;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
+        .login-header .logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .login-header .logo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: white;
+            box-shadow: 0 8px 30px rgba(79, 70, 229, 0.3);
+        }
+
+        .login-header .empresa-nome {
+            font-size: 24px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+        }
+
+        .login-header .empresa-nome span {
+            color: #4f46e5;
+        }
+
+        .login-header .empresa-sub {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 2px;
+            font-weight: 400;
+        }
+
+        .role-buttons {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 28px;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 14px 12px;
+            border: 2px solid #e9edf2;
+            background: white;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+            color: #64748b;
+        }
+
+        .role-btn i {
+            font-size: 22px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .role-btn:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+        }
+
+        .role-btn.active {
+            border-color: #4f46e5;
+            background: linear-gradient(135deg, #4f46e515 0%, #7c3aed15 100%);
+            color: #4f46e5;
+        }
+
+        .role-btn.funcionario.active {
+            border-color: #0b9e5e;
+            background: linear-gradient(135deg, #0b9e5e15 0%, #10b98115 100%);
+            color: #0b9e5e;
+        }
+
+        .login-form {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .login-form.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #334155;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .form-group label i {
+            margin-right: 8px;
+            color: #4f46e5;
+            width: 18px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e9edf2;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+            background: #fafbfc;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.08);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .login-btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+        }
+
+        .login-btn-primary:hover {
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.35);
+        }
+
+        .login-btn-success {
+            background: linear-gradient(135deg, #0b9e5e 0%, #10b981 100%);
+            color: white;
+        }
+
+        .login-btn-success:hover {
+            box-shadow: 0 8px 25px rgba(11, 158, 94, 0.35);
+        }
+
+        .login-btn-google {
+            background: white;
+            color: #1a1a1a;
+            border: 2px solid #e9edf2;
+        }
+
+        .login-btn-google:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+        }
+
+        .login-btn-google i {
+            color: #ea4335;
+            font-size: 18px;
+        }
+
+        .divider {
+            text-align: center;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            width: 42%;
+            height: 1px;
+            background: #e9edf2;
+        }
+
+        .divider::before { left: 0; }
+        .divider::after { right: 0; }
+
+        .divider span {
+            background: white;
+            padding: 0 14px;
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .error-message {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            text-align: center;
+            border-left: 3px solid #dc2626;
+        }
+
+        .error-message i {
+            margin-right: 8px;
+        }
+
+        .info-message {
+            background: #eff6ff;
+            color: #1d4ed8;
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-top: 14px;
+            font-size: 13px;
+            text-align: center;
+            border-left: 3px solid #3b82f6;
+        }
+
+        .info-message i {
+            margin-right: 8px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .login-footer {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 20px;
+            border-top: 1px solid #e9edf2;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        @media (max-width: 480px) {
+            .login-box {
+                padding: 28px 20px;
+                border-radius: 20px;
+            }
+
+            .login-header .logo-placeholder {
+                width: 64px;
+                height: 64px;
+                font-size: 28px;
+            }
+
+            .login-header .empresa-nome {
+                font-size: 20px;
+            }
+
+            .role-btn {
+                padding: 12px 10px;
+                font-size: 12px;
+            }
+
+            .role-btn i {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background -->
+    <div class="bg-animated">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <!-- Login -->
+    <div class="login-container">
+        <div class="login-box">
+            <div class="login-header">
+                <div class="logo-container">
+                    <div class="logo-placeholder">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="empresa-nome">
+                        Smart<span>Home</span>
+                    </div>
+                    <div class="empresa-sub">Automação Residencial</div>
+                </div>
+            </div>
+
+            <div class="role-buttons">
+                <div class="role-btn gerente active" onclick="selectRole('gerente')">
+                    <i class="fas fa-user-tie"></i>
+                    Gerente
+                </div>
+                <div class="role-btn funcionario" onclick="selectRole('funcionario')">
+                    <i class="fas fa-user-cog"></i>
+                    Funcionário
+                </div>
+            </div>
+
+            <!-- Gerente -->
+            <div class="login-form active" id="gerenteForm">
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> E-mail</label>
+                    <input type="email" id="gerenteEmail" placeholder="gerente@empresa.com.br">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Senha</label>
+                    <input type="password" id="gerentePassword" placeholder="••••••••">
+                </div>
+                <button class="login-btn login-btn-primary" onclick="loginGerente(event)">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
+                </button>
+                <div class="divider"><span>ou</span></div>
+                <button class="login-btn login-btn-google" onclick="loginGoogle(event)">
+                    <i class="fab fa-google"></i> Entrar com Google
+                </button>
+                <div class="info-message">
+                    <i class="fas fa-shield-alt"></i> Acesso restrito a gerentes autorizados
+                </div>
+            </div>
+
+            <!-- Funcionário -->
+            <div class="login-form" id="funcionarioForm">
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> E-mail</label>
+                    <input type="email" id="funcionarioEmail" placeholder="funcionario@empresa.com.br">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> Senha</label>
+                    <input type="password" id="funcionarioPassword" placeholder="••••••••">
+                </div>
+                <button class="login-btn login-btn-success" onclick="loginFuncionario(event)">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
+                </button>
+                <div class="divider"><span>ou</span></div>
+                <button class="login-btn login-btn-google" onclick="loginGoogle(event)">
+                    <i class="fab fa-google"></i> Entrar com Google
+                </button>
+                <div class="info-message">
+                    <i class="fas fa-info-circle"></i> Acesso para funcionários da empresa
+                </div>
+            </div>
+
+            <div class="login-footer">
+                © 2026 SmartHome - Todos os direitos reservados
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentRole = 'gerente';
+
+        function selectRole(role) {
+            currentRole = role;
+            document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.role-btn.${role}`).classList.add('active');
+            document.getElementById('gerenteForm').classList.toggle('active', role === 'gerente');
+            document.getElementById('funcionarioForm').classList.toggle('active', role === 'funcionario');
+        }
+
+        function showError(formId, message) {
+            const form = document.getElementById(formId);
+            const existing = form.querySelector('.error-message');
+            if (existing) existing.remove();
+            const div = document.createElement('div');
+            div.className = 'error-message';
+            div.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${message}`;
+            form.insertBefore(div, form.firstChild);
+            setTimeout(() => div.remove(), 5000);
+        }
+
+        async function loginGerente(event) {
+            const btn = event.currentTarget;
+            const email = document.getElementById('gerenteEmail').value.trim();
+            const password = document.getElementById('gerentePassword').value;
+
+            if (!email || !password) {
+                showError('gerenteForm', 'Preencha e-mail e senha');
+                return;
+            }
+
+            try {
+                btn.innerHTML = '<span class="loading"></span> Entrando...';
+                btn.disabled = true;
+
+                const userCred = await window.auth.signInWithEmailAndPassword(email, password);
+                const autorizado = await verificarAutorizacao(email, 'gerente');
+
+                if (autorizado) {
+                    sessionStorage.setItem('userRole', 'gerente');
+                    sessionStorage.setItem('userEmail', email);
+                    window.location.href = 'index.html';
+                } else {
+                    await window.auth.signOut();
+                    showError('gerenteForm', '❌ E-mail não autorizado como Gerente');
+                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                let mensagem = 'Erro ao fazer login';
+                if (error.code === 'auth/user-not-found') mensagem = 'Usuário não encontrado';
+                else if (error.code === 'auth/wrong-password') mensagem = 'Senha incorreta';
+                else if (error.code === 'auth/invalid-email') mensagem = 'E-mail inválido';
+                else if (error.code === 'auth/too-many-requests') mensagem = 'Muitas tentativas. Tente mais tarde';
+                showError('gerenteForm', mensagem);
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+                btn.disabled = false;
+            }
+        }
+
+        async function loginFuncionario(event) {
+            const btn = event.currentTarget;
+            const email = document.getElementById('funcionarioEmail').value.trim();
+            const password = document.getElementById('funcionarioPassword').value;
+
+            if (!email || !password) {
+                showError('funcionarioForm', 'Preencha e-mail e senha');
+                return;
+            }
+
+            try {
+                btn.innerHTML = '<span class="loading"></span> Entrando...';
+                btn.disabled = true;
+
+                const userCred = await window.auth.signInWithEmailAndPassword(email, password);
+                const autorizado = await verificarAutorizacao(email, 'funcionario');
+
+                if (autorizado) {
+                    sessionStorage.setItem('userRole', 'funcionario');
+                    sessionStorage.setItem('userEmail', email);
+                    window.location.href = 'index.html';
+                } else {
+                    await window.auth.signOut();
+                    showError('funcionarioForm', '❌ E-mail não autorizado como Funcionário');
+                    btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                let mensagem = 'Erro ao fazer login';
+                if (error.code === 'auth/user-not-found') mensagem = 'Usuário não encontrado';
+                else if (error.code === 'auth/wrong-password') mensagem = 'Senha incorreta';
+                else if (error.code === 'auth/invalid-email') mensagem = 'E-mail inválido';
+                showError('funcionarioForm', mensagem);
+                btn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+                btn.disabled = false;
+            }
+        }
+
+        async function loginGoogle(event) {
+            const btn = event.currentTarget;
+            
+            try {
+                btn.innerHTML = '<span class="loading"></span> Entrando...';
+                btn.disabled = true;
+
+                const result = await window.auth.signInWithPopup(window.googleProvider);
+                const email = result.user.email;
+                const autorizado = await verificarAutorizacao(email, currentRole);
+
+                if (autorizado) {
+                    sessionStorage.setItem('userRole', currentRole);
+                    sessionStorage.setItem('userEmail', email);
+                    window.location.href = 'index.html';
+                } else {
+                    await window.auth.signOut();
+                    showError(currentRole === 'gerente' ? 'gerenteForm' : 'funcionarioForm', 
+                        '❌ E-mail não autorizado');
+                    btn.innerHTML = '<i class="fab fa-google"></i> Entrar com Google';
+                    btn.disabled = false;
+                }
+            } catch (error) {
+                console.error('Erro Google:', error);
+                showError(currentRole === 'gerente' ? 'gerenteForm' : 'funcionarioForm', 
+                    'Erro: ' + error.message);
+                btn.innerHTML = '<i class="fab fa-google"></i> Entrar com Google';
+                btn.disabled = false;
+            }
+        }
+
+        async function verificarAutorizacao(email, role) {
+            try {
+                if (window.firestore) {
+                    const collectionName = role === 'gerente' ? 'gerentesAutorizados' : 'funcionariosAutorizados';
+                    const docRef = window.firestore.collection(collectionName).doc(email.replace(/\./g, '_'));
+                    const docSnap = await docRef.get();
+                    if (docSnap.exists && docSnap.data().autorizado === true) {
+                        return true;
+                    }
+                }
+            } catch(e) {
+                console.log('Erro ao verificar Firestore:', e);
+            }
+
+            const emailsGerentes = [
+                "paulooliviof@hotmail.com",
+                "paulooliviof@gmail.com",
+                "gerente@smarthome.com",
+                "admin@smarthome.com"
+            ];
+            const emailsFuncionarios = [
+                "funcionario@smarthome.com",
+                "funcionario@smarthgates.com",
+                "vendedor@smarthome.com"
+            ];
+
+            const lista = role === 'gerente' ? emailsGerentes : emailsFuncionarios;
+            return lista.includes(email);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            selectRole('gerente');
+
+            if (window.auth) {
+                window.auth.onAuthStateChanged(async (user) => {
+                    if (user) {
+                        const role = sessionStorage.getItem('userRole');
+                        const email = sessionStorage.getItem('userEmail');
+                        if (role && email) {
+                            const autorizado = await verificarAutorizacao(email, role);
+                            if (autorizado) {
+                                window.location.href = 'index.html';
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
