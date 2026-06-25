@@ -315,8 +315,7 @@
         // ============ CARREGAR PRODUTOS ============
         async function carregarProdutos() {
             try {
-                const app = window.parent.getDadosGlobais();
-                const db = app.db;
+                const db = window.parent.db;
                 
                 produtosData = await db.getProdutos();
                 produtosFiltrados = [...produtosData];

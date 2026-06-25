@@ -1,166 +1,149 @@
 // ============ js/app.js ============
-// Funções globais para comunicação entre páginas
+// Funções auxiliares para as páginas filhas
 
-// ============ DADOS GLOBAIS ============
-function getDadosGlobais() {
-    return {
-        db: window.db || {},
-        auth: window.auth || {},
-        firestore: window.firestore || {},
-        database: window.database || {}
-    };
-}
-
-// ============ NAVEGAÇÃO ============
-function navegarPara(pagina) {
-    // Atualizar navegação
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.classList.toggle('active', item.dataset.page === pagina);
-    });
-
-    // Atualizar iframe
-    const frame = document.getElementById('pageFrame');
-    if (frame) {
-        frame.src = `pages/${pagina}.html`;
-    }
-
-    // Atualizar status
-    const nomes = {
-        'dashboard': '📊 Dashboard',
-        'clientes': '👤 Clientes',
-        'produtos': '📦 Produtos',
-        'orcamento-comodo': '🏗️ Orç. por Cômodo',
-        'orcamento-total': '💰 Orçamento Total',
-        'configuracoes': '⚙️ Configurações'
-    };
-    atualizarStatus(`📄 ${nomes[pagina] || pagina}`);
-}
-
-// ============ STATUS ============
-function atualizarStatus(mensagem) {
-    const el = document.getElementById('footerStatus');
-    if (el) {
-        el.textContent = mensagem;
-    }
-}
-
-// ============ STATUS DE CONEXÃO ============
-function atualizarConexao(online) {
-    const badge = document.getElementById('statusConexao');
-    if (badge) {
-        badge.textContent = online ? '🟢 Conectado' : '🔴 Desconectado';
-        badge.className = `status-badge ${online ? 'online' : 'offline'}`;
-    }
-}
-
-// ============ LOGOUT ============
-async function sair() {
+// ============ ACESSO AO DB ============
+function getParentDb() {
     try {
-        if (window.auth) {
-            await window.auth.signOut();
+        if (window.parent && window.parent.getDadosGlobais) {
+            return window.parent.getDadosGlobais().db;
         }
-        sessionStorage.removeItem('userRole');
-        sessionStorage.removeItem('userEmail');
-        window.location.href = 'login.html';
+        if (window.db) {
+            return window.db;
+        }
+        throw new Error('Database não disponível');
     } catch (error) {
-        console.error('Erro ao sair:', error);
-        window.location.href = 'login.html';
+        console.error('Erro ao acessar database:', error);
+        return null;
     }
 }
 
-// ============ VERIFICAR AUTENTICAÇÃO ============
-async function verificarAutenticacao() {
+// ============ FUNÇÕES DE UTILIDADE ============
+function formatCurrency(value) {
+    return 'R$ ' + (value || 0).toFixed(2).replace('.', ',');
+}
+
+function formatDate(dateString) {
+    if (!dateString) return '-';
     try {
-        const role = sessionStorage.getItem('userRole');
-        const email = sessionStorage.getItem('userEmail');
-
-        if (!role || !email) {
-            window.location.href = 'login.html';
-            return false;
-        }
-
-        if (window.auth && window.auth.currentUser) {
-            const user = window.auth.currentUser;
-            if (user.email !== email) {
-                sessionStorage.clear();
-                window.location.href = 'login.html';
-                return false;
-            }
-            return true;
-        }
-
-        // Verificar se o usuário está logado
-        return new Promise((resolve) => {
-            if (window.auth) {
-                const unsubscribe = window.auth.onAuthStateChanged((user) => {
-                    unsubscribe();
-                    if (user && user.email === email) {
-                        resolve(true);
-                    } else {
-                        sessionStorage.clear();
-                        window.location.href = 'login.html';
-                        resolve(false);
-                    }
-                });
-            } else {
-                resolve(false);
-            }
-        });
-    } catch (error) {
-        console.error('Erro ao verificar autenticação:', error);
-        window.location.href = 'login.html';
-        return false;
+        return new Date(dateString).toLocaleDateString('pt-BR');
+    } catch {
+        return '-';
     }
 }
 
-// ============ MONITORAR CONEXÃO ============
-function monitorarConexao() {
-    const online = navigator.onLine;
-    atualizarConexao(online);
-
-    window.addEventListener('online', () => {
-        atualizarConexao(true);
-        atualizarStatus('🟢 Conexão restaurada');
-    });
-
-    window.addEventListener('offline', () => {
-        atualizarConexao(false);
-        atualizarStatus('🔴 Sem conexão com a internet');
-    });
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
 }
 
-// ============ INICIALIZAR SISTEMA ============
-document.addEventListener('DOMContentLoaded', async function() {
-    // Verificar autenticação
-    const autenticado = await verificarAutenticacao();
-    if (!autenticado) return;
+function sanitizeString(str) {
+    if (!str) return '';
+    return str.replace(/[<>]/g, '').trim();
+}
 
-    // Monitorar conexão
-    monitorarConexao();
+// ============ VALIDAÇÕES ============
+function validarEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
-    // Configurar navegação inicial
-    const role = sessionStorage.getItem('userRole');
-    const email = sessionStorage.getItem('userEmail');
-    const userDisplay = document.querySelector('.header-actions .user-info');
+function validarTelefone(telefone) {
+    return /^\(?\d{2}\)?[\s-]?\d{4,5}-?\d{4}$/.test(telefone);
+}
 
-    if (userDisplay) {
-        userDisplay.textContent = `👤 ${email}`;
+function validarPreco(valor) {
+    return valor > 0 && !isNaN(valor);
+}
+
+function validarQuantidade(valor) {
+    return Number.isInteger(valor) && valor >= 0;
+}
+
+// ============ MÁSCARAS ============
+function mascaraTelefone(input) {
+    let value = input.value.replace(/\D/g, '');
+    if (value.length <= 10) {
+        value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+    } else {
+        value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
     }
+    input.value = value;
+}
 
-    // Carregar dashboard por padrão
-    navegarPara('dashboard');
+function mascaraCpf(input) {
+    let value = input.value.replace(/\D/g, '');
+    value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    input.value = value;
+}
 
-    // Verificar Firestore em intervalos
-    setInterval(() => {
-        if (window.db && window.db.getClientes) {
-            window.db.getClientes().then(() => {
-                atualizarConexao(true);
-            }).catch(() => {
-                atualizarConexao(false);
-            });
-        }
-    }, 30000);
+function mascaraCnpj(input) {
+    let value = input.value.replace(/\D/g, '');
+    value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    input.value = value;
+}
 
-    console.log('✅ Sistema inicializado');
-    console.log(`👤 Usuário: ${email} (${role})`);
+// ============ TOAST NOTIFICATIONS ============
+function showToast(message, type = 'info') {
+    const colors = {
+        success: '#0b9e5e',
+        error: '#dc2626',
+        warning: '#f59e0b',
+        info: '#4f46e5'
+    };
+
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        background: ${colors[type] || colors.info};
+        color: white;
+        padding: 12px 24px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-family: 'Inter', sans-serif;
+        box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        z-index: 9999;
+        max-width: 400px;
+        animation: slideIn 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    `;
+    
+    const icons = {
+        success: '✅',
+        error: '❌',
+        warning: '⚠️',
+        info: 'ℹ️'
+    };
+    
+    toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${message}`;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.3s';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+// ============ DARK MODE ============
+function toggleDarkMode() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('darkMode', isDark);
+    return isDark;
+}
+
+function loadDarkMode() {
+    const isDark = localStorage.getItem('darkMode') === 'true';
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+    }
+    return isDark;
+}
+
+// ============ INICIALIZAR ============
+document.addEventListener('DOMContentLoaded', function() {
+    loadDarkMode();
+    console.log('✅ app.js carregado');
 });

@@ -131,6 +131,7 @@ body {
     flex: 1;
     overflow: hidden;
     background: #f8fafc;
+    position: relative;
 }
 
 .main-content iframe {
@@ -234,6 +235,12 @@ body {
 .btn-xs {
     padding: 2px 8px;
     font-size: 11px;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
 }
 
 /* ============ MODAL ============ */
@@ -440,6 +447,18 @@ body.dark-mode .status-badge.offline {
 
 body.dark-mode .app-footer {
     color: #64748b;
+}
+
+/* ============ TOAST ANIMATION ============ */
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 /* ============ RESPONSIVO ============ */

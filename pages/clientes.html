@@ -110,6 +110,38 @@
             gap: 14px;
         }
 
+        /* Dark Mode */
+        body.dark-mode .page-header {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .page-header h2 {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .cliente-card {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .cliente-card .nome {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .cliente-card .info {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .cliente-card .nome .id {
+            background: #334155;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .empty-state h3 {
+            color: #94a3b8;
+        }
+
         @media (max-width: 768px) {
             .page-header {
                 flex-direction: column;
@@ -159,11 +191,11 @@
                 </div>
                 <div class="form-group">
                     <label>Documento (CPF/CNPJ)</label>
-                    <input type="text" id="formDocumento" placeholder="000.000.000-00">
+                    <input type="text" id="formDocumento" placeholder="000.000.000-00" oninput="mascaraDocumento(this)">
                 </div>
                 <div class="form-group">
                     <label>Telefone *</label>
-                    <input type="text" id="formTelefone" required placeholder="(11) 98765-4321">
+                    <input type="text" id="formTelefone" required placeholder="(11) 98765-4321" oninput="mascaraTelefone(this)">
                 </div>
                 <div class="form-group">
                     <label>E-mail</label>
@@ -187,21 +219,137 @@
     </div>
 
     <script>
+        // ============ ACESSO AO DB ============
+        function getDb() {
+            try {
+                if (window.parent && window.parent.getParentDb) {
+                    return window.parent.getParentDb();
+                }
+                if (window.parent && window.parent.getDadosGlobais) {
+                    return window.parent.getDadosGlobais().db;
+                }
+                if (window.db) {
+                    return window.db;
+                }
+                throw new Error('Database não disponível');
+            } catch (error) {
+                console.error('Erro ao acessar database:', error);
+                mostrarNotificacao('❌ Erro ao conectar ao banco de dados', 'error');
+                return null;
+            }
+        }
+
+        // ============ NOTIFICAÇÕES ============
+        function mostrarNotificacao(mensagem, tipo = 'info') {
+            const cores = {
+                success: '#0b9e5e',
+                error: '#dc2626',
+                warning: '#f59e0b',
+                info: '#4f46e5'
+            };
+
+            const icones = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: ${cores[tipo] || cores.info};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 12px;
+                font-size: 14px;
+                font-family: 'Inter', sans-serif;
+                box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+                z-index: 9999;
+                max-width: 400px;
+                animation: slideIn 0.3s ease;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            `;
+            
+            toast.innerHTML = `<span>${icones[tipo] || 'ℹ️'}</span> ${mensagem}`;
+            
+            // Verificar se já existe um toast e remover
+            const existing = document.querySelector('.toast-notification');
+            if (existing) existing.remove();
+            
+            toast.className = 'toast-notification';
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // ============ MÁSCARAS ============
+        function mascaraTelefone(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length === 0) {
+                input.value = '';
+                return;
+            }
+            if (value.length <= 10) {
+                value = value.replace(/(\d{2})(\d{4})(\d{4})/, '($1) $2-$3');
+            } else {
+                value = value.replace(/(\d{2})(\d{5})(\d{4})/, '($1) $2-$3');
+            }
+            input.value = value;
+        }
+
+        function mascaraDocumento(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length === 0) {
+                input.value = '';
+                return;
+            }
+            if (value.length <= 11) {
+                // CPF
+                value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            } else {
+                // CNPJ
+                value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+            }
+            input.value = value;
+        }
+
+        // ============ VARIÁVEIS GLOBAIS ============
         let clientesData = [];
-        let clienteEditando = null;
 
         // ============ CARREGAR CLIENTES ============
         async function carregarClientes() {
             try {
-                const app = window.parent.getDadosGlobais();
-                const db = app.db;
-                
+                const db = getDb();
+                if (!db) {
+                    throw new Error('Database não disponível');
+                }
+
                 clientesData = await db.getClientes();
                 renderizarClientes();
-                window.parent.atualizarStatus('✅ Clientes carregados');
+                
+                const total = clientesData.length;
+                const msg = total > 0 ? `✅ ${total} clientes carregados` : '📭 Nenhum cliente cadastrado';
+                mostrarNotificacao(msg, total > 0 ? 'success' : 'info');
+                
+                // Atualizar status no pai
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus(`✅ ${total} clientes carregados`);
+                }
             } catch (error) {
                 console.error('Erro ao carregar clientes:', error);
-                window.parent.atualizarStatus('❌ Erro ao carregar clientes');
+                mostrarNotificacao('❌ Erro ao carregar clientes: ' + error.message, 'error');
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('❌ Erro ao carregar clientes');
+                }
             }
         }
 
@@ -224,7 +372,7 @@
                     ${clientesData.map(cliente => `
                         <div class="cliente-card">
                             <div class="nome">
-                                ${cliente.nome}
+                                ${cliente.nome || 'Sem nome'}
                                 <span class="id">#${cliente.id ? cliente.id.slice(0, 8) : '---'}</span>
                             </div>
                             <div class="info">
@@ -232,6 +380,7 @@
                                 ${cliente.email ? `<span>✉️ ${cliente.email}</span>` : ''}
                                 ${cliente.endereco ? `<span>📍 ${cliente.endereco}</span>` : ''}
                                 ${cliente.documento ? `<span>📄 ${cliente.documento}</span>` : ''}
+                                ${cliente.observacoes ? `<span>📝 ${cliente.observacoes}</span>` : ''}
                             </div>
                             <div class="acoes">
                                 <button class="btn btn-primary btn-sm" onclick="editarCliente('${cliente.id}')">✏️ Editar</button>
@@ -286,32 +435,72 @@
                 observacoes: document.getElementById('formObservacoes').value.trim(),
             };
 
-            if (!data.nome || !data.telefone) {
-                alert('Nome e Telefone são obrigatórios!');
+            // Validações
+            if (!data.nome) {
+                mostrarNotificacao('⚠️ Nome é obrigatório!', 'warning');
+                document.getElementById('formNome').focus();
+                return;
+            }
+
+            if (!data.telefone) {
+                mostrarNotificacao('⚠️ Telefone é obrigatório!', 'warning');
+                document.getElementById('formTelefone').focus();
+                return;
+            }
+
+            // Validar telefone
+            const telefoneLimpo = data.telefone.replace(/\D/g, '');
+            if (telefoneLimpo.length < 10) {
+                mostrarNotificacao('⚠️ Telefone inválido! Use (DDD) 9 9999-9999', 'warning');
+                document.getElementById('formTelefone').focus();
+                return;
+            }
+
+            // Validar email se fornecido
+            if (data.email && !validarEmail(data.email)) {
+                mostrarNotificacao('⚠️ E-mail inválido!', 'warning');
+                document.getElementById('formEmail').focus();
                 return;
             }
 
             try {
-                const app = window.parent.getDadosGlobais();
-                const db = app.db;
+                const db = getDb();
+                if (!db) {
+                    throw new Error('Database não disponível');
+                }
+
                 const id = document.getElementById('formEditIndex').value;
+                let mensagem = '';
 
                 if (id && id !== '-1') {
                     data.id = id;
                     await db.salvarCliente(data);
-                    window.parent.atualizarStatus('✅ Cliente atualizado');
+                    mensagem = '✅ Cliente atualizado com sucesso!';
                 } else {
                     await db.salvarCliente(data);
-                    window.parent.atualizarStatus('✅ Cliente criado');
+                    mensagem = '✅ Cliente criado com sucesso!';
+                }
+
+                mostrarNotificacao(mensagem, 'success');
+                
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus(mensagem);
                 }
 
                 fecharModal('modalCliente');
                 await carregarClientes();
             } catch (error) {
                 console.error('Erro ao salvar cliente:', error);
-                alert('Erro ao salvar: ' + error.message);
-                window.parent.atualizarStatus('❌ Erro ao salvar cliente');
+                mostrarNotificacao('❌ Erro ao salvar: ' + error.message, 'error');
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('❌ Erro ao salvar cliente');
+                }
             }
+        }
+
+        // ============ VALIDAR E-MAIL ============
+        function validarEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
         }
 
         // ============ EDITAR ============
@@ -319,6 +508,8 @@
             const cliente = clientesData.find(c => c.id === id);
             if (cliente) {
                 abrirModalCliente(cliente);
+            } else {
+                mostrarNotificacao('❌ Cliente não encontrado', 'error');
             }
         }
 
@@ -327,20 +518,38 @@
             if (!confirm('Tem certeza que deseja excluir este cliente?')) return;
             
             try {
-                const app = window.parent.getDadosGlobais();
-                const db = app.db;
+                const db = getDb();
+                if (!db) {
+                    throw new Error('Database não disponível');
+                }
+
                 await db.deletarCliente(id);
-                window.parent.atualizarStatus('🗑️ Cliente excluído');
+                mostrarNotificacao('🗑️ Cliente excluído com sucesso!', 'success');
+                
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('🗑️ Cliente excluído');
+                }
+
                 await carregarClientes();
             } catch (error) {
                 console.error('Erro ao excluir cliente:', error);
-                alert('Erro ao excluir: ' + error.message);
-                window.parent.atualizarStatus('❌ Erro ao excluir cliente');
+                mostrarNotificacao('❌ Erro ao excluir: ' + error.message, 'error');
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('❌ Erro ao excluir cliente');
+                }
             }
         }
 
         // ============ INICIALIZAR ============
-        carregarClientes();
+        document.addEventListener('DOMContentLoaded', function() {
+            // Carregar dark mode
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+            }
+
+            carregarClientes();
+        });
 
         // Fechar modal ao clicar fora
         document.addEventListener('click', function(e) {
@@ -348,6 +557,31 @@
                 e.target.classList.remove('active');
             }
         });
+
+        // Fechar modal com ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.active').forEach(modal => {
+                    modal.classList.remove('active');
+                });
+            }
+        });
+
+        // ============ TOAST ANIMATION ============
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateX(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
