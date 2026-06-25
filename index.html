@@ -128,6 +128,9 @@
             <button class="nav-item" data-page="orcamento-total" onclick="navegarPara('orcamento-total')">
                 <i class="fas fa-calculator"></i> Orçamento Total
             </button>
+            <button class="nav-item" data-page="orcamento-print" onclick="abrirImpressaoOrcamento()">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
             <button class="nav-item" data-page="configuracoes" onclick="navegarPara('configuracoes')">
                 <i class="fas fa-cog"></i> Configurações
             </button>
@@ -309,6 +312,80 @@
             console.log('✅ Sistema inicializado');
             console.log(`👤 Usuário: ${email}`);
         });
+        // ============ FUNÇÃO PARA ABRIR IMPRESSÃO ============
+        function abrirImpressaoOrcamento() {
+            // Buscar dados do orçamento atual
+            const dados = getDadosOrcamentoAtual();
+            
+            if (!dados || !dados.produtos || dados.produtos.length === 0) {
+                alert('⚠️ Nenhum orçamento para imprimir. Adicione produtos primeiro.');
+                return;
+            }
+
+            // Abrir o iframe com a página de impressão
+            const frame = document.getElementById('pageFrame');
+            if (frame) {
+                // Primeiro, carregar a página
+                frame.src = 'pages/orcamento-print.html';
+                
+                // Quando carregar, enviar os dados
+                frame.onload = function() {
+                    setTimeout(() => {
+                        frame.contentWindow.postMessage({
+                            type: 'orcamentoData',
+                            dados: dados
+                        }, '*');
+                    }, 300);
+                };
+                
+                // Atualizar navegação
+                document.querySelectorAll('.nav-item').forEach(item => {
+                    item.classList.toggle('active', item.dataset.page === 'orcamento-print');
+                });
+                
+                window.location.hash = 'orcamento-print';
+                atualizarStatus('📄 Orçamento para impressão');
+            }
+        }
+
+        // ============ BUSCAR DADOS DO ORÇAMENTO ATUAL ============
+        function getDadosOrcamentoAtual() {
+            // Aqui você deve buscar os dados do orçamento atual
+            // Pode vir do localStorage, do banco, ou de uma variável global
+            
+            try {
+                // Exemplo: buscar do localStorage
+                const saved = localStorage.getItem('orcamentoPrintData');
+                if (saved) {
+                    return JSON.parse(saved);
+                }
+                
+                // Ou construir a partir dos dados atuais
+                const cliente = getClienteSelecionado();
+                const produtos = getProdutosOrcamento();
+                
+                return {
+                    cliente: cliente,
+                    vendedor: 'Paulo Oliveira',
+                    status: 'pendente',
+                    produtos: produtos,
+                    condicoes: {
+                        validade: '30 dias',
+                        pagamento: '50% entrada + 50% na entrega',
+                        garantia: '12 meses',
+                        prazo: '15 dias úteis',
+                        observacao: 'Valores sujeitos a alteração'
+                    },
+                    observacoes: 'Orçamento gerado pelo sistema SmartHome',
+                    empresaNome: 'SmartHome Automação',
+                    empresaSub: 'Projetos e instalação de automação residencial',
+                    numero: 'ORC-' + String(Math.floor(100000 + Math.random() * 900000))
+                };
+            } catch (e) {
+                console.error('Erro ao buscar dados do orçamento:', e);
+                return null;
+            }
+        }
     </script>
 </body>
 </html>
