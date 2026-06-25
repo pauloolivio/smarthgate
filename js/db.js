@@ -35,6 +35,15 @@ class Database {
         return Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
     }
 
+    _generateCodigo() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let codigo = '';
+        for (let i = 0; i < 6; i++) {
+            codigo += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return codigo;
+    }
+
     _snapshotToArray(snapshot) {
         const data = [];
         snapshot.forEach(child => {
@@ -55,7 +64,6 @@ class Database {
         try {
             const snapshot = await this.database.ref('clientes').once('value');
             const data = this._snapshotToArray(snapshot);
-            // Ordenar por nome
             data.sort((a, b) => (a.nome || '').localeCompare(b.nome || ''));
             this._cache.clientes = data;
             this._cache.timestamp = Date.now();
@@ -70,7 +78,12 @@ class Database {
         try {
             this._clearCache();
             const dataToSave = {
-                ...data,
+                nome: data.nome || '',
+                documento: data.documento || '',
+                telefone: data.telefone || '',
+                email: data.email || '',
+                endereco: data.endereco || '',
+                observacoes: data.observacoes || '',
                 updatedAt: new Date().toISOString()
             };
             
@@ -113,7 +126,7 @@ class Database {
         }
     }
 
-    // ============ PRODUTOS ============
+    // ============ PRODUTOS (VERSÃO SIMPLIFICADA) ============
     async getProdutos(forceRefresh = false) {
         if (!forceRefresh && this._cache.produtos && this._isCacheValid()) {
             return this._cache.produtos;
@@ -122,8 +135,8 @@ class Database {
         try {
             const snapshot = await this.database.ref('produtos').once('value');
             const data = this._snapshotToArray(snapshot);
-            // Ordenar por dispositivo
-            data.sort((a, b) => (a.dispositivo || '').localeCompare(b.dispositivo || ''));
+            // Ordenar por código
+            data.sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
             this._cache.produtos = data;
             this._cache.timestamp = Date.now();
             return data;
@@ -136,8 +149,49 @@ class Database {
     async salvarProduto(data) {
         try {
             this._clearCache();
+            
+            // Garantir que o código existe
+            let codigo = data.codigo;
+            if (!codigo) {
+                codigo = this._generateCodigo();
+            }
+            
+            // Verificar código duplicado (apenas para novos produtos ou mudança de código)
+            if (!data.id) {
+                const conflito = await this.getProdutoPorCodigo(codigo);
+                if (conflito) {
+                    // Gerar novo código automaticamente
+                    let tentativas = 0;
+                    while (tentativas < 10) {
+                        codigo = this._generateCodigo();
+                        const existe = await this.getProdutoPorCodigo(codigo);
+                        if (!existe) break;
+                        tentativas++;
+                    }
+                }
+            } else {
+                // Editando - verificar se o código mudou
+                const existing = await this.getProdutoPorId(data.id);
+                if (existing && existing.codigo !== codigo) {
+                    const conflito = await this.getProdutoPorCodigo(codigo);
+                    if (conflito) {
+                        throw new Error('Código já está em uso por outro produto');
+                    }
+                }
+            }
+
             const dataToSave = {
-                ...data,
+                codigo: codigo,
+                dispositivo: data.dispositivo || data.nome || '',
+                marca: data.marca || '',
+                protocolo: data.protocolo || 'Wi-Fi',
+                imagem: data.imagem || '',
+                especificacoes: data.especificacoes || '',
+                cor: data.cor || '#4f46e5',
+                posX: data.posX || 50,
+                posY: data.posY || 50,
+                qtdPadrao: data.qtdPadrao || 0,
+                preco: data.preco || 0,
                 updatedAt: new Date().toISOString()
             };
             
@@ -163,6 +217,54 @@ class Database {
         } catch (error) {
             console.error('Erro ao deletar produto:', error);
             throw error;
+        }
+    }
+
+    async getProdutoPorId(id) {
+        try {
+            const snapshot = await this.database.ref(`produtos/${id}`).once('value');
+            const data = snapshot.val();
+            if (data) {
+                return { id: id, ...data };
+            }
+            return null;
+        } catch (error) {
+            console.error('Erro ao buscar produto por ID:', error);
+            return null;
+        }
+    }
+
+    async getProdutoPorCodigo(codigo) {
+        try {
+            const produtos = await this.getProdutos(true);
+            return produtos.find(p => p.codigo === codigo) || null;
+        } catch (error) {
+            console.error('Erro ao buscar produto por código:', error);
+            return null;
+        }
+    }
+
+    async getProdutosPorMarca(marca) {
+        try {
+            const produtos = await this.getProdutos();
+            return produtos.filter(p => 
+                (p.marca || '').toLowerCase().includes(marca.toLowerCase())
+            );
+        } catch (error) {
+            console.error('Erro ao buscar produtos por marca:', error);
+            return [];
+        }
+    }
+
+    async getProdutosPorProtocolo(protocolo) {
+        try {
+            const produtos = await this.getProdutos();
+            return produtos.filter(p => 
+                (p.protocolo || '').toLowerCase() === protocolo.toLowerCase()
+            );
+        } catch (error) {
+            console.error('Erro ao buscar produtos por protocolo:', error);
+            return [];
         }
     }
 
@@ -194,13 +296,17 @@ class Database {
         try {
             this._clearCache();
             const dataToSave = {
-                ...data,
+                clienteId: data.clienteId || '',
+                clienteNome: data.clienteNome || '',
+                vendedor: data.vendedor || '',
+                condicoes: data.condicoes || '50% entrada + 50% na entrega',
+                prazo: data.prazo || '15 dias úteis',
+                observacoes: data.observacoes || '',
+                status: data.status || 'pendente',
+                valorTotal: data.valorTotal || 0,
+                dataCriacao: data.dataCriacao || new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
-            
-            if (!data.dataCriacao) {
-                dataToSave.dataCriacao = new Date().toISOString();
-            }
             
             if (data.id) {
                 await this.database.ref(`orcamentos/${data.id}`).set(dataToSave);
@@ -227,6 +333,16 @@ class Database {
         }
     }
 
+    async getOrcamentosPorCliente(clienteId) {
+        try {
+            const orcamentos = await this.getOrcamentos();
+            return orcamentos.filter(o => o.clienteId === clienteId);
+        } catch (error) {
+            console.error('Erro ao buscar orçamentos por cliente:', error);
+            return [];
+        }
+    }
+
     // ============ CONFIGURAÇÕES ============
     async getConfiguracoes(forceRefresh = false) {
         if (!forceRefresh && this._cache.configuracoes && this._isCacheValid()) {
@@ -249,7 +365,7 @@ class Database {
         try {
             this._clearCache();
             await this.database.ref(`configuracoes/${chave}`).set({
-                ...valor,
+                valor: valor,
                 updatedAt: new Date().toISOString()
             });
         } catch (error) {
@@ -316,7 +432,7 @@ class Database {
         return {
             _exported: true,
             _timestamp: new Date().toISOString(),
-            _version: '2.0',
+            _version: '3.0',
             data: {
                 clients: clientes,
                 products: produtos,
@@ -360,6 +476,52 @@ class Database {
             throw error;
         }
     }
+
+    // ============ MIGRAÇÃO DE PRODUTOS (VERSÃO SIMPLIFICADA) ============
+    async migrarProdutosLegado() {
+        try {
+            console.log('🔄 Iniciando migração de produtos para novo formato...');
+            const produtos = await this.getProdutos(true);
+            let migrados = 0;
+
+            for (const p of produtos) {
+                // Verificar se tem campos legados que precisam ser migrados
+                const precisaMigrar = p.nome || p.dispositivo_antigo || p.comodo || p.infra;
+                
+                if (precisaMigrar) {
+                    const dataToUpdate = {
+                        codigo: p.codigo || this._generateCodigo(),
+                        dispositivo: p.dispositivo || p.nome || 'Sem nome',
+                        marca: p.marca || 'Sem marca',
+                        protocolo: p.protocolo || 'Wi-Fi',
+                        imagem: p.imagem || '',
+                        especificacoes: p.especificacoes || '',
+                        cor: p.cor || '#4f46e5',
+                        posX: p.posX || 50,
+                        posY: p.posY || 50,
+                        qtdPadrao: p.qtdPadrao || 0,
+                        preco: p.preco || 0,
+                        updatedAt: new Date().toISOString()
+                    };
+
+                    // Manter createdAt se existir
+                    if (p.createdAt) {
+                        dataToUpdate.createdAt = p.createdAt;
+                    }
+
+                    await this.database.ref(`produtos/${p.id}`).set(dataToUpdate);
+                    migrados++;
+                    console.log(`   ✅ Produto ${p.id} (${dataToUpdate.codigo}) migrado`);
+                }
+            }
+
+            console.log(`✅ Migração concluída: ${migrados} produtos atualizados`);
+            return migrados;
+        } catch (error) {
+            console.error('❌ Erro na migração:', error);
+            throw error;
+        }
+    }
 }
 
 // Criar instância global
@@ -369,5 +531,29 @@ const db = new Database();
 window.db = db;
 window.Database = Database;
 
-console.log('✅ Database (Realtime) inicializado');
-console.log('📦 db disponível em window.db');
+console.log('✅ Database (Realtime) inicializado - v3.0');
+console.log('📦 Estrutura simplificada:');
+console.log('   - Clientes: nome, documento, telefone, email, endereco, observacoes');
+console.log('   - Produtos: codigo, dispositivo, marca, protocolo, imagem, especificacoes, cor, posX, posY, qtdPadrao, preco');
+console.log('   - Orçamentos: clienteId, clienteNome, vendedor, condicoes, prazo, observacoes, status, valorTotal, dataCriacao');
+console.log('   - Configurações: chave -> valor');
+
+// Verificar e migrar produtos automaticamente
+(async function() {
+    try {
+        const produtos = await db.getProdutos(true);
+        const precisaMigrar = produtos.some(p => p.nome || p.comodo || p.infra);
+        
+        if (precisaMigrar && produtos.length > 0) {
+            console.log('⚠️ Produtos em formato legado detectados. Iniciando migração...');
+            const migrados = await db.migrarProdutosLegado();
+            if (migrados > 0) {
+                console.log(`🎉 ${migrados} produtos migrados com sucesso!`);
+                // Limpar cache após migração
+                db._clearCache();
+            }
+        }
+    } catch (e) {
+        console.log('ℹ️ Verificação de migração não realizada:', e.message);
+    }
+})();
