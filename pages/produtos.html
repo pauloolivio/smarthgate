@@ -901,7 +901,7 @@
             atualizarStats();
             
             const total = produtosData.length;
-            const msg = total > 0 ? `✅ ${total} produtos carregados` : '📭 Nenhum produto cadastrado';
+            const msg = total > 0 ? `${total} produtos carregados` : '📭 Nenhum produto cadastrado';
             mostrarNotificacao(msg, total > 0 ? 'success' : 'info');
             
             if (window.parent && window.parent.atualizarStatus) {
