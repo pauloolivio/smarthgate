@@ -203,6 +203,12 @@
             color: #94a3b8;
         }
 
+        .catalogo-body .item-catalogo .info .detalhe .marca {
+            background: #f1f5f9;
+            padding: 1px 8px;
+            border-radius: 8px;
+        }
+
         .catalogo-body .item-catalogo .acoes-catalogo {
             display: flex;
             align-items: center;
@@ -363,6 +369,12 @@
             margin-left: 6px;
         }
 
+        .item-linha .item-info .detalhe .marca {
+            background: #f1f5f9;
+            padding: 1px 10px;
+            border-radius: 10px;
+        }
+
         .item-linha .item-actions {
             display: flex;
             align-items: center;
@@ -405,6 +417,10 @@
         .item-linha .item-actions .qtd-control button:hover {
             background: #e2e8f0;
             color: #0f172a;
+        }
+
+        .item-linha .item-actions .qtd-control button:active {
+            transform: scale(0.9);
         }
 
         .item-linha .item-actions .qtd-control .qtd-value {
@@ -1067,7 +1083,7 @@
         // ============ ESTADO GLOBAL ============
         let produtosData = [];
         let clientesData = [];
-        let orcamentoData = {}; // { produtoId_comodo: { id, qtd, comodo, nome, marca, protocolo, preco, cor } }
+        let orcamentoData = {};
         let clienteAtual = null;
         let produtoModalAtual = null;
         let _saveTimeout = null;
@@ -1129,7 +1145,6 @@
 
                 console.log(`📂 Carregando orçamento do cliente ${clienteId}...`);
                 
-                // Buscar do Firebase
                 const data = await db.getOrcamentoComodo(clienteId);
                 
                 if (data && Object.keys(data).length > 0) {
@@ -1161,7 +1176,6 @@
                 const db = getDb();
                 if (!db) throw new Error('Database não disponível');
                 
-                // Filtrar apenas itens com qtd > 0
                 const dataToSave = {};
                 Object.entries(orcamentoData).forEach(([key, value]) => {
                     if (value && value.qtd > 0) {
@@ -1207,7 +1221,6 @@
                 
                 atualizarSelectClientes();
                 
-                // Carregar orçamento salvo do Firebase
                 const clienteId = document.getElementById('clienteSelect').value;
                 if (clienteId) {
                     await carregarOrcamentoSalvo(clienteId);
@@ -1304,7 +1317,6 @@
 
             let html = '';
             produtosData.forEach(p => {
-                // Verificar quantos já foram usados
                 let usado = 0;
                 Object.values(orcamentoData).forEach(entry => {
                     if (entry && entry.id === p.id && entry.qtd > 0) {
@@ -1346,42 +1358,31 @@
                 return;
             }
 
-            // Agrupar itens do orcamentoData por cômodo
-            const comodosMap = {};
+            emptyState.style.display = 'none';
+
+            // 1. OBTER TODOS OS CÔMODOS ÚNICOS DOS PRODUTOS
+            const comodosUnicos = [...new Set(produtosData.map(p => p.comodo).filter(Boolean))].sort();
             
-            Object.entries(orcamentoData).forEach(([key, entry]) => {
-                if (entry && entry.qtd > 0 && entry.comodo) {
-                    // Buscar dados completos do produto
-                    const produto = produtosData.find(p => p.id === entry.id);
-                    if (produto) {
-                        if (!comodosMap[entry.comodo]) comodosMap[entry.comodo] = [];
-                        comodosMap[entry.comodo].push({
-                            ...produto,
-                            qtd: entry.qtd,
-                            comodo: entry.comodo,
-                            key: key // Guardar a chave para referência
-                        });
-                    }
-                }
-            });
-
-            const comodosOrdenados = Object.keys(comodosMap).sort();
-
-            if (comodosOrdenados.length === 0 || Object.keys(orcamentoData).length === 0) {
-                emptyState.style.display = 'block';
-                container.innerHTML = '';
+            if (comodosUnicos.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icone">🏠</div>
+                        <h3>Nenhum cômodo cadastrado</h3>
+                        <p>Cadastre produtos com cômodos para começar</p>
+                    </div>
+                `;
                 document.getElementById('totalGeralBox').style.display = 'none';
                 return;
             }
-
-            emptyState.style.display = 'none';
 
             let totalGeral = 0;
             let totalItens = 0;
             let html = '';
 
-            comodosOrdenados.forEach(comodo => {
-                const itens = comodosMap[comodo];
+            // 2. PARA CADA CÔMODO, MOSTRAR TODOS OS PRODUTOS
+            comodosUnicos.forEach(comodo => {
+                // Filtrar produtos deste cômodo
+                const produtosDoComodo = produtosData.filter(p => p.comodo === comodo);
                 let totalComodo = 0;
 
                 html += `
@@ -1390,7 +1391,7 @@
                             <div class="left">
                                 <span class="icone-comodo">🏠</span>
                                 <h3>${comodo}</h3>
-                                <span class="badge-itens">${itens.length} itens</span>
+                                <span class="badge-itens">${produtosDoComodo.length} produtos</span>
                             </div>
                             <div style="display: flex; align-items: center; gap: 12px;">
                                 <span class="total-comodo" id="total-${comodo.replace(/\s/g, '_')}">R$ 0,00</span>
@@ -1400,40 +1401,57 @@
                         <div class="comodo-body">
                 `;
 
-                itens.forEach(item => {
-                    const total = item.qtd * (item.preco || 0);
-                    totalComodo += total;
-                    totalGeral += total;
-                    totalItens += item.qtd;
+                // 3. PARA CADA PRODUTO DO CÔMODO, MOSTRAR COM QUANTIDADE
+                produtosDoComodo.forEach(p => {
+                    // Buscar a quantidade deste produto neste cômodo
+                    let qtd = 0;
+                    let total = 0;
+                    
+                    // Procurar no orcamentoData
+                    Object.entries(orcamentoData).forEach(([key, entry]) => {
+                        if (entry && entry.comodo === comodo) {
+                            const productId = key.split('_')[0];
+                            if (productId === p.id) {
+                                qtd = entry.qtd || 0;
+                                total = qtd * (p.preco || 0);
+                            }
+                        }
+                    });
 
-                    const qtdId = `qtd-${item.id}-${comodo.replace(/\s/g, '_')}`;
-                    const totalId = `total-item-${item.id}-${comodo.replace(/\s/g, '_')}`;
+                    if (qtd > 0) {
+                        totalComodo += total;
+                        totalGeral += total;
+                        totalItens += qtd;
+                    }
+
+                    const qtdId = `qtd-${p.id}-${comodo.replace(/\s/g, '_')}`;
+                    const totalId = `total-item-${p.id}-${comodo.replace(/\s/g, '_')}`;
 
                     html += `
-                        <div class="item-linha" data-id="${item.id}" data-comodo="${comodo}">
+                        <div class="item-linha" data-id="${p.id}" data-comodo="${comodo}">
                             <div class="item-info">
-                                <span class="dot" style="background: ${item.cor || '#4f46e5'};"></span>
-                                <span class="nome">${item.nome || item.dispositivo || 'Sem nome'}</span>
+                                <span class="dot" style="background: ${p.cor || '#4f46e5'};"></span>
+                                <span class="nome">${p.nome || p.dispositivo || 'Sem nome'}</span>
                                 <span class="detalhe">
-                                    <span class="marca">${item.marca || 'Sem marca'}</span>
-                                    ${item.protocolo ? '· ' + item.protocolo : ''}
+                                    <span class="marca">${p.marca || 'Sem marca'}</span>
+                                    ${p.protocolo ? '· ' + p.protocolo : ''}
                                 </span>
                             </div>
                             <div class="item-actions">
-                                <span class="preco-unit">R$ ${(item.preco || 0).toFixed(2)}</span>
+                                <span class="preco-unit">R$ ${(p.preco || 0).toFixed(2)}</span>
                                 <div class="qtd-control">
-                                    <button onclick="ajustarQuantidade('${item.id}', '${comodo}', -1)">−</button>
-                                    <span class="qtd-value" id="${qtdId}">${item.qtd}</span>
-                                    <button onclick="ajustarQuantidade('${item.id}', '${comodo}', 1)">+</button>
+                                    <button onclick="ajustarQuantidade('${p.id}', '${comodo}', -1)" title="Remover um">−</button>
+                                    <span class="qtd-value" id="${qtdId}">${qtd}</span>
+                                    <button onclick="ajustarQuantidade('${p.id}', '${comodo}', 1)" title="Adicionar um">+</button>
                                 </div>
                                 <span class="total-item" id="${totalId}">R$ ${total.toFixed(2)}</span>
-                                <button class="btn-remover" onclick="removerItemDoComodo('${item.id}', '${comodo}')" title="Remover">✕</button>
+                                <button class="btn-remover" onclick="removerItemDoComodo('${p.id}', '${comodo}')" title="Remover do cômodo">✕</button>
                             </div>
                         </div>
                     `;
                 });
 
-                // Área para adicionar produtos a este cômodo
+                // 4. ÁREA PARA ADICIONAR PRODUTOS A ESTE CÔMODO
                 html += `
                         <div class="add-item-area">
                             <label>➕ Adicionar:</label>
@@ -1451,6 +1469,7 @@
                 </div>
                 `;
 
+                // Atualizar total do cômodo
                 setTimeout(() => {
                     const el = document.getElementById(`total-${comodo.replace(/\s/g, '_')}`);
                     if (el) el.textContent = `R$ ${totalComodo.toFixed(2)}`;
@@ -1463,7 +1482,7 @@
                 totalGeralBox.style.display = 'flex';
                 document.getElementById('totalGeralDisplay').textContent = `R$ ${totalGeral.toFixed(2)}`;
                 document.getElementById('totalItensDisplay').textContent = `📦 ${totalItens} itens`;
-                document.getElementById('totalComodosDisplay').textContent = `🏠 ${comodosOrdenados.length} cômodos`;
+                document.getElementById('totalComodosDisplay').textContent = `🏠 ${comodosUnicos.length} cômodos`;
             } else {
                 totalGeralBox.style.display = 'none';
             }
@@ -1901,7 +1920,6 @@
                 document.getElementById('catalogoIcon').classList.add('open');
             }, 500);
 
-            // Auto-save a cada 30s
             setInterval(() => {
                 const clienteId = document.getElementById('clienteSelect').value;
                 if (clienteId && Object.keys(orcamentoData).length > 0) {
