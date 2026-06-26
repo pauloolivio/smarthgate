@@ -122,7 +122,6 @@ class Database {
     async deletarCliente(id) {
         try {
             this._clearCache();
-            // Deletar também os dados relacionados
             await this.database.ref(`clientes/${id}`).remove();
             await this.database.ref(`orcamentos_comodo/${id}`).remove();
             await this.database.ref(`orcamentos_status/${id}`).remove();
@@ -411,17 +410,43 @@ class Database {
     }
 
     /**
-     * Buscar status de todos os clientes
+     * Buscar status de todos os clientes (OTIMIZADO)
      * @returns {Promise<object>} - { clienteId: { status, dataAtualizacao } }
      */
     async getTodosStatusOrcamentos() {
         try {
             const snapshot = await this.database.ref('orcamentos_status').once('value');
-            return snapshot.val() || {};
+            const data = snapshot.val();
+            if (data && typeof data === 'object') {
+                const result = {};
+                for (const [key, value] of Object.entries(data)) {
+                    if (value && typeof value === 'object') {
+                        result[key] = {
+                            status: value.status || 'pendente',
+                            dataAtualizacao: value.dataAtualizacao || new Date().toISOString()
+                        };
+                    } else {
+                        result[key] = {
+                            status: value || 'pendente',
+                            dataAtualizacao: new Date().toISOString()
+                        };
+                    }
+                }
+                return result;
+            }
+            return {};
         } catch (error) {
             console.error('❌ Erro ao buscar todos os status:', error);
             return {};
         }
+    }
+
+    /**
+     * Buscar status de todos os clientes (FALLBACK - método antigo)
+     * @returns {Promise<object>} - { clienteId: { status, dataAtualizacao } }
+     */
+    async getTodosStatus() {
+        return this.getTodosStatusOrcamentos();
     }
 
     /**
@@ -446,25 +471,17 @@ class Database {
      */
     async atualizarStatusAutomatico(clienteId) {
         try {
-            // Buscar orçamento por cômodo
             const orcamento = await this.getOrcamentoComodo(clienteId);
             const itens = Object.values(orcamento).filter(e => e && e.qtd > 0);
-            
-            // Buscar status atual
             const statusAtual = await this.getOrcamentoStatus(clienteId);
             
-            // Se não há itens e o status é pendente, manter pendente
-            // Se não há itens e o status é aprovado ou finalizado, não alterar automaticamente
             if (itens.length === 0) {
                 if (statusAtual.status === 'aprovado' || statusAtual.status === 'finalizado') {
-                    // Não alterar automaticamente, mantém o status
                     return statusAtual;
                 }
-                // Se pendente e sem itens, mantém pendente
                 return statusAtual;
             }
 
-            // Se há itens e o status é pendente, mantém pendente (aguardando ação do usuário)
             return statusAtual;
         } catch (error) {
             console.error('❌ Erro ao atualizar status automaticamente:', error);
@@ -553,20 +570,17 @@ class Database {
         try {
             console.log('🌱 Iniciando seed de dados exemplo...');
             
-            // Verificar se já existem produtos
             const produtos = await this.getProdutos(true);
             if (produtos.length > 0) {
                 console.log('📦 Dados já existem, pulando seed');
                 return;
             }
 
-            // Tenta carregar do dados.json
             try {
                 const response = await fetch('dados.json');
                 if (response.ok) {
                     const jsonData = await response.json();
                     
-                    // Importar clientes
                     if (jsonData.clientes) {
                         for (const [key, c] of Object.entries(jsonData.clientes)) {
                             await this.salvarCliente({ ...c, id: key });
@@ -574,7 +588,6 @@ class Database {
                         console.log('✅ Clientes importados do dados.json');
                     }
 
-                    // Importar produtos
                     if (jsonData.produtos) {
                         for (const [key, p] of Object.entries(jsonData.produtos)) {
                             await this.salvarProduto({ ...p, id: key });
@@ -582,7 +595,6 @@ class Database {
                         console.log('✅ Produtos importados do dados.json');
                     }
 
-                    // Importar orçamentos
                     if (jsonData.orcamentos) {
                         for (const [key, o] of Object.entries(jsonData.orcamentos)) {
                             await this.database.ref(`orcamentos/${key}`).set({
@@ -593,7 +605,6 @@ class Database {
                         console.log('✅ Orçamentos importados do dados.json');
                     }
 
-                    // Importar orçamentos por cômodo
                     if (jsonData.orcamentos_comodo) {
                         for (const [clienteId, orcamentos] of Object.entries(jsonData.orcamentos_comodo)) {
                             await this.database.ref(`orcamentos_comodo/${clienteId}`).set(orcamentos);
@@ -602,7 +613,6 @@ class Database {
                         console.log('✅ Orçamentos por cômodo importados do dados.json');
                     }
 
-                    // Importar status dos orçamentos
                     if (jsonData.orcamentos_status) {
                         for (const [clienteId, statusData] of Object.entries(jsonData.orcamentos_status)) {
                             await this.database.ref(`orcamentos_status/${clienteId}`).set(statusData);
@@ -611,7 +621,6 @@ class Database {
                         console.log('✅ Status dos orçamentos importados do dados.json');
                     }
 
-                    // Importar configurações
                     if (jsonData.configuracoes) {
                         for (const [key, config] of Object.entries(jsonData.configuracoes)) {
                             await this.database.ref(`configuracoes/${key}`).set(config);
@@ -627,7 +636,6 @@ class Database {
                 console.log('⚠️ dados.json não encontrado, usando dados padrão');
             }
 
-            // Dados padrão (fallback)
             const produtosExemplo = [
                 {
                     codigo: 'PRD001',
@@ -684,14 +692,15 @@ class Database {
     }
 }
 
-// Criar instância global
+// =============================================
+//  CRIAR INSTÂNCIA GLOBAL
+// =============================================
 const db = new Database();
 
-// Exportar para uso global
 window.db = db;
 window.Database = Database;
 
-console.log('✅ Database (Realtime) inicializado - v3.1');
+console.log('✅ Database (Realtime) inicializado - v3.2');
 console.log('📦 Estrutura:');
 console.log('   - Clientes: nome, documento, telefone, email, endereco, observacoes');
 console.log('   - Produtos: codigo, nome, dispositivo, marca, categoria, protocolo, preco, comodo');
@@ -699,7 +708,9 @@ console.log('   - Orçamentos: clienteId, clienteNome, vendedor, condicoes, stat
 console.log('   - Orçamentos por Cômodo: orcamentos_comodo/{clienteId}');
 console.log('   - Status dos Orçamentos: orcamentos_status/{clienteId} → { status, dataAtualizacao }');
 
-// Inicializar e fazer seed automático
+// =============================================
+//  INICIALIZAR E FAZER SEED AUTOMÁTICO
+// =============================================
 (async function() {
     try {
         await db.init();

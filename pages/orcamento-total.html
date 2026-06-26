@@ -254,7 +254,7 @@
             white-space: nowrap;
         }
 
-        .orcamentos-table .acoes-cell .btn-aprovar {
+        .btn-aprovar {
             background: #0b9e5e;
             color: white;
             border: none;
@@ -263,14 +263,16 @@
             transition: all 0.2s;
             font-family: 'Inter', sans-serif;
             font-weight: 500;
+            padding: 4px 10px;
+            font-size: 11px;
         }
 
-        .orcamentos-table .acoes-cell .btn-aprovar:hover {
+        .btn-aprovar:hover {
             background: #0a8a4f;
             transform: translateY(-1px);
         }
 
-        .orcamentos-table .acoes-cell .btn-finalizar {
+        .btn-finalizar {
             background: #4f46e5;
             color: white;
             border: none;
@@ -279,14 +281,16 @@
             transition: all 0.2s;
             font-family: 'Inter', sans-serif;
             font-weight: 500;
+            padding: 4px 10px;
+            font-size: 11px;
         }
 
-        .orcamentos-table .acoes-cell .btn-finalizar:hover {
+        .btn-finalizar:hover {
             background: #4338ca;
             transform: translateY(-1px);
         }
 
-        .orcamentos-table .acoes-cell .btn-cancelar {
+        .btn-cancelar {
             background: #dc2626;
             color: white;
             border: none;
@@ -295,14 +299,16 @@
             transition: all 0.2s;
             font-family: 'Inter', sans-serif;
             font-weight: 500;
+            padding: 4px 10px;
+            font-size: 11px;
         }
 
-        .orcamentos-table .acoes-cell .btn-cancelar:hover {
+        .btn-cancelar:hover {
             background: #b91c1c;
             transform: translateY(-1px);
         }
 
-        .orcamentos-table .acoes-cell .btn-ver {
+        .btn-ver {
             background: #f1f5f9;
             color: #475569;
             border: none;
@@ -311,10 +317,29 @@
             transition: all 0.2s;
             font-family: 'Inter', sans-serif;
             font-weight: 500;
+            padding: 4px 10px;
+            font-size: 11px;
         }
 
-        .orcamentos-table .acoes-cell .btn-ver:hover {
+        .btn-ver:hover {
             background: #e2e8f0;
+        }
+
+        .btn-reabrir {
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            padding: 4px 10px;
+            font-size: 11px;
+        }
+
+        .btn-reabrir:hover {
+            background: #fef3c7;
         }
 
         .orcamentos-table .comodos-info {
@@ -327,6 +352,24 @@
             padding: 1px 8px;
             border-radius: 10px;
             margin-right: 4px;
+        }
+
+        /* ===== LOADING SPINNER ===== */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #e9edf2;
+            border-top: 3px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         /* ===== PAGINAÇÃO ===== */
@@ -547,13 +590,22 @@
             color: #fee2e2;
         }
 
-        body.dark-mode .orcamentos-table .acoes-cell .btn-ver {
+        body.dark-mode .btn-ver {
             background: #334155;
             color: #94a3b8;
         }
 
-        body.dark-mode .orcamentos-table .acoes-cell .btn-ver:hover {
+        body.dark-mode .btn-ver:hover {
             background: #475569;
+        }
+
+        body.dark-mode .btn-reabrir {
+            border-color: #f59e0b;
+            color: #fbbf24;
+        }
+
+        body.dark-mode .btn-reabrir:hover {
+            background: #92400e;
         }
 
         body.dark-mode .pagination {
@@ -833,15 +885,6 @@
             return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
         }
 
-        function fmtDate(dateString) {
-            if (!dateString) return '-';
-            try {
-                return new Date(dateString).toLocaleDateString('pt-BR');
-            } catch {
-                return '-';
-            }
-        }
-
         function getStatusLabel(status) {
             const labels = {
                 'pendente': '⏳ Pendente',
@@ -875,8 +918,40 @@
                 // Buscar clientes
                 const clientes = await db.getClientes();
                 
-                // Buscar status de todos os clientes
-                const statusData = await db.getTodosStatusOrcamentos();
+                // Buscar status de todos os clientes (com fallback)
+                let statusData = {};
+                try {
+                    // Tentar usar o método otimizado
+                    if (typeof db.getTodosStatusOrcamentos === 'function') {
+                        statusData = await db.getTodosStatusOrcamentos();
+                        console.log('📊 Status carregados via getTodosStatusOrcamentos');
+                    } else if (typeof db.getTodosStatus === 'function') {
+                        statusData = await db.getTodosStatus();
+                        console.log('📊 Status carregados via getTodosStatus');
+                    } else {
+                        // Fallback: buscar individualmente
+                        console.log('📊 Buscando status individualmente (fallback)');
+                        for (const cliente of clientes) {
+                            const status = await db.getOrcamentoStatus(cliente.id);
+                            if (status && status.status) {
+                                statusData[cliente.id] = status;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Erro ao buscar status em lote, usando fallback individual:', error);
+                    // Fallback: buscar individualmente
+                    for (const cliente of clientes) {
+                        try {
+                            const status = await db.getOrcamentoStatus(cliente.id);
+                            if (status && status.status) {
+                                statusData[cliente.id] = status;
+                            }
+                        } catch (e) {
+                            // Ignorar erro individual
+                        }
+                    }
+                }
                 
                 const orcamentos = [];
 
@@ -897,13 +972,14 @@
                             }
                         });
 
-                        // Buscar status
+                        // Buscar status (do cache ou fallback)
                         let status = 'pendente';
                         if (statusData && statusData[cliente.id] && statusData[cliente.id].status) {
                             status = statusData[cliente.id].status;
                         }
 
-                        if (total > 0 || itens > 0) {
+                        // Se tem itens, adicionar à lista
+                        if (itens > 0) {
                             orcamentos.push({
                                 clienteId: cliente.id,
                                 clienteNome: cliente.nome || 'Cliente sem nome',
@@ -931,7 +1007,8 @@
                 
                 aplicarFiltroStatus();
                 
-                mostrarNotificacao(`✅ ${orcamentos.length} orçamentos carregados`, 'success');
+                const msg = orcamentos.length > 0 ? `✅ ${orcamentos.length} orçamentos carregados` : '📋 Nenhum orçamento encontrado';
+                mostrarNotificacao(msg, orcamentos.length > 0 ? 'success' : 'info');
                 
                 if (window.parent && window.parent.atualizarStatus) {
                     window.parent.atualizarStatus(`✅ ${orcamentos.length} orçamentos carregados`);
@@ -946,6 +1023,7 @@
                     <tr>
                         <td colspan="8" style="text-align: center; padding: 40px; color: #dc2626;">
                             ❌ Erro ao carregar: ${error.message}
+                            <br><small style="color: #94a3b8;">Verifique o console para mais detalhes</small>
                         </td>
                     </tr>
                 `;
@@ -1054,7 +1132,7 @@
                         <button class="btn-ver" onclick="verOrcamento('${orc.clienteId}')" title="Ver">
                             👁️ <span>Ver</span>
                         </button>
-                        <button class="btn btn-outline btn-sm" onclick="reabrirOrcamento('${orc.clienteId}')" title="Reabrir" style="border:1px solid #f59e0b;color:#f59e0b;background:transparent;">
+                        <button class="btn-reabrir" onclick="reabrirOrcamento('${orc.clienteId}')" title="Reabrir">
                             🔄 <span>Reabrir</span>
                         </button>
                     `;
@@ -1093,7 +1171,7 @@
                                 <button class="btn-ver" onclick="verOrcamento('${orc.clienteId}')" title="Ver detalhes">
                                     👁️ <span>Detalhes</span>
                                 </button>
-                                <button class="btn btn-outline btn-sm" onclick="imprimirOrcamento('${orc.clienteId}')" title="Imprimir" style="border:1px solid #4f46e5;color:#4f46e5;background:transparent;">
+                                <button class="btn btn-outline btn-sm" onclick="imprimirOrcamento('${orc.clienteId}')" title="Imprimir" style="border:1px solid #4f46e5;color:#4f46e5;background:transparent;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:11px;">
                                     🖨️ <span>Imprimir</span>
                                 </button>
                             </div>
@@ -1237,9 +1315,7 @@
         //  VER ORÇAMENTO
         // =============================================
         function verOrcamento(clienteId) {
-            // Navegar para a página de orçamento por cômodo com o cliente selecionado
             if (window.parent && window.parent.navegarPara) {
-                // Salvar o cliente selecionado no sessionStorage
                 sessionStorage.setItem('clienteSelecionado', clienteId);
                 window.parent.navegarPara('orcamento-comodo');
             } else {
