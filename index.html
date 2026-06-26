@@ -27,7 +27,6 @@
     <link rel="stylesheet" href="css/style.css">
     
     <style>
-        /* Estilos adicionais para o sistema */
         .app-container {
             display: flex;
             flex-direction: column;
@@ -49,7 +48,6 @@
             background: #f8fafc;
         }
 
-        /* Loading overlay */
         .loading-overlay {
             position: absolute;
             top: 0;
@@ -156,6 +154,9 @@
     <script src="js/app.js"></script>
     
     <script>
+        // ============ EXPORTA FUNÇÕES GLOBAIS PARA OS IFRAMES ============
+        // As funções precisam estar no objeto window para serem acessadas pelos iframes
+        
         // ============ PROTEÇÃO DE ROTA ============
         (function() {
             const role = sessionStorage.getItem('userRole');
@@ -166,7 +167,6 @@
                 return;
             }
 
-            // Verificar se o usuário ainda está autenticado
             if (window.auth && window.auth.currentUser) {
                 const user = window.auth.currentUser;
                 if (user.email !== email) {
@@ -177,19 +177,30 @@
             }
         })();
 
-        // ============ FUNÇÕES GLOBAIS ============
-        function getDadosGlobais() {
+        // ============ FUNÇÕES GLOBAIS (ACESSÍVEIS PELOS IFRAMES) ============
+        window.getDadosGlobais = function() {
             return {
                 db: window.db || {},
                 auth: window.auth || {},
                 firestore: window.firestore || {},
                 database: window.database || {}
             };
-        }
+        };
+
+        window.getParentDb = function() {
+            try {
+                if (window.db) {
+                    return window.db;
+                }
+                return null;
+            } catch (error) {
+                console.error('Erro ao acessar database:', error);
+                return null;
+            }
+        };
 
         // ============ NAVEGAÇÃO ============
-        function navegarPara(pagina) {
-            // Mapeamento de páginas para arquivos
+        window.navegarPara = function(pagina) {
             const pageMap = {
                 'dashboard': 'dashboard.html',
                 'clientes': 'clientes.html',
@@ -202,29 +213,24 @@
             
             const fileName = pageMap[pagina] || 'dashboard.html';
             
-            // Atualizar navegação
             document.querySelectorAll('.nav-item').forEach(item => {
                 item.classList.toggle('active', item.dataset.page === pagina);
             });
 
-            // Mostrar loading
             const overlay = document.getElementById('loadingOverlay');
             overlay.classList.remove('hidden');
 
-            // Atualizar iframe
             const frame = document.getElementById('pageFrame');
             if (frame) {
                 frame.src = `pages/${fileName}`;
                 frame.onload = function() {
                     overlay.classList.add('hidden');
                 };
-                // Timeout de segurança
                 setTimeout(() => {
                     overlay.classList.add('hidden');
                 }, 3000);
             }
 
-            // Atualizar status
             const nomes = {
                 'dashboard': '📊 Dashboard',
                 'clientes': '👤 Clientes',
@@ -234,31 +240,30 @@
                 'orcamento-print': '🖨️ Impressão',
                 'configuracoes': '⚙️ Configurações'
             };
-            atualizarStatus(`📄 ${nomes[pagina] || pagina}`);
+            window.atualizarStatus(`📄 ${nomes[pagina] || pagina}`);
             
-            // Atualizar URL hash
             window.location.hash = pagina;
-        }
+        };
 
         // ============ STATUS ============
-        function atualizarStatus(mensagem) {
+        window.atualizarStatus = function(mensagem) {
             const el = document.getElementById('footerStatus');
             if (el) {
                 el.textContent = mensagem;
             }
-        }
+        };
 
         // ============ STATUS DE CONEXÃO ============
-        function atualizarConexao(online) {
+        window.atualizarConexao = function(online) {
             const badge = document.getElementById('statusConexao');
             if (badge) {
                 badge.textContent = online ? '🟢 Conectado' : '🔴 Desconectado';
                 badge.className = `status-badge ${online ? 'online' : 'offline'}`;
             }
-        }
+        };
 
         // ============ LOGOUT ============
-        async function sair() {
+        window.sair = async function() {
             if (!confirm('Tem certeza que deseja sair?')) return;
             
             try {
@@ -272,33 +277,14 @@
                 sessionStorage.clear();
                 window.location.href = 'login.html';
             }
-        }
-
-        // ============ MONITORAR CONEXÃO ============
-        function monitorarConexao() {
-            const online = navigator.onLine;
-            atualizarConexao(online);
-
-            window.addEventListener('online', () => {
-                atualizarConexao(true);
-                atualizarStatus('🟢 Conexão restaurada');
-            });
-
-            window.addEventListener('offline', () => {
-                atualizarConexao(false);
-                atualizarStatus('🔴 Sem conexão com a internet');
-            });
-        }
+        };
 
         // ============ ABRIR IMPRESSÃO ============
-        function abrirImpressaoOrcamento() {
-            // Tentar buscar dados do frame atual
+        window.abrirImpressaoOrcamento = function() {
             const frame = document.getElementById('pageFrame');
             if (frame && frame.contentWindow) {
-                // Pedir dados ao frame
                 frame.contentWindow.postMessage({ type: 'getOrcamentoData' }, '*');
                 
-                // Aguardar resposta
                 const handler = (event) => {
                     if (event.data && event.data.type === 'orcamentoDataResponse') {
                         window.removeEventListener('message', handler);
@@ -309,7 +295,8 @@
                             return;
                         }
                         
-                        // Abrir a impressão
+                        localStorage.setItem('orcamentoPrintData', JSON.stringify(dados));
+                        
                         const frame2 = document.getElementById('pageFrame');
                         if (frame2) {
                             frame2.src = 'pages/orcamento-print.html';
@@ -327,84 +314,74 @@
                             });
                             
                             window.location.hash = 'orcamento-print';
-                            atualizarStatus('📄 Orçamento para impressão');
+                            window.atualizarStatus('📄 Orçamento para impressão');
                         }
                     }
                 };
                 
                 window.addEventListener('message', handler);
                 
-                // Timeout
                 setTimeout(() => {
                     window.removeEventListener('message', handler);
                 }, 3000);
             } else {
                 alert('⚠️ Nenhum orçamento para imprimir.');
             }
-        }
+        };
 
-        // ============ BUSCAR DADOS DO ORÇAMENTO ATUAL ============
-        function getDadosOrcamentoAtual() {
-            try {
-                // Tentar pegar do localStorage
-                const saved = localStorage.getItem('orcamentoPrintData');
-                if (saved) {
-                    return JSON.parse(saved);
+        // ============ ABRIR IMPRESSÃO COM DADOS ============
+        window.abrirImpressaoComDados = function(dados) {
+            localStorage.setItem('orcamentoPrintData', JSON.stringify(dados));
+            window.navegarPara('orcamento-print');
+            
+            setTimeout(() => {
+                const frame = document.getElementById('pageFrame');
+                if (frame && frame.contentWindow) {
+                    frame.contentWindow.postMessage({
+                        type: 'orcamentoData',
+                        dados: dados
+                    }, '*');
                 }
-                
-                // Ou construir a partir dos dados padrão
-                return {
-                    cliente: { nome: 'Cliente não selecionado' },
-                    vendedor: 'Paulo Oliveira',
-                    status: 'pendente',
-                    produtos: [],
-                    condicoes: {
-                        validade: '30 dias',
-                        pagamento: '50% entrada + 50% na entrega',
-                        garantia: '12 meses',
-                        prazo: '15 dias úteis',
-                        observacao: 'Valores sujeitos a alteração'
-                    },
-                    observacoes: 'Orçamento gerado pelo sistema SmartHome',
-                    empresaNome: 'SmartHome Automação',
-                    empresaSub: 'Projetos e instalação de automação residencial',
-                    numero: 'ORC-' + String(Math.floor(100000 + Math.random() * 900000))
-                };
-            } catch (e) {
-                console.error('Erro ao buscar dados do orçamento:', e);
-                return null;
-            }
+            }, 500);
+        };
+
+        // ============ MONITORAR CONEXÃO ============
+        function monitorarConexao() {
+            const online = navigator.onLine;
+            window.atualizarConexao(online);
+
+            window.addEventListener('online', () => {
+                window.atualizarConexao(true);
+                window.atualizarStatus('🟢 Conexão restaurada');
+            });
+
+            window.addEventListener('offline', () => {
+                window.atualizarConexao(false);
+                window.atualizarStatus('🔴 Sem conexão com a internet');
+            });
         }
 
         // ============ INICIALIZAR ============
         document.addEventListener('DOMContentLoaded', function() {
-            // Carregar página inicial baseada no hash
             const pagina = window.location.hash.replace('#', '') || 'dashboard';
-            
-            // Verificar se a página existe
             const paginasValidas = ['dashboard', 'clientes', 'produtos', 'orcamento-comodo', 'orcamento-total', 'configuracoes'];
             const paginaFinal = paginasValidas.includes(pagina) ? pagina : 'dashboard';
             
-            // Configurar usuário
             const email = sessionStorage.getItem('userEmail');
             const userDisplay = document.querySelector('.header-actions .user-info');
             if (userDisplay && email) {
                 userDisplay.textContent = `👤 ${email}`;
             }
 
-            // Monitorar conexão
             monitorarConexao();
+            window.navegarPara(paginaFinal);
 
-            // Navegar para página inicial
-            navegarPara(paginaFinal);
-
-            // Verificar Firestore periodicamente
             setInterval(() => {
                 if (window.db && window.db.getClientes) {
                     window.db.getClientes().then(() => {
-                        atualizarConexao(true);
+                        window.atualizarConexao(true);
                     }).catch(() => {
-                        atualizarConexao(false);
+                        window.atualizarConexao(false);
                     });
                 }
             }, 30000);
