@@ -36,7 +36,6 @@
             max-height: calc(100vh - 180px);
         }
 
-        /* Barra de seleção do cliente */
         .selecao-cliente {
             background: #ffffff;
             padding: 14px 20px;
@@ -91,7 +90,6 @@
             margin-left: auto;
         }
 
-        /* CATÁLOGO EXPANSÍVEL */
         .catalogo-toggle {
             background: #f8fafc;
             border: 1px solid #e9edf2;
@@ -240,7 +238,6 @@
             background: #4338ca;
         }
 
-        /* Cada cômodo */
         .comodo-card {
             background: #ffffff;
             border: 1px solid #e9edf2;
@@ -325,7 +322,6 @@
             display: none;
         }
 
-        /* Item do orçamento */
         .item-linha {
             display: flex;
             justify-content: space-between;
@@ -459,7 +455,6 @@
             background: #fef2f2;
         }
 
-        /* Área para adicionar itens ao cômodo - MELHORADA */
         .add-item-area {
             padding: 10px 12px 4px;
             display: flex;
@@ -516,7 +511,6 @@
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
         }
 
-        /* Total geral */
         .total-geral-box {
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             color: white;
@@ -559,7 +553,6 @@
             gap: 4px;
         }
 
-        /* Empty state */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -582,7 +575,6 @@
             font-size: 14px;
         }
 
-        /* Modal rápido para adicionar ao cômodo */
         .modal-add-rapido {
             display: none;
             position: fixed;
@@ -691,7 +683,28 @@
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
 
-        /* Responsivo */
+        .toast-notification {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            z-index: 9999;
+            max-width: 400px;
+            animation: slideIn 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
         @media (max-width: 768px) {
             .page-content {
                 padding: 12px 16px 16px;
@@ -806,7 +819,6 @@
             }
         }
 
-        /* Dark Mode */
         body.dark-mode .page-header {
             background: #1e293b;
             border-color: #334155;
@@ -989,6 +1001,7 @@
         </div>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
             <button class="btn btn-success" onclick="exportarOrcamentoComodo()">📊 Exportar</button>
+            <button class="btn btn-primary" onclick="imprimirOrcamento()">🖨️ Imprimir</button>
             <button class="btn btn-outline" onclick="carregarDados()">🔄 Atualizar</button>
             <button class="btn btn-outline" onclick="limparOrcamento()" style="color: #dc2626; border-color: #fee2e2;">🗑️ Limpar</button>
         </div>
@@ -1080,23 +1093,132 @@
         let comodosOrdenados = [];
         let clienteAtual = null;
         let produtoModalAtual = null;
+        let _saveTimeout = null;
 
-        // Chave para salvar no localStorage por cliente
-        function getStorageKey(clienteId) {
-            return `orcamento_comodo_v3_${clienteId}`;
+        // ============ ACESSO AO DB ============
+        function getDb() {
+            try {
+                if (window.parent && window.parent.getDadosGlobais) {
+                    return window.parent.getDadosGlobais().db;
+                }
+                if (window.db) {
+                    return window.db;
+                }
+                return null;
+            } catch (error) {
+                console.error('Erro ao acessar database:', error);
+                return null;
+            }
+        }
+
+        // ============ TOAST ============
+        function showToast(message, type = 'info') {
+            const colors = {
+                success: '#0b9e5e',
+                error: '#dc2626',
+                warning: '#f59e0b',
+                info: '#4f46e5'
+            };
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.style.background = colors[type] || colors.info;
+            toast.style.color = 'white';
+            toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${message}`;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // ============ PERSISTÊNCIA NO FIREBASE ============
+        async function carregarOrcamentoSalvo(clienteId) {
+            try {
+                const db = getDb();
+                if (!db) {
+                    console.warn('⚠️ Database não disponível');
+                    orcamentoData = {};
+                    return;
+                }
+
+                console.log(`📂 Carregando orçamento do cliente ${clienteId}...`);
+                
+                // Usar a função do db.js para buscar do Firebase
+                const data = await db.getOrcamentoComodo(clienteId);
+                
+                if (data && Object.keys(data).length > 0) {
+                    console.log(`📂 Orçamento carregado: ${Object.keys(data).length} itens`);
+                    orcamentoData = {};
+                    Object.entries(data).forEach(([key, value]) => {
+                        if (value && value.qtd > 0) {
+                            orcamentoData[key] = value;
+                        }
+                    });
+                } else {
+                    console.log('📂 Nenhum orçamento salvo para este cliente');
+                    orcamentoData = {};
+                }
+            } catch (e) {
+                console.error('❌ Erro ao carregar orçamento:', e);
+                orcamentoData = {};
+            }
+        }
+
+        async function salvarOrcamentoNoFirebase() {
+            const clienteId = document.getElementById('clienteSelect').value;
+            if (!clienteId) {
+                showToast('⚠️ Selecione um cliente para salvar', 'warning');
+                return false;
+            }
+            
+            try {
+                const db = getDb();
+                if (!db) throw new Error('Database não disponível');
+                
+                // Filtrar apenas itens com qtd > 0
+                const dataToSave = {};
+                Object.entries(orcamentoData).forEach(([key, value]) => {
+                    if (value && value.qtd > 0) {
+                        dataToSave[key] = value;
+                    }
+                });
+                
+                await db.salvarOrcamentoComodo(clienteId, dataToSave);
+                console.log('💾 Orçamento salvo no Firebase');
+                
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('💾 Orçamento salvo no Firebase');
+                }
+                
+                return true;
+            } catch (e) {
+                console.error('❌ Erro ao salvar:', e);
+                showToast('❌ Erro ao salvar: ' + e.message, 'error');
+                return false;
+            }
         }
 
         // ============ CARREGAR DADOS ============
-        // ============ CARREGAR DADOS - CORRIGIDO ============
         async function carregarDados() {
             try {
-                const app = window.parent.getDadosGlobais();
-                const db = app.db;
+                const db = getDb();
+                if (!db) {
+                    throw new Error('Database não disponível');
+                }
 
                 console.log('🏗️ Carregando dados para orçamento...');
                 
                 const [produtos, clientes] = await Promise.all([
-                    db.getProdutos(true),  // Forçar refresh
+                    db.getProdutos(true),
                     db.getClientes()
                 ]);
 
@@ -1108,21 +1230,26 @@
                 
                 atualizarSelectClientes();
                 
-                // Carregar orçamento salvo
+                // Carregar orçamento salvo do Firebase
                 const clienteId = document.getElementById('clienteSelect').value;
                 if (clienteId) {
-                    carregarOrcamentoSalvo(clienteId);
+                    await carregarOrcamentoSalvo(clienteId);
                 } else {
                     orcamentoData = {};
                 }
                 
                 renderizarCatalogo();
                 renderizarOrcamentoComodo();
-                window.parent.atualizarStatus(`✅ ${produtosData.length} produtos e ${clientesData.length} clientes carregados`);
+                
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus(`✅ ${produtosData.length} produtos e ${clientesData.length} clientes carregados`);
+                }
             } catch (error) {
                 console.error('❌ Erro ao carregar dados:', error);
-                window.parent.atualizarStatus('❌ Erro ao carregar dados');
-                mostrarNotificacao('❌ Erro ao carregar dados: ' + error.message, 'error');
+                showToast('❌ Erro ao carregar dados: ' + error.message, 'error');
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('❌ Erro ao carregar dados');
+                }
             }
         }
 
@@ -1137,7 +1264,7 @@
             });
         }
 
-        function selecionarCliente() {
+        async function selecionarCliente() {
             const clienteId = document.getElementById('clienteSelect').value;
             const cliente = clientesData.find(c => c.id === clienteId);
             clienteAtual = cliente || null;
@@ -1145,7 +1272,7 @@
             const info = document.getElementById('clienteInfo');
             if (cliente) {
                 info.textContent = `${cliente.nome} ${cliente.telefone ? '· ' + cliente.telefone : ''}`;
-                carregarOrcamentoSalvo(clienteId);
+                await carregarOrcamentoSalvo(clienteId);
             } else {
                 info.textContent = 'Nenhum cliente selecionado';
                 orcamentoData = {};
@@ -1155,61 +1282,11 @@
             renderizarOrcamentoComodo();
         }
 
-        // ============ PERSISTÊNCIA ============
-        function carregarOrcamentoSalvo(clienteId) {
-            try {
-                const key = getStorageKey(clienteId);
-                const saved = localStorage.getItem(key);
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    // Garantir que o formato está correto
-                    orcamentoData = {};
-                    Object.entries(parsed).forEach(([key, value]) => {
-                        if (value && value.qtd > 0) {
-                            orcamentoData[key] = value;
-                        }
-                    });
-                } else {
-                    // Inicializar com quantidades padrão dos produtos
-                    orcamentoData = {};
-                    produtosData.forEach(p => {
-                        if (p.qtdPadrao > 0) {
-                            const key = `${p.id}`;
-                            orcamentoData[key] = {
-                                qtd: p.qtdPadrao,
-                                comodo: p.comodo || 'Sem Cômodo'
-                            };
-                        }
-                    });
-                }
-            } catch (e) {
-                console.warn('Erro ao carregar orçamento:', e);
-                orcamentoData = {};
-            }
-        }
-
-        function salvarOrcamentoLocal() {
-            const clienteId = document.getElementById('clienteSelect').value;
-            if (!clienteId) {
-                window.parent.atualizarStatus('⚠️ Selecione um cliente para salvar');
-                return;
-            }
-            try {
-                const key = getStorageKey(clienteId);
-                localStorage.setItem(key, JSON.stringify(orcamentoData));
-                window.parent.atualizarStatus('💾 Orçamento salvo localmente');
-                showToast('💾 Orçamento salvo com sucesso!', 'success');
-            } catch (e) {
-                console.error('Erro ao salvar:', e);
-                window.parent.atualizarStatus('❌ Erro ao salvar');
-            }
-        }
-
         async function salvarOrcamento() {
-            salvarOrcamentoLocal();
+            await salvarOrcamentoNoFirebase();
         }
 
-        function limparOrcamento() {
+        async function limparOrcamento() {
             const clienteId = document.getElementById('clienteSelect').value;
             if (!clienteId) {
                 showToast('⚠️ Selecione um cliente primeiro', 'warning');
@@ -1217,13 +1294,21 @@
             }
             if (!confirm('Tem certeza que deseja limpar todo o orçamento deste cliente?')) return;
             
-            orcamentoData = {};
-            const key = getStorageKey(clienteId);
-            localStorage.removeItem(key);
-            renderizarCatalogo();
-            renderizarOrcamentoComodo();
-            showToast('🗑️ Orçamento limpo', 'info');
-            window.parent.atualizarStatus('🗑️ Orçamento limpo');
+            try {
+                const db = getDb();
+                if (db) {
+                    await db.deletarOrcamentoComodo(clienteId);
+                }
+                orcamentoData = {};
+                renderizarCatalogo();
+                renderizarOrcamentoComodo();
+                showToast('🗑️ Orçamento limpo', 'info');
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus('🗑️ Orçamento limpo');
+                }
+            } catch (e) {
+                showToast('❌ Erro ao limpar: ' + e.message, 'error');
+            }
         }
 
         // ============ RENDERIZAR CATÁLOGO ============
@@ -1242,19 +1327,22 @@
             let html = '';
             produtosData.forEach(p => {
                 // Verificar quantos já foram usados
-                const usado = Object.entries(orcamentoData)
-                    .filter(([key, entry]) => entry.id === p.id && entry.qtd > 0)
-                    .reduce((sum, [key, entry]) => sum + entry.qtd, 0);
+                let usado = 0;
+                Object.values(orcamentoData).forEach(entry => {
+                    if (entry && entry.id === p.id && entry.qtd > 0) {
+                        usado += entry.qtd;
+                    }
+                });
 
                 html += `
                     <div class="item-catalogo" data-id="${p.id}">
                         <div class="info">
                             <span class="dot" style="background: ${p.cor || '#4f46e5'};"></span>
-                            <span class="nome">${p.dispositivo}</span>
+                            <span class="nome">${p.nome || p.dispositivo || 'Sem nome'}</span>
                             <span class="detalhe">
                                 <span class="marca">${p.marca || 'Sem marca'}</span>
                                 ${p.protocolo ? '· ' + p.protocolo : ''}
-                                ${usado > 0 ? `· <strong style="color: #4f46e5;">${usado} já usados</strong>` : ''}
+                                ${usado > 0 ? `· <strong style="color: #4f46e5;">${usado} usados</strong>` : ''}
                             </span>
                         </div>
                         <div class="acoes-catalogo">
@@ -1269,224 +1357,216 @@
         }
 
         // ============ RENDERIZAR CÔMODOS ============
-function renderizarOrcamentoComodo() {
-    const container = document.getElementById('comodosContainer');
-    const emptyState = document.getElementById('emptyState');
+        function renderizarOrcamentoComodo() {
+            const container = document.getElementById('comodosContainer');
+            const emptyState = document.getElementById('emptyState');
 
-    if (produtosData.length === 0) {
-        emptyState.style.display = 'block';
-        container.innerHTML = '';
-        document.getElementById('totalGeralBox').style.display = 'none';
-        return;
-    }
-
-    emptyState.style.display = 'none';
-
-    // Agrupar produtos por cômodo (baseado no comodo original do produto)
-    const comodosMap = {};
-    produtosData.forEach(p => {
-        const comodo = p.comodo || 'Sem Cômodo';
-        if (!comodosMap[comodo]) comodosMap[comodo] = [];
-        comodosMap[comodo].push(p);
-    });
-
-    comodosOrdenados = Object.keys(comodosMap).sort();
-
-    let totalGeral = 0;
-    let totalItens = 0;
-    let html = '';
-
-    comodosOrdenados.forEach(comodo => {
-        const itens = comodosMap[comodo];
-        let totalComodo = 0;
-        let qtdItensComodo = 0;
-
-        // Filtrar itens que têm qtd > 0 neste cômodo
-        const itensComodo = itens.filter(p => {
-            // Verificar se o produto está neste cômodo
-            let found = false;
-            Object.entries(orcamentoData).forEach(([key, entry]) => {
-                if (entry && entry.qtd > 0 && entry.comodo === comodo) {
-                    const productId = key.split('_')[0];
-                    if (productId === p.id) {
-                        found = true;
-                    }
-                }
-            });
-            return found;
-        });
-
-        html += `
-            <div class="comodo-card" data-comodo="${comodo.replace(/\s/g, '_')}">
-                <div class="comodo-header" onclick="toggleComodo(this)">
-                    <div class="left">
-                        <span class="icone-comodo">🏠</span>
-                        <h3>${comodo}</h3>
-                        <span class="badge-itens">${itensComodo.length} itens</span>
-                    </div>
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span class="total-comodo" id="total-${comodo.replace(/\s/g, '_')}">R$ 0,00</span>
-                        <span class="toggle-icon">▼</span>
-                    </div>
-                </div>
-                <div class="comodo-body">
-        `;
-
-        // Listar TODOS os produtos do cômodo (mostrando qtd 0 para os que não tem)
-        itens.forEach(p => {
-            let qtd = 0;
-            let total = 0;
-            
-            // Verificar se este produto está neste cômodo específico
-            Object.entries(orcamentoData).forEach(([key, entry]) => {
-                if (entry && entry.comodo === comodo) {
-                    const productId = key.split('_')[0];
-                    if (productId === p.id) {
-                        qtd = entry.qtd || 0;
-                        total = qtd * (p.preco || 0);
-                    }
-                }
-            });
-            
-            if (qtd > 0) {
-                totalComodo += total;
-                totalGeral += total;
-                totalItens += qtd;
-                qtdItensComodo += qtd;
+            if (produtosData.length === 0) {
+                emptyState.style.display = 'block';
+                container.innerHTML = '';
+                document.getElementById('totalGeralBox').style.display = 'none';
+                return;
             }
 
-            const keySuffix = comodo.replace(/\s/g, '_');
-            const qtdId = `qtd-${p.id}-${keySuffix}`;
-            const totalId = `total-item-${p.id}-${keySuffix}`;
+            // Agrupar produtos por cômodo baseado no orcamentoData
+            const comodosMap = {};
+            
+            Object.entries(orcamentoData).forEach(([key, entry]) => {
+                if (entry && entry.qtd > 0 && entry.comodo) {
+                    const produto = produtosData.find(p => p.id === entry.id);
+                    if (produto) {
+                        if (!comodosMap[entry.comodo]) comodosMap[entry.comodo] = [];
+                        comodosMap[entry.comodo].push({
+                            ...produto,
+                            qtd: entry.qtd,
+                            comodo: entry.comodo
+                        });
+                    }
+                }
+            });
 
-            html += `
-                <div class="item-linha" data-id="${p.id}" data-comodo="${comodo}">
-                    <div class="item-info">
-                        <span class="dot" style="background: ${p.cor || '#4f46e5'};"></span>
-                        <span class="nome">${p.dispositivo}</span>
-                        <span class="detalhe">
-                            <span class="marca">${p.marca || 'Sem marca'}</span>
-                            ${p.protocolo ? '· ' + p.protocolo : ''}
-                        </span>
-                    </div>
-                    <div class="item-actions">
-                        <span class="preco-unit">R$ ${(p.preco || 0).toFixed(2)}</span>
-                        <div class="qtd-control">
-                            <button onclick="ajustarQuantidade('${p.id}', '${comodo}', -1)" title="Remover um">−</button>
-                            <span class="qtd-value" id="${qtdId}">${qtd}</span>
-                            <button onclick="ajustarQuantidade('${p.id}', '${comodo}', 1)" title="Adicionar um">+</button>
+            const comodosOrdenados = Object.keys(comodosMap).sort();
+
+            if (comodosOrdenados.length === 0 || Object.keys(orcamentoData).length === 0) {
+                emptyState.style.display = 'block';
+                container.innerHTML = '';
+                document.getElementById('totalGeralBox').style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            let totalGeral = 0;
+            let totalItens = 0;
+            let html = '';
+
+            comodosOrdenados.forEach(comodo => {
+                const itens = comodosMap[comodo];
+                let totalComodo = 0;
+
+                html += `
+                    <div class="comodo-card" data-comodo="${comodo.replace(/\s/g, '_')}">
+                        <div class="comodo-header" onclick="toggleComodo(this)">
+                            <div class="left">
+                                <span class="icone-comodo">🏠</span>
+                                <h3>${comodo}</h3>
+                                <span class="badge-itens">${itens.length} itens</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="total-comodo" id="total-${comodo.replace(/\s/g, '_')}">R$ 0,00</span>
+                                <span class="toggle-icon">▼</span>
+                            </div>
                         </div>
-                        <span class="total-item" id="${totalId}">R$ ${total.toFixed(2)}</span>
-                        <button class="btn-remover" onclick="removerItemDoComodo('${p.id}', '${comodo}')" title="Remover do cômodo">✕</button>
+                        <div class="comodo-body">
+                `;
+
+                itens.forEach(entry => {
+                    const total = entry.qtd * (entry.preco || 0);
+                    totalComodo += total;
+                    totalGeral += total;
+                    totalItens += entry.qtd;
+
+                    html += `
+                        <div class="item-linha" data-id="${entry.id}" data-comodo="${comodo}">
+                            <div class="item-info">
+                                <span class="dot" style="background: ${entry.cor || '#4f46e5'};"></span>
+                                <span class="nome">${entry.nome || entry.dispositivo || 'Sem nome'}</span>
+                                <span class="detalhe">
+                                    <span class="marca">${entry.marca || 'Sem marca'}</span>
+                                    ${entry.protocolo ? '· ' + entry.protocolo : ''}
+                                </span>
+                            </div>
+                            <div class="item-actions">
+                                <span class="preco-unit">R$ ${(entry.preco || 0).toFixed(2)}</span>
+                                <div class="qtd-control">
+                                    <button onclick="ajustarQuantidade('${entry.id}', '${comodo}', -1)">−</button>
+                                    <span class="qtd-value" id="qtd-${entry.id}-${comodo.replace(/\s/g, '_')}">${entry.qtd}</span>
+                                    <button onclick="ajustarQuantidade('${entry.id}', '${comodo}', 1)">+</button>
+                                </div>
+                                <span class="total-item" id="total-item-${entry.id}-${comodo.replace(/\s/g, '_')}">R$ ${total.toFixed(2)}</span>
+                                <button class="btn-remover" onclick="removerItemDoComodo('${entry.id}', '${comodo}')" title="Remover">✕</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                // Área para adicionar produtos a este cômodo
+                html += `
+                        <div class="add-item-area">
+                            <label>➕ Adicionar:</label>
+                            <select id="addSelect-${comodo.replace(/\s/g, '_')}">
+                                <option value="">Selecione um produto...</option>
+                                ${produtosData.map(p => `
+                                    <option value="${p.id}">${p.nome || p.dispositivo || 'Sem nome'} (R$ ${(p.preco || 0).toFixed(2)})</option>
+                                `).join('')}
+                            </select>
+                            <button class="btn-add-item" onclick="adicionarItemAoComodo('${comodo}')">
+                                ➕ Adicionar
+                            </button>
+                        </div>
                     </div>
                 </div>
-            `;
-        });
+                `;
 
-        // Área para adicionar QUALQUER produto a este cômodo
-        html += `
-                    <div class="add-item-area">
-                        <label>➕ Adicionar:</label>
-                        <select id="addSelect-${comodo.replace(/\s/g, '_')}">
-                            <option value="">Selecione um produto...</option>
-                            ${produtosData.map(p => `
-                                <option value="${p.id}">${p.dispositivo} (R$ ${(p.preco || 0).toFixed(2)})</option>
-                            `).join('')}
-                        </select>
-                        <button class="btn-add-item" onclick="adicionarItemAoComodo('${comodo}')">
-                            ➕ Adicionar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
+                setTimeout(() => {
+                    const el = document.getElementById(`total-${comodo.replace(/\s/g, '_')}`);
+                    if (el) el.textContent = `R$ ${totalComodo.toFixed(2)}`;
+                }, 50);
+            });
 
-        // Atualizar total do cômodo via JS depois
-        setTimeout(() => {
-            const el = document.getElementById(`total-${comodo.replace(/\s/g, '_')}`);
-            if (el) el.textContent = `R$ ${totalComodo.toFixed(2)}`;
-        }, 50);
-    });
+            // Total geral
+            const totalGeralBox = document.getElementById('totalGeralBox');
+            if (totalItens > 0) {
+                totalGeralBox.style.display = 'flex';
+                document.getElementById('totalGeralDisplay').textContent = `R$ ${totalGeral.toFixed(2)}`;
+                document.getElementById('totalItensDisplay').textContent = `📦 ${totalItens} itens`;
+                document.getElementById('totalComodosDisplay').textContent = `🏠 ${comodosOrdenados.length} cômodos`;
+            } else {
+                totalGeralBox.style.display = 'none';
+            }
 
-    // Total geral
-    const totalGeralBox = document.getElementById('totalGeralBox');
-    if (totalItens > 0) {
-        totalGeralBox.style.display = 'flex';
-        document.getElementById('totalGeralDisplay').textContent = `R$ ${totalGeral.toFixed(2)}`;
-        document.getElementById('totalItensDisplay').textContent = `📦 ${totalItens} itens`;
-        document.getElementById('totalComodosDisplay').textContent = `🏠 ${comodosOrdenados.length} cômodos`;
-    } else {
-        totalGeralBox.style.display = 'none';
-    }
+            container.innerHTML = html;
+        }
 
-    container.innerHTML = html;
-}
+        // ============ CONTROLE DE QUANTIDADE ============
+        function ajustarQuantidade(produtoId, comodo, delta) {
+            // Buscar a chave correta
+            let targetKey = null;
+            
+            // Verificar se existe com o ID puro
+            if (orcamentoData[produtoId] && orcamentoData[produtoId].comodo === comodo) {
+                targetKey = produtoId;
+            } else {
+                // Procurar por chave com sufixo
+                const keys = Object.keys(orcamentoData);
+                for (const k of keys) {
+                    if (k.startsWith(produtoId + '_') && orcamentoData[k].comodo === comodo) {
+                        targetKey = k;
+                        break;
+                    }
+                }
+            }
+            
+            if (!targetKey) {
+                // Criar nova entrada
+                targetKey = produtoId;
+                orcamentoData[targetKey] = { 
+                    id: produtoId,
+                    qtd: 0, 
+                    comodo: comodo 
+                };
+                
+                // Buscar dados do produto
+                const produto = produtosData.find(p => p.id === produtoId);
+                if (produto) {
+                    orcamentoData[targetKey].nome = produto.nome || produto.dispositivo || 'Sem nome';
+                    orcamentoData[targetKey].marca = produto.marca || '';
+                    orcamentoData[targetKey].protocolo = produto.protocolo || '';
+                    orcamentoData[targetKey].preco = produto.preco || 0;
+                    orcamentoData[targetKey].cor = produto.cor || '#4f46e5';
+                }
+            }
+            
+            let novaQtd = (orcamentoData[targetKey].qtd || 0) + delta;
+            if (novaQtd < 0) novaQtd = 0;
+            
+            if (novaQtd === 0) {
+                delete orcamentoData[targetKey];
+            } else {
+                orcamentoData[targetKey].qtd = novaQtd;
+            }
+            
+            renderizarCatalogo();
+            renderizarOrcamentoComodo();
+            
+            clearTimeout(_saveTimeout);
+            _saveTimeout = setTimeout(() => {
+                salvarOrcamentoNoFirebase();
+            }, 1000);
+        }
 
-// ============ CONTROLE DE QUANTIDADE ============
-function ajustarQuantidade(produtoId, comodo, delta) {
-    // Buscar a chave correta
-    let targetKey = null;
-    
-    // Verificar se existe com o ID puro
-    if (orcamentoData[produtoId] && orcamentoData[produtoId].comodo === comodo) {
-        targetKey = produtoId;
-    } else {
-        // Procurar por chave com sufixo
-        const keys = Object.keys(orcamentoData);
-        for (const k of keys) {
-            if (k.startsWith(produtoId + '_') && orcamentoData[k].comodo === comodo) {
-                targetKey = k;
-                break;
+        // ============ REMOVER ITEM DO CÔMODO ============
+        function removerItemDoComodo(produtoId, comodo) {
+            let removed = false;
+            
+            // Procurar e remover a entrada correta
+            Object.keys(orcamentoData).forEach(key => {
+                if (orcamentoData[key] && orcamentoData[key].comodo === comodo) {
+                    const productId = key.split('_')[0];
+                    if (productId === produtoId) {
+                        delete orcamentoData[key];
+                        removed = true;
+                    }
+                }
+            });
+            
+            if (removed) {
+                renderizarCatalogo();
+                renderizarOrcamentoComodo();
+                salvarOrcamentoNoFirebase();
+                showToast(`🗑️ Item removido do ${comodo}`, 'info');
             }
         }
-    }
-    
-    if (!targetKey) {
-        // Criar nova entrada
-        targetKey = produtoId;
-        orcamentoData[targetKey] = { qtd: 0, comodo: comodo };
-    }
-    
-    let novaQtd = (orcamentoData[targetKey].qtd || 0) + delta;
-    if (novaQtd < 0) novaQtd = 0;
-    
-    if (novaQtd === 0) {
-        delete orcamentoData[targetKey];
-    } else {
-        orcamentoData[targetKey].qtd = novaQtd;
-    }
-    
-    renderizarCatalogo();
-    renderizarOrcamentoComodo();
-    
-    clearTimeout(window._saveTimeout);
-    window._saveTimeout = setTimeout(() => {
-        salvarOrcamentoLocal();
-    }, 1000);
-}
-
-// ============ REMOVER ITEM DO CÔMODO ============
-function removerItemDoComodo(produtoId, comodo) {
-    let removed = false;
-    
-    // Procurar e remover a entrada correta
-    Object.keys(orcamentoData).forEach(key => {
-        if (orcamentoData[key] && orcamentoData[key].comodo === comodo) {
-            const productId = key.split('_')[0];
-            if (productId === produtoId) {
-                delete orcamentoData[key];
-                removed = true;
-            }
-        }
-    });
-    
-    if (removed) {
-        renderizarCatalogo();
-        renderizarOrcamentoComodo();
-        salvarOrcamentoLocal();
-        showToast(`🗑️ Item removido do ${comodo}`, 'info');
-    }
-}
 
         // ============ ADICIONAR ITEM AO CÔMODO ============
         function adicionarItemAoComodo(comodo) {
@@ -1523,7 +1603,16 @@ function removerItemDoComodo(produtoId, comodo) {
                     // Criar nova entrada com sufixo
                     key = `${produtoId}_${comodo}`;
                 }
-                orcamentoData[key] = { qtd: 0, comodo: comodo };
+                orcamentoData[key] = { 
+                    id: produtoId,
+                    qtd: 0, 
+                    comodo: comodo,
+                    nome: produto.nome || produto.dispositivo || 'Sem nome',
+                    marca: produto.marca || '',
+                    protocolo: produto.protocolo || '',
+                    preco: produto.preco || 0,
+                    cor: produto.cor || '#4f46e5'
+                };
             }
 
             orcamentoData[key].qtd = (orcamentoData[key].qtd || 0) + 1;
@@ -1532,8 +1621,8 @@ function removerItemDoComodo(produtoId, comodo) {
 
             renderizarCatalogo();
             renderizarOrcamentoComodo();
-            salvarOrcamentoLocal();
-            showToast(`✅ ${produto.dispositivo} adicionado ao ${comodo}`, 'success');
+            salvarOrcamentoNoFirebase();
+            showToast(`✅ ${produto.nome || produto.dispositivo} adicionado ao ${comodo}`, 'success');
         }
 
         // ============ MODAL RÁPIDO ============
@@ -1544,7 +1633,7 @@ function removerItemDoComodo(produtoId, comodo) {
             produtoModalAtual = produto;
 
             document.getElementById('modalDot').style.background = produto.cor || '#4f46e5';
-            document.getElementById('modalNome').textContent = produto.dispositivo;
+            document.getElementById('modalNome').textContent = produto.nome || produto.dispositivo || 'Sem nome';
             document.getElementById('modalPreco').textContent = `R$ ${(produto.preco || 0).toFixed(2)}`;
 
             // Preencher cômodos disponíveis
@@ -1616,7 +1705,16 @@ function removerItemDoComodo(produtoId, comodo) {
                 if (orcamentoData[produtoModalAtual.id] && orcamentoData[produtoModalAtual.id].comodo !== comodo) {
                     key = `${produtoModalAtual.id}_${comodo}`;
                 }
-                orcamentoData[key] = { qtd: 0, comodo: comodo };
+                orcamentoData[key] = { 
+                    id: produtoModalAtual.id,
+                    qtd: 0, 
+                    comodo: comodo,
+                    nome: produtoModalAtual.nome || produtoModalAtual.dispositivo || 'Sem nome',
+                    marca: produtoModalAtual.marca || '',
+                    protocolo: produtoModalAtual.protocolo || '',
+                    preco: produtoModalAtual.preco || 0,
+                    cor: produtoModalAtual.cor || '#4f46e5'
+                };
             }
 
             orcamentoData[key].qtd = (orcamentoData[key].qtd || 0) + quantidade;
@@ -1624,8 +1722,8 @@ function removerItemDoComodo(produtoId, comodo) {
             fecharModalRapido();
             renderizarCatalogo();
             renderizarOrcamentoComodo();
-            salvarOrcamentoLocal();
-            showToast(`✅ ${quantidade}x ${produtoModalAtual.dispositivo} adicionado ao ${comodo}`, 'success');
+            salvarOrcamentoNoFirebase();
+            showToast(`✅ ${quantidade}x ${produtoModalAtual.nome || produtoModalAtual.dispositivo} adicionado ao ${comodo}`, 'success');
         }
 
         // ============ TOGGLE ============
@@ -1649,48 +1747,59 @@ function removerItemDoComodo(produtoId, comodo) {
             }
         }
 
-        // ============ TOAST ============
-        function showToast(message, type = 'info') {
-            const colors = {
-                success: '#0b9e5e',
-                error: '#dc2626',
-                warning: '#f59e0b',
-                info: '#4f46e5'
-            };
-            const icons = {
-                success: '✅',
-                error: '❌',
-                warning: '⚠️',
-                info: 'ℹ️'
+        // ============ IMPRIMIR ============
+        function imprimirOrcamento() {
+            const clienteId = document.getElementById('clienteSelect').value;
+            const cliente = clientesData.find(c => c.id === clienteId);
+            
+            if (!cliente) {
+                showToast('⚠️ Selecione um cliente primeiro', 'warning');
+                return;
+            }
+
+            const itens = Object.values(orcamentoData).filter(e => e && e.qtd > 0);
+            if (itens.length === 0) {
+                showToast('⚠️ Adicione produtos ao orçamento primeiro', 'warning');
+                return;
+            }
+
+            const dadosImpressao = {
+                id: 'ORC-' + Date.now().toString(36).toUpperCase(),
+                cliente: cliente,
+                vendedor: sessionStorage.getItem('userEmail') || 'Não informado',
+                status: 'pendente',
+                produtos: itens.map(e => ({
+                    id: e.id,
+                    nome: e.nome,
+                    marca: e.marca || '',
+                    protocolo: e.protocolo || '',
+                    preco: e.preco || 0,
+                    qtd: e.qtd,
+                    comodo: e.comodo,
+                    cor: e.cor || '#4f46e5'
+                })),
+                condicoes: {
+                    validade: '30 dias',
+                    pagamento: '50% entrada + 50% na entrega',
+                    garantia: '12 meses',
+                    prazo: '15 dias úteis',
+                    observacao: 'Valores sujeitos a alteração conforme cotação do dia'
+                },
+                observacoes: '',
+                empresaNome: 'SmartHome Automação',
+                empresaSub: 'Projetos e instalação de automação residencial',
+                numero: 'ORC-' + Date.now().toString(36).toUpperCase(),
+                valorTotal: itens.reduce((sum, e) => sum + (e.qtd * (e.preco || 0)), 0),
+                dataCriacao: new Date().toISOString()
             };
 
-            const toast = document.createElement('div');
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 80px;
-                right: 20px;
-                background: ${colors[type] || colors.info};
-                color: white;
-                padding: 12px 24px;
-                border-radius: 12px;
-                font-size: 14px;
-                font-family: 'Inter', sans-serif;
-                box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-                z-index: 9999;
-                max-width: 400px;
-                animation: slideIn 0.3s ease;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            `;
-            toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${message}`;
-            document.body.appendChild(toast);
+            localStorage.setItem('orcamentoParaImprimir', JSON.stringify(dadosImpressao));
+            window.open('pages/orcamento-print.html', '_blank');
 
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.3s';
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
+            showToast('🖨️ Abrindo impressão em nova aba', 'info');
+            if (window.parent && window.parent.atualizarStatus) {
+                window.parent.atualizarStatus('🖨️ Abrindo impressão em nova aba');
+            }
         }
 
         // ============ EXPORTAR ============
@@ -1704,13 +1813,10 @@ function removerItemDoComodo(produtoId, comodo) {
             // Agrupar por cômodo
             const comodosMap = {};
             
-            Object.entries(orcamentoData).forEach(([key, entry]) => {
+            Object.values(orcamentoData).forEach(entry => {
                 if (entry && entry.qtd > 0 && entry.comodo) {
-                    const produto = produtosData.find(p => p.id === entry.id || p.id === key.split('_')[0]);
-                    if (produto) {
-                        if (!comodosMap[entry.comodo]) comodosMap[entry.comodo] = [];
-                        comodosMap[entry.comodo].push({ ...produto, qtd: entry.qtd });
-                    }
+                    if (!comodosMap[entry.comodo]) comodosMap[entry.comodo] = [];
+                    comodosMap[entry.comodo].push(entry);
                 }
             });
 
@@ -1747,18 +1853,18 @@ function removerItemDoComodo(produtoId, comodo) {
                 html += `<tr><th>Dispositivo</th><th>Marca</th><th>Qtd</th><th>Unitário</th><th>Total</th></tr>`;
 
                 let totalComodo = 0;
-                itens.forEach(p => {
-                    const total = p.qtd * (p.preco || 0);
+                itens.forEach(entry => {
+                    const total = entry.qtd * (entry.preco || 0);
                     totalComodo += total;
                     totalGeral += total;
-                    totalItens += p.qtd;
+                    totalItens += entry.qtd;
 
                     html += `
                         <tr>
-                            <td>${p.dispositivo}</td>
-                            <td>${p.marca || '-'}</td>
-                            <td>${p.qtd}</td>
-                            <td>R$ ${(p.preco || 0).toFixed(2)}</td>
+                            <td>${entry.nome}</td>
+                            <td>${entry.marca || '-'}</td>
+                            <td>${entry.qtd}</td>
+                            <td>R$ ${(entry.preco || 0).toFixed(2)}</td>
                             <td>R$ ${total.toFixed(2)}</td>
                         </tr>
                     `;
@@ -1788,13 +1894,17 @@ function removerItemDoComodo(produtoId, comodo) {
             a.click();
             URL.revokeObjectURL(url);
 
-            window.parent.atualizarStatus('📊 Orçamento exportado');
             showToast('📊 Orçamento exportado com sucesso!', 'success');
+            if (window.parent && window.parent.atualizarStatus) {
+                window.parent.atualizarStatus('📊 Orçamento exportado');
+            }
         }
 
         // ============ NAVEGAÇÃO ============
         function irParaClientes() {
-            window.parent.navegarPara('clientes');
+            if (window.parent && window.parent.navegarPara) {
+                window.parent.navegarPara('clientes');
+            }
         }
 
         // ============ INICIALIZAR ============
@@ -1807,14 +1917,12 @@ function removerItemDoComodo(produtoId, comodo) {
             carregarDados();
             
             setTimeout(() => {
-                // Expandir todos os cômodos
                 document.querySelectorAll('.comodo-body').forEach(body => {
                     body.classList.remove('collapsed');
                 });
                 document.querySelectorAll('.toggle-icon').forEach(icon => {
                     icon.classList.add('open');
                 });
-                // Catálogo começa aberto
                 document.getElementById('catalogoBody').classList.remove('collapsed');
                 document.getElementById('catalogoIcon').classList.add('open');
             }, 500);
@@ -1823,34 +1931,22 @@ function removerItemDoComodo(produtoId, comodo) {
             setInterval(() => {
                 const clienteId = document.getElementById('clienteSelect').value;
                 if (clienteId && Object.keys(orcamentoData).length > 0) {
-                    salvarOrcamentoLocal();
+                    salvarOrcamentoNoFirebase();
                 }
             }, 30000);
 
-            // Fechar modal com ESC
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     fecharModalRapido();
                 }
             });
 
-            // Fechar modal ao clicar fora
             document.addEventListener('click', function(e) {
                 if (e.target.classList.contains('modal-add-rapido')) {
                     fecharModalRapido();
                 }
             });
         });
-
-        // Adicionar estilo para animação
-        const styleSheet = document.createElement('style');
-        styleSheet.textContent = `
-            @keyframes slideIn {
-                from { opacity: 0; transform: translateX(30px); }
-                to { opacity: 1; transform: translateX(0); }
-            }
-        `;
-        document.head.appendChild(styleSheet);
     </script>
 </body>
 </html>
