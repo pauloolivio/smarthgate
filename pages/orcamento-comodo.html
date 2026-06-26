@@ -6,7 +6,6 @@
     <title>Orçamento por Cômodo</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
-        /* ... (mesmo CSS anterior, mantido) ... */
         .page-header {
             padding: 16px 24px;
             background: #f8fafc;
@@ -870,11 +869,9 @@
         let clientesData = [];
         let orcamentoData = {};
         let clienteAtual = null;
+        let _saveTimeout = null;
 
-        function getStorageKey(clienteId) {
-            return `orcamento_comodo_${clienteId}`;
-        }
-
+        // ============ ACESSO AO DB ============
         function getDb() {
             try {
                 if (window.parent && window.parent.getDadosGlobais) {
@@ -918,6 +915,53 @@
             }, 4000);
         }
 
+        // ============ PERSISTÊNCIA NO FIREBASE ============
+        async function carregarOrcamentoSalvo(clienteId) {
+            try {
+                const db = getDb();
+                if (!db) {
+                    orcamentoData = {};
+                    return;
+                }
+                
+                const data = await db.getOrcamentoComodo(clienteId);
+                if (data && Object.keys(data).length > 0) {
+                    orcamentoData = {};
+                    Object.entries(data).forEach(([key, value]) => {
+                        if (value && value.qtd > 0) {
+                            orcamentoData[key] = value;
+                        }
+                    });
+                } else {
+                    orcamentoData = {};
+                }
+            } catch (e) {
+                console.warn('Erro ao carregar orçamento:', e);
+                orcamentoData = {};
+            }
+        }
+
+        async function salvarOrcamentoNoFirebase() {
+            const clienteId = document.getElementById('clienteSelect').value;
+            if (!clienteId) {
+                showToast('⚠️ Selecione um cliente para salvar', 'warning');
+                return false;
+            }
+            
+            try {
+                const db = getDb();
+                if (!db) throw new Error('Database não disponível');
+                
+                await db.salvarOrcamentoComodo(clienteId, orcamentoData);
+                showToast('💾 Orçamento salvo com sucesso!', 'success');
+                return true;
+            } catch (e) {
+                console.error('Erro ao salvar:', e);
+                showToast('❌ Erro ao salvar: ' + e.message, 'error');
+                return false;
+            }
+        }
+
         // ============ CARREGAR DADOS ============
         async function carregarDados() {
             try {
@@ -936,7 +980,7 @@
                 
                 const clienteId = document.getElementById('clienteSelect').value;
                 if (clienteId) {
-                    carregarOrcamentoSalvo(clienteId);
+                    await carregarOrcamentoSalvo(clienteId);
                 } else {
                     orcamentoData = {};
                 }
@@ -964,7 +1008,7 @@
             });
         }
 
-        function selecionarCliente() {
+        async function selecionarCliente() {
             const clienteId = document.getElementById('clienteSelect').value;
             const cliente = clientesData.find(c => c.id === clienteId);
             clienteAtual = cliente || null;
@@ -972,7 +1016,7 @@
             const info = document.getElementById('clienteInfo');
             if (cliente) {
                 info.textContent = `${cliente.nome} ${cliente.telefone ? '· ' + cliente.telefone : ''}`;
-                carregarOrcamentoSalvo(clienteId);
+                await carregarOrcamentoSalvo(clienteId);
             } else {
                 info.textContent = 'Nenhum cliente selecionado';
                 orcamentoData = {};
@@ -982,49 +1026,11 @@
             renderizarOrcamentoComodo();
         }
 
-        // ============ PERSISTÊNCIA ============
-        function carregarOrcamentoSalvo(clienteId) {
-            try {
-                const key = getStorageKey(clienteId);
-                const saved = localStorage.getItem(key);
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    orcamentoData = {};
-                    Object.entries(parsed).forEach(([key, value]) => {
-                        if (value && value.qtd > 0) {
-                            orcamentoData[key] = value;
-                        }
-                    });
-                } else {
-                    orcamentoData = {};
-                }
-            } catch (e) {
-                console.warn('Erro ao carregar orçamento:', e);
-                orcamentoData = {};
-            }
-        }
-
-        function salvarOrcamentoLocal() {
-            const clienteId = document.getElementById('clienteSelect').value;
-            if (!clienteId) {
-                showToast('⚠️ Selecione um cliente para salvar', 'warning');
-                return;
-            }
-            try {
-                const key = getStorageKey(clienteId);
-                localStorage.setItem(key, JSON.stringify(orcamentoData));
-                showToast('💾 Orçamento salvo localmente', 'success');
-            } catch (e) {
-                console.error('Erro ao salvar:', e);
-                showToast('❌ Erro ao salvar', 'error');
-            }
-        }
-
         function salvarOrcamento() {
-            salvarOrcamentoLocal();
+            salvarOrcamentoNoFirebase();
         }
 
-        function limparOrcamento() {
+        async function limparOrcamento() {
             const clienteId = document.getElementById('clienteSelect').value;
             if (!clienteId) {
                 showToast('⚠️ Selecione um cliente primeiro', 'warning');
@@ -1032,12 +1038,18 @@
             }
             if (!confirm('Tem certeza que deseja limpar todo o orçamento deste cliente?')) return;
             
-            orcamentoData = {};
-            const key = getStorageKey(clienteId);
-            localStorage.removeItem(key);
-            renderizarCatalogo();
-            renderizarOrcamentoComodo();
-            showToast('🗑️ Orçamento limpo', 'info');
+            try {
+                const db = getDb();
+                if (db) {
+                    await db.deletarOrcamentoComodo(clienteId);
+                }
+                orcamentoData = {};
+                renderizarCatalogo();
+                renderizarOrcamentoComodo();
+                showToast('🗑️ Orçamento limpo', 'info');
+            } catch (e) {
+                showToast('❌ Erro ao limpar: ' + e.message, 'error');
+            }
         }
 
         // ============ RENDERIZAR CATÁLOGO ============
@@ -1112,7 +1124,13 @@
 
             renderizarCatalogo();
             renderizarOrcamentoComodo();
-            salvarOrcamentoLocal();
+            
+            // Salvar automaticamente
+            if (_saveTimeout) clearTimeout(_saveTimeout);
+            _saveTimeout = setTimeout(() => {
+                salvarOrcamentoNoFirebase();
+            }, 1000);
+            
             showToast(`✅ ${produto.nome} adicionado ao ${comodoNome}`, 'success');
         }
 
@@ -1149,7 +1167,12 @@
             select.value = '';
             renderizarCatalogo();
             renderizarOrcamentoComodo();
-            salvarOrcamentoLocal();
+            
+            if (_saveTimeout) clearTimeout(_saveTimeout);
+            _saveTimeout = setTimeout(() => {
+                salvarOrcamentoNoFirebase();
+            }, 1000);
+            
             showToast(`✅ ${produto.nome} adicionado ao ${comodo}`, 'success');
         }
 
@@ -1194,8 +1217,10 @@
             renderizarCatalogo();
             renderizarOrcamentoComodo();
             
-            clearTimeout(window._saveTimeout);
-            window._saveTimeout = setTimeout(salvarOrcamentoLocal, 1000);
+            if (_saveTimeout) clearTimeout(_saveTimeout);
+            _saveTimeout = setTimeout(() => {
+                salvarOrcamentoNoFirebase();
+            }, 1000);
         }
 
         function removerItemDoComodo(produtoId, comodo) {
@@ -1209,7 +1234,12 @@
 
             renderizarCatalogo();
             renderizarOrcamentoComodo();
-            salvarOrcamentoLocal();
+            
+            if (_saveTimeout) clearTimeout(_saveTimeout);
+            _saveTimeout = setTimeout(() => {
+                salvarOrcamentoNoFirebase();
+            }, 1000);
+            
             showToast('🗑️ Item removido', 'info');
         }
 
@@ -1342,7 +1372,7 @@
             icon.classList.toggle('open');
         }
 
-        // ============ IMPRIMIR - ABRE EM NOVA ABA ============
+        // ============ IMPRIMIR ============
         function imprimirOrcamento() {
             const clienteId = document.getElementById('clienteSelect').value;
             const cliente = clientesData.find(c => c.id === clienteId);
@@ -1388,10 +1418,7 @@
                 dataCriacao: new Date().toISOString()
             };
 
-            // Salva no localStorage para a página de impressão ler
             localStorage.setItem('orcamentoParaImprimir', JSON.stringify(dadosImpressao));
-            
-            // ABRE EM NOVA ABA (FORA DO IFRAME)
             window.open('pages/orcamento-print.html', '_blank');
 
             showToast('🖨️ Abrindo impressão em nova aba', 'info');
@@ -1512,10 +1539,11 @@
                 document.getElementById('catalogoIcon').classList.add('open');
             }, 500);
 
+            // Salvar automaticamente a cada 30 segundos
             setInterval(() => {
                 const clienteId = document.getElementById('clienteSelect').value;
                 if (clienteId && Object.keys(orcamentoData).length > 0) {
-                    salvarOrcamentoLocal();
+                    salvarOrcamentoNoFirebase();
                 }
             }, 30000);
         });
