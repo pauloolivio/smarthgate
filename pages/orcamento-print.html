@@ -14,7 +14,7 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f0f2f5;
-            padding: 30px;
+            padding: 20px;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -30,7 +30,6 @@
             overflow: hidden;
         }
 
-        /* ===== HEADER ===== */
         .orcamento-header {
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             padding: 35px 40px;
@@ -114,7 +113,6 @@
             color: white;
         }
 
-        /* ===== INFORMAÇÕES DO CLIENTE ===== */
         .cliente-area {
             padding: 25px 40px;
             background: #f8fafc;
@@ -149,7 +147,27 @@
             color: #0f3460;
         }
 
-        /* ===== CONDIÇÕES ===== */
+        .vendedor-area {
+            padding: 12px 40px;
+            background: #f0f4ff;
+            border-bottom: 2px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-size: 14px;
+            color: #334155;
+        }
+
+        .vendedor-area .label {
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .vendedor-area .nome {
+            font-weight: 500;
+            color: #0f172a;
+        }
+
         .condicoes-area {
             padding: 18px 40px;
             background: #fefcf3;
@@ -175,29 +193,6 @@
             color: #0f172a;
         }
 
-        /* ===== VENDEDOR ===== */
-        .vendedor-area {
-            padding: 12px 40px;
-            background: #f0f4ff;
-            border-bottom: 2px solid #e2e8f0;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            font-size: 14px;
-            color: #334155;
-        }
-
-        .vendedor-area .label {
-            font-weight: 600;
-            color: #475569;
-        }
-
-        .vendedor-area .nome {
-            font-weight: 500;
-            color: #0f172a;
-        }
-
-        /* ===== TABELA ===== */
         .table-wrapper {
             padding: 20px 40px 10px 40px;
             overflow-x: auto;
@@ -270,7 +265,6 @@
             font-weight: 500;
         }
 
-        /* ===== TOTAIS ===== */
         .totais-area {
             padding: 20px 40px 30px 40px;
             display: flex;
@@ -304,7 +298,6 @@
             color: #0f3460;
         }
 
-        /* ===== OBSERVAÇÕES ===== */
         .observacoes-area {
             padding: 16px 40px 24px;
             background: #fafcff;
@@ -330,7 +323,6 @@
             border-left: 3px solid #4f46e5;
         }
 
-        /* ===== RODAPÉ ===== */
         .orcamento-footer {
             padding: 25px 40px;
             background: #f8fafc;
@@ -341,12 +333,6 @@
             gap: 15px;
             font-size: 13px;
             color: #64748b;
-        }
-
-        .orcamento-footer .validade {
-            display: flex;
-            align-items: center;
-            gap: 6px;
         }
 
         .orcamento-footer .assinatura {
@@ -377,7 +363,6 @@
             margin-top: 4px;
         }
 
-        /* ===== BOTÃO DE IMPRESSÃO ===== */
         .print-actions {
             padding: 16px 40px;
             background: white;
@@ -385,6 +370,7 @@
             display: flex;
             gap: 12px;
             justify-content: center;
+            flex-wrap: wrap;
         }
 
         .print-actions .btn {
@@ -398,6 +384,7 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            font-family: 'Segoe UI', sans-serif;
         }
 
         .print-actions .btn-primary {
@@ -421,10 +408,9 @@
             background: #f1f5f9;
         }
 
-        /* ===== EMPTY ===== */
         .empty-state {
             text-align: center;
-            padding: 80px 40px;
+            padding: 60px 40px;
             color: #94a3b8;
         }
 
@@ -443,10 +429,77 @@
             font-size: 14px;
         }
 
-        /* ===== RESPONSIVE ===== */
+        .empty-state .btn {
+            margin-top: 12px;
+            padding: 10px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            background: #4f46e5;
+            color: white;
+            transition: 0.2s;
+        }
+
+        .empty-state .btn:hover {
+            background: #4338ca;
+            transform: translateY(-2px);
+        }
+
+        .seletor-area {
+            padding: 16px 40px;
+            background: #ffffff;
+            border-bottom: 2px solid #e9edf2;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .seletor-area label {
+            font-weight: 600;
+            color: #334155;
+            font-size: 14px;
+        }
+
+        .seletor-area .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Segoe UI', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .seletor-area .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .seletor-area .btn-primary:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        .seletor-area .btn-success {
+            background: #0b9e5e;
+            color: white;
+        }
+
+        .seletor-area .btn-success:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+
         @media (max-width: 768px) {
             body {
-                padding: 12px;
+                padding: 10px;
             }
 
             .orcamento-header {
@@ -479,6 +532,12 @@
             .vendedor-area {
                 padding: 12px 20px;
                 flex-wrap: wrap;
+            }
+
+            .seletor-area {
+                padding: 14px 20px;
+                flex-direction: column;
+                align-items: stretch;
             }
 
             .table-wrapper {
@@ -524,7 +583,6 @@
             }
         }
 
-        /* ===== IMPRESSÃO ===== */
         @media print {
             body {
                 background: white;
@@ -537,6 +595,10 @@
             }
 
             .print-actions {
+                display: none !important;
+            }
+
+            .seletor-area {
                 display: none !important;
             }
 
@@ -562,99 +624,67 @@
             .orcamento-footer {
                 page-break-inside: avoid;
             }
-
-            .cliente-area .cliente-info .valor.destaque {
-                color: #0f3460;
-            }
         }
     </style>
 </head>
 <body>
-
     <div class="print-container" id="printContainer">
-        <!-- CONTEÚDO DO ORÇAMENTO -->
+        <div class="seletor-area">
+            <label>📄 Orçamento</label>
+            <span style="flex:1; color:#64748b; font-size:14px;" id="orcamentoInfo">Carregando...</span>
+            <button class="btn btn-success" onclick="imprimirPagina()">🖨️ Imprimir</button>
+            <button class="btn btn-outline" onclick="voltar()">⬅️ Voltar</button>
+        </div>
+
         <div id="orcamentoContent">
             <div class="empty-state">
                 <div class="icone">📄</div>
                 <h3>Nenhum orçamento carregado</h3>
-                <p>Selecione um cliente e produtos para visualizar o orçamento.</p>
+                <p>Selecione um orçamento no menu acima ou crie um na página de orçamento por cômodo.</p>
+                <button class="btn" onclick="window.parent.navegarPara('orcamento-comodo')">🏗️ Ir para Orçamento</button>
             </div>
         </div>
 
-        <!-- BOTÕES DE AÇÃO -->
-        <div class="print-actions" id="printActions">
-            <button class="btn btn-primary" onclick="imprimirOrcamento()">🖨️ Imprimir Orçamento</button>
-            <button class="btn btn-outline" onclick="window.close()">✕ Fechar</button>
+        <div class="print-actions" id="printActions" style="display: none;">
+            <button class="btn btn-primary" onclick="imprimirPagina()">🖨️ Imprimir Orçamento</button>
+            <button class="btn btn-outline" onclick="window.parent.navegarPara('orcamento-comodo')">⬅️ Voltar</button>
         </div>
     </div>
 
     <script>
-        // ===== LISTENER PARA MENSAGENS DO PARENT =====
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.type === 'orcamentoData') {
-                renderizarOrcamento(event.data.dados);
-                localStorage.setItem('orcamentoPrintData', JSON.stringify(event.data.dados));
-            }
-            
-            if (event.data && event.data.type === 'getOrcamentoData') {
-                const dados = getDadosOrcamento();
-                if (event.source) {
-                    event.source.postMessage({
-                        type: 'orcamentoDataResponse',
-                        dados: dados
-                    }, '*');
-                }
-            }
-        });
+        let dadosOrcamentoAtual = null;
 
-        // ===== FUNÇÃO MELHORADA PARA BUSCAR DADOS =====
-        function getDadosOrcamento() {
-            try {
-                // Verificar se o parent tem os dados
-                if (window.parent && window.parent.getDadosOrcamentoAtual) {
-                    return window.parent.getDadosOrcamentoAtual();
-                }
-                
-                // Tentar do localStorage
-                const saved = localStorage.getItem('orcamentoPrintData');
-                if (saved) {
-                    return JSON.parse(saved);
-                }
-                
-                // Tentar da URL
-                const params = new URLSearchParams(window.location.search);
-                const dadosParam = params.get('dados');
-                if (dadosParam) {
-                    return JSON.parse(decodeURIComponent(dadosParam));
-                }
-                
-                return null;
-            } catch (e) {
-                console.error('Erro ao buscar dados:', e);
-                return null;
+        function imprimirPagina() {
+            window.print();
+        }
+
+        function voltar() {
+            if (window.parent && window.parent.navegarPara) {
+                window.parent.navegarPara('orcamento-comodo');
+            } else {
+                window.location.href = 'orcamento-comodo.html';
             }
         }
 
-        // ===== RENDERIZAR ORÇAMENTO =====
         function renderizarOrcamento(dados) {
             const container = document.getElementById('orcamentoContent');
+            const info = document.getElementById('orcamentoInfo');
 
             if (!dados || !dados.produtos || dados.produtos.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <div class="icone">📄</div>
-                        <h3>Nenhum orçamento carregado</h3>
-                        <p>Selecione um cliente e produtos para visualizar o orçamento.</p>
+                        <div class="icone">📦</div>
+                        <h3>Orçamento sem produtos</h3>
+                        <p>Adicione produtos ao orçamento na página de orçamento por cômodo.</p>
+                        <button class="btn" onclick="window.parent.navegarPara('orcamento-comodo')">🏗️ Ir para Orçamento</button>
                     </div>
                 `;
                 document.getElementById('printActions').style.display = 'none';
+                if (info) info.textContent = 'Nenhum produto';
                 return;
             }
 
-            document.getElementById('printActions').style.display = 'flex';
-
-            const cliente = dados.cliente || { nome: 'Cliente não selecionado', id: '---', endereco: '---', telefone: '---',
-                email: '---' };
+            const cliente = dados.cliente || { nome: 'Cliente não selecionado', documento: '---', telefone: '---', email: '---', endereco: '---' };
             const vendedor = dados.vendedor || 'Não informado';
             const condicoes = dados.condicoes || {
                 validade: '30 dias',
@@ -666,8 +696,8 @@
             const status = dados.status || 'pendente';
             const observacoes = dados.observacoes || '';
 
-            const dataAtual = new Date().toLocaleDateString('pt-BR');
-            const numeroOrcamento = dados.numero || 'ORC-' + String(Math.floor(100000 + Math.random() * 900000));
+            const dataAtual = new Date(dados.dataCriacao || Date.now()).toLocaleDateString('pt-BR');
+            const numeroOrcamento = dados.numero || 'ORC-' + Date.now().toString(36).toUpperCase();
 
             // Calcular totais
             let totalEquipamentos = 0;
@@ -677,7 +707,7 @@
                 totalGeral += (item.qtd || 0) * (item.preco || 0);
             });
 
-            // Agrupar por cômodo para subtotais
+            // Agrupar por cômodo
             const comodos = {};
             dados.produtos.forEach(item => {
                 const comodo = item.comodo || 'Sem Cômodo';
@@ -687,7 +717,6 @@
 
             // Montar tabela
             let tableRows = '';
-            let comodoSubtotal = 0;
 
             Object.keys(comodos).sort().forEach(comodo => {
                 const itens = comodos[comodo];
@@ -705,9 +734,8 @@
                     tableRows += `
                         <tr>
                             <td>${comodo}</td>
-                            <td><strong>${item.dispositivo || item.nome || 'Sem nome'}</strong></td>
+                            <td><strong>${item.nome}</strong></td>
                             <td>${item.marca || '-'}</td>
-                            <td>${item.especificacoes || item.infra || '-'}</td>
                             <td><span class="protocolo-badge ${badgeClass}">${item.protocolo || 'Wi-Fi'}</span></td>
                             <td style="text-align:center;">${item.qtd || 0}</td>
                             <td style="text-align:right;">R$ ${(item.preco || 0).toFixed(2)}</td>
@@ -716,10 +744,9 @@
                     `;
                 });
 
-                // Linha de subtotal do cômodo
                 tableRows += `
                     <tr class="subtotal-row">
-                        <td colspan="7" class="label-sub">Subtotal ${comodo}</td>
+                        <td colspan="6" class="label-sub">Subtotal ${comodo}</td>
                         <td style="text-align:right; font-weight:600; color:#4f46e5;">R$ ${subtotalComodo.toFixed(2)}</td>
                     </tr>
                 `;
@@ -737,8 +764,9 @@
                 'cancelado': '❌ Cancelado'
             };
 
+            if (info) info.textContent = `${cliente.nome} - R$ ${totalGeral.toFixed(2)} (${dados.produtos.length} itens)`;
+
             const html = `
-                <!-- HEADER -->
                 <div class="orcamento-header">
                     <div class="logo-area">
                         <div class="logo-placeholder">🏠</div>
@@ -755,19 +783,14 @@
                     </div>
                 </div>
 
-                <!-- CLIENTE -->
                 <div class="cliente-area">
                     <div class="cliente-info">
                         <label>Cliente</label>
                         <span class="valor destaque">${cliente.nome}</span>
                     </div>
                     <div class="cliente-info">
-                        <label>ID do Cliente</label>
-                        <span class="valor">${cliente.id || '---'}</span>
-                    </div>
-                    <div class="cliente-info">
-                        <label>Endereço</label>
-                        <span class="valor">${cliente.endereco || '---'}</span>
+                        <label>Documento</label>
+                        <span class="valor">${cliente.documento || '---'}</span>
                     </div>
                     <div class="cliente-info">
                         <label>Telefone</label>
@@ -778,18 +801,16 @@
                         <span class="valor">${cliente.email || '---'}</span>
                     </div>
                     <div class="cliente-info">
-                        <label>Documento</label>
-                        <span class="valor">${cliente.documento || '---'}</span>
+                        <label>Endereço</label>
+                        <span class="valor">${cliente.endereco || '---'}</span>
                     </div>
                 </div>
 
-                <!-- VENDEDOR -->
                 <div class="vendedor-area">
                     <span class="label">👤 Vendedor:</span>
                     <span class="nome">${vendedor}</span>
                 </div>
 
-                <!-- CONDIÇÕES -->
                 <div class="condicoes-area">
                     <div class="condicao-item">
                         <span class="icone">📅</span>
@@ -813,7 +834,6 @@
                     </div>
                 </div>
 
-                <!-- TABELA -->
                 <div class="table-wrapper">
                     <table>
                         <thead>
@@ -821,7 +841,6 @@
                                 <th>Cômodo</th>
                                 <th>Dispositivo</th>
                                 <th>Marca</th>
-                                <th>Especificações</th>
                                 <th>Protocolo</th>
                                 <th style="text-align:center;">Qtd</th>
                                 <th style="text-align:right;">Unitário</th>
@@ -834,7 +853,6 @@
                     </table>
                 </div>
 
-                <!-- TOTAIS -->
                 <div class="totais-area">
                     <div class="totais-box">
                         <div class="linha">
@@ -856,7 +874,6 @@
                     </div>
                 </div>
 
-                <!-- OBSERVAÇÕES -->
                 ${observacoes ? `
                 <div class="observacoes-area">
                     <div class="label">📋 Observações</div>
@@ -864,9 +881,8 @@
                 </div>
                 ` : ''}
 
-                <!-- RODAPÉ -->
                 <div class="orcamento-footer">
-                    <div class="validade">
+                    <div>
                         📅 Orçamento válido por ${condicoes.validade || '30 dias'} a partir da emissão.
                     </div>
                     <div class="assinatura">
@@ -885,43 +901,76 @@
             `;
 
             container.innerHTML = html;
+            document.getElementById('printActions').style.display = 'flex';
         }
 
-        // ===== IMPRIMIR =====
-        function imprimirOrcamento() {
-            window.print();
+        // ============ RECEBER DADOS ============
+        function carregarDadosDoLocalStorage() {
+            try {
+                const saved = localStorage.getItem('orcamentoPrintData');
+                if (saved) {
+                    const dados = JSON.parse(saved);
+                    dadosOrcamentoAtual = dados;
+                    renderizarOrcamento(dados);
+                    return true;
+                }
+                return false;
+            } catch (e) {
+                console.error('Erro ao carregar dados:', e);
+                return false;
+            }
         }
 
-        // ===== INICIALIZAR =====
+        // ============ LISTENERS ============
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'orcamentoData') {
+                dadosOrcamentoAtual = event.data.dados;
+                renderizarOrcamento(dadosOrcamentoAtual);
+                // Salvar no localStorage para recarregar
+                localStorage.setItem('orcamentoPrintData', JSON.stringify(dadosOrcamentoAtual));
+            }
+        });
+
+        // ============ INICIALIZAR ============
         document.addEventListener('DOMContentLoaded', function() {
-            const dados = getDadosOrcamento();
-            if (dados) {
-                renderizarOrcamento(dados);
-                // Salvar no localStorage para fallback
-                localStorage.setItem('orcamentoPrintData', JSON.stringify(dados));
-            } else {
-                // Tentar ler query params
+            // Tentar carregar do localStorage
+            if (!carregarDadosDoLocalStorage()) {
+                // Verificar se veio via URL
                 const params = new URLSearchParams(window.location.search);
                 const dadosParam = params.get('dados');
                 if (dadosParam) {
                     try {
-                        const dadosDecoded = JSON.parse(decodeURIComponent(dadosParam));
-                        renderizarOrcamento(dadosDecoded);
-                        localStorage.setItem('orcamentoPrintData', JSON.stringify(dadosDecoded));
+                        const dados = JSON.parse(decodeURIComponent(dadosParam));
+                        dadosOrcamentoAtual = dados;
+                        renderizarOrcamento(dados);
+                        localStorage.setItem('orcamentoPrintData', JSON.stringify(dados));
                     } catch (e) {
                         console.error('Erro ao ler dados da URL:', e);
                     }
                 }
             }
+
+            // Se ainda não carregou, tentar buscar do parent
+            if (!dadosOrcamentoAtual && window.parent) {
+                setTimeout(() => {
+                    try {
+                        const frame = window.parent.document.getElementById('pageFrame');
+                        if (frame && frame.contentWindow) {
+                            frame.contentWindow.postMessage({ type: 'getOrcamentoData' }, '*');
+                        }
+                    } catch (e) {
+                        console.log('Não foi possível comunicar com o parent');
+                    }
+                }, 500);
+            }
         });
 
-        // ===== FECHAR COM ESC =====
+        // Fechar com ESC
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
-                window.close();
+                voltar();
             }
         });
     </script>
-
 </body>
 </html>
