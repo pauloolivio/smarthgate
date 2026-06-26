@@ -219,6 +219,22 @@
             font-family: monospace;
         }
 
+        .clientes-table .badge-status-cliente {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-status-cliente.pendente { background: #fef3c7; color: #92400e; }
+        .badge-status-cliente.aprovado { background: #d1fae5; color: #065f46; }
+        .badge-status-cliente.finalizado { background: #e0e7ff; color: #3730a3; }
+        .badge-status-cliente.cancelado { background: #fee2e2; color: #991b1b; }
+        .badge-status-cliente.sem_orcamento { background: #f1f5f9; color: #94a3b8; }
+
         /* PAGINAÇÃO */
         .pagination {
             display: flex;
@@ -435,6 +451,31 @@
             color: #94a3b8;
         }
 
+        body.dark-mode .clientes-table .badge-status-cliente.pendente {
+            background: #92400e;
+            color: #fef3c7;
+        }
+
+        body.dark-mode .clientes-table .badge-status-cliente.aprovado {
+            background: #065f46;
+            color: #d1fae5;
+        }
+
+        body.dark-mode .clientes-table .badge-status-cliente.finalizado {
+            background: #3730a3;
+            color: #e0e7ff;
+        }
+
+        body.dark-mode .clientes-table .badge-status-cliente.cancelado {
+            background: #991b1b;
+            color: #fee2e2;
+        }
+
+        body.dark-mode .clientes-table .badge-status-cliente.sem_orcamento {
+            background: #334155;
+            color: #64748b;
+        }
+
         body.dark-mode .pagination {
             border-color: #334155;
         }
@@ -534,12 +575,13 @@
                             <th>Cliente</th>
                             <th>Contato</th>
                             <th>Documento</th>
+                            <th>Status</th>
                             <th style="text-align: right;">Ações</th>
                         </tr>
                     </thead>
                     <tbody id="clientesBody">
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8;">
+                            <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">
                                 Carregando clientes...
                             </td>
                         </tr>
@@ -611,6 +653,7 @@
         let clientesFiltrados = [];
         let paginaAtual = 1;
         let totalPaginas = 1;
+        let statusCache = {};
 
         // ============ ACESSO AO DB ============
         function getDb() {
@@ -724,6 +767,9 @@
                 clientesFiltrados = [...clientesData];
                 paginaAtual = 1;
                 
+                // Carregar status de todos os clientes
+                await carregarStatusClientes(db);
+                
                 renderizarClientes();
                 atualizarStats();
                 
@@ -741,6 +787,57 @@
                     window.parent.atualizarStatus('❌ Erro ao carregar clientes');
                 }
             }
+        }
+
+        // ============ CARREGAR STATUS DOS CLIENTES ============
+        async function carregarStatusClientes(db) {
+            try {
+                // Buscar status de todos os clientes
+                const statusData = await db.getTodosStatusOrcamentos();
+                statusCache = statusData || {};
+                
+                // Para cada cliente sem status, buscar individualmente
+                for (const cliente of clientesData) {
+                    if (!statusCache[cliente.id]) {
+                        const status = await db.getOrcamentoStatus(cliente.id);
+                        if (status && status.status) {
+                            statusCache[cliente.id] = status;
+                        } else {
+                            statusCache[cliente.id] = { status: 'pendente', dataAtualizacao: new Date().toISOString() };
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Erro ao carregar status dos clientes:', error);
+            }
+        }
+
+        // ============ OBTER STATUS DO CLIENTE ============
+        function getStatusCliente(clienteId) {
+            if (statusCache[clienteId] && statusCache[clienteId].status) {
+                return statusCache[clienteId].status;
+            }
+            return 'pendente';
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'pendente': '⏳ Pendente',
+                'aprovado': '✅ Aprovado',
+                'finalizado': '🔵 Finalizado',
+                'cancelado': '❌ Cancelado'
+            };
+            return labels[status] || status || 'Pendente';
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'pendente': 'pendente',
+                'aprovado': 'aprovado',
+                'finalizado': 'finalizado',
+                'cancelado': 'cancelado'
+            };
+            return classes[status] || 'pendente';
         }
 
         // ============ FILTRAR ============
@@ -803,7 +900,7 @@
                 const termo = document.getElementById('searchInput').value.trim();
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align: center; padding: 40px; color: #94a3b8;">
+                        <td colspan="6" style="text-align: center; padding: 40px; color: #94a3b8;">
                             <div style="font-size: 32px; margin-bottom: 8px;">🔍</div>
                             ${termo ? 'Nenhum cliente encontrado para "' + termo + '"' : 'Nenhum cliente cadastrado'}
                             <br><small style="color: #cbd5e1;">Clique em "Novo Cliente" para adicionar</small>
@@ -816,6 +913,10 @@
 
             tbody.innerHTML = paginaClientes.map((cliente, idx) => {
                 const numero = inicio + idx + 1;
+                const status = getStatusCliente(cliente.id);
+                const statusLabel = getStatusLabel(status);
+                const statusClass = getStatusClass(status);
+                
                 return `
                     <tr>
                         <td style="color: #94a3b8; font-size: 13px;">${numero}</td>
@@ -834,6 +935,9 @@
                         </td>
                         <td>
                             ${cliente.documento ? `<span class="badge-documento">${cliente.documento}</span>` : '<span style="color: #94a3b8; font-size: 12px;">—</span>'}
+                        </td>
+                        <td>
+                            <span class="badge-status-cliente ${statusClass}">${statusLabel}</span>
                         </td>
                         <td>
                             <div class="acoes-cell">
@@ -984,13 +1088,27 @@
 
                 const id = document.getElementById('formEditIndex').value;
                 let mensagem = '';
+                let clienteId = id;
 
                 if (id && id !== '-1') {
+                    // Atualizar cliente existente
                     data.id = id;
                     await db.salvarCliente(data);
                     mensagem = '✅ Cliente atualizado com sucesso!';
+                    clienteId = id;
                 } else {
-                    await db.salvarCliente(data);
+                    // Criar novo cliente
+                    clienteId = await db.salvarCliente(data);
+                    
+                    // Criar orçamento vazio para o cliente
+                    await db.salvarOrcamentoComodo(clienteId, {});
+                    
+                    // Criar status pendente para o cliente
+                    await db.salvarOrcamentoStatus(clienteId, { 
+                        status: 'pendente', 
+                        dataAtualizacao: new Date().toISOString() 
+                    });
+                    
                     mensagem = '✅ Cliente criado com sucesso!';
                 }
 
@@ -1028,7 +1146,7 @@
 
         // ============ EXCLUIR ============
         async function excluirCliente(id) {
-            if (!confirm('Tem certeza que deseja excluir este cliente?')) return;
+            if (!confirm('Tem certeza que deseja excluir este cliente? Isso também excluirá seus orçamentos.')) return;
             
             try {
                 const db = getDb();

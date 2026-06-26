@@ -23,8 +23,8 @@
 
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
             padding: 24px;
         }
 
@@ -32,9 +32,11 @@
             background: #ffffff;
             border: 1px solid #e9edf2;
             border-radius: 12px;
-            padding: 20px 24px;
+            padding: 16px 20px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
             transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
         }
 
         .card-dashboard:hover {
@@ -43,14 +45,14 @@
         }
 
         .card-dashboard .numero {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 700;
             color: #0f172a;
             margin-top: 4px;
         }
 
         .card-dashboard .label {
-            font-size: 13px;
+            font-size: 12px;
             color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -58,15 +60,36 @@
         }
 
         .card-dashboard .icone {
-            font-size: 28px;
+            font-size: 24px;
             opacity: 0.6;
             float: right;
+        }
+
+        .card-dashboard .sub-info {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 4px;
         }
 
         .card-dashboard.primary .numero { color: #4f46e5; }
         .card-dashboard.success .numero { color: #0b9e5e; }
         .card-dashboard.warning .numero { color: #f59e0b; }
         .card-dashboard.danger .numero { color: #dc2626; }
+        .card-dashboard.info .numero { color: #0ea5e9; }
+        .card-dashboard.purple .numero { color: #8b5cf6; }
+
+        .card-dashboard .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 4px;
+        }
+
+        .card-dashboard .status-indicator.aprovado { background: #0b9e5e; }
+        .card-dashboard .status-indicator.pendente { background: #f59e0b; }
+        .card-dashboard .status-indicator.cancelado { background: #dc2626; }
+        .card-dashboard .status-indicator.finalizado { background: #4f46e5; }
 
         .dashboard-content {
             padding: 24px;
@@ -76,6 +99,43 @@
             color: #0f172a;
             font-size: 18px;
             margin-bottom: 16px;
+        }
+
+        .dashboard-content .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .dashboard-content .section-header .filtros {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-content .section-header .filtros .btn-filtro {
+            padding: 4px 14px;
+            border: 1px solid #e9edf2;
+            border-radius: 20px;
+            font-size: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            color: #64748b;
+        }
+
+        .dashboard-content .section-header .filtros .btn-filtro:hover {
+            background: #f1f5f9;
+        }
+
+        .dashboard-content .section-header .filtros .btn-filtro.active {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: white;
         }
 
         .lista-ultimos {
@@ -92,6 +152,8 @@
             justify-content: space-between;
             align-items: center;
             font-size: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
         }
 
         .lista-ultimos li:last-child {
@@ -122,18 +184,6 @@
             margin-left: 8px;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #94a3b8;
-        }
-
-        .empty-state .icone {
-            font-size: 48px;
-            opacity: 0.5;
-            margin-bottom: 12px;
-        }
-
         .badge-status {
             display: inline-block;
             padding: 2px 12px;
@@ -145,6 +195,19 @@
         .badge-status.aprovado { background: #d1fae5; color: #065f46; }
         .badge-status.pendente { background: #fef3c7; color: #92400e; }
         .badge-status.cancelado { background: #fee2e2; color: #991b1b; }
+        .badge-status.finalizado { background: #e0e7ff; color: #3730a3; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state .icone {
+            font-size: 48px;
+            opacity: 0.5;
+            margin-bottom: 12px;
+        }
 
         .loading-spinner {
             display: inline-block;
@@ -162,6 +225,63 @@
             100% { transform: rotate(360deg); }
         }
 
+        .dashboard-grid-dois {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 0 24px 24px;
+        }
+
+        .card-status-resumo {
+            background: #ffffff;
+            border: 1px solid #e9edf2;
+            border-radius: 12px;
+            padding: 16px 20px;
+        }
+
+        .card-status-resumo h3 {
+            font-size: 14px;
+            color: #64748b;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .card-status-resumo .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .card-status-resumo .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .card-status-resumo .status-item .label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #334155;
+        }
+
+        .card-status-resumo .status-item .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .card-status-resumo .status-item .dot.aprovado { background: #0b9e5e; }
+        .card-status-resumo .status-item .dot.pendente { background: #f59e0b; }
+        .card-status-resumo .status-item .dot.cancelado { background: #dc2626; }
+        .card-status-resumo .status-item .dot.finalizado { background: #4f46e5; }
+
+        .card-status-resumo .status-item .count {
+            font-weight: 600;
+            color: #0f172a;
+        }
+
         @media (max-width: 768px) {
             .dashboard-grid {
                 grid-template-columns: 1fr 1fr;
@@ -170,7 +290,17 @@
             }
 
             .card-dashboard .numero {
-                font-size: 24px;
+                font-size: 20px;
+            }
+
+            .dashboard-grid-dois {
+                grid-template-columns: 1fr;
+                padding: 0 16px 16px;
+            }
+
+            .lista-ultimos li {
+                flex-direction: column;
+                align-items: flex-start;
             }
         }
 
@@ -180,6 +310,7 @@
             }
         }
 
+        /* Dark Mode */
         body.dark-mode .page-header {
             background: #1e293b;
             border-color: #334155;
@@ -196,6 +327,10 @@
 
         body.dark-mode .card-dashboard .numero {
             color: #f1f5f9;
+        }
+
+        body.dark-mode .card-dashboard .sub-info {
+            color: #64748b;
         }
 
         body.dark-mode .lista-ultimos {
@@ -230,6 +365,44 @@
             background: #991b1b;
             color: #fee2e2;
         }
+
+        body.dark-mode .badge-status.finalizado {
+            background: #3730a3;
+            color: #e0e7ff;
+        }
+
+        body.dark-mode .card-status-resumo {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .card-status-resumo h3 {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .card-status-resumo .status-item {
+            border-color: #334155;
+        }
+
+        body.dark-mode .card-status-resumo .status-item .label {
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .card-status-resumo .status-item .count {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .dashboard-content .section-header .filtros .btn-filtro {
+            background: #1e293b;
+            border-color: #334155;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .dashboard-content .section-header .filtros .btn-filtro.active {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -238,6 +411,7 @@
         <p>Visão geral do sistema de orçamento</p>
     </div>
 
+    <!-- Cards Principais -->
     <div class="dashboard-grid" id="dashboardStats">
         <div class="card-dashboard primary">
             <span class="icone">👤</span>
@@ -261,8 +435,51 @@
         </div>
     </div>
 
+    <!-- Resumo por Status -->
+    <div class="dashboard-grid-dois">
+        <div class="card-status-resumo">
+            <h3>📋 Orçamentos por Status</h3>
+            <div id="statusResumo">
+                <div class="status-item">
+                    <span class="label"><span class="dot pendente"></span> Pendentes</span>
+                    <span class="count" id="statusPendente">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="label"><span class="dot aprovado"></span> Aprovados</span>
+                    <span class="count" id="statusAprovado">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="label"><span class="dot finalizado"></span> Finalizados</span>
+                    <span class="count" id="statusFinalizado">0</span>
+                </div>
+                <div class="status-item">
+                    <span class="label"><span class="dot cancelado"></span> Cancelados</span>
+                    <span class="count" id="statusCancelado">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="card-status-resumo">
+            <h3>🏠 Orçamentos por Cômodo</h3>
+            <div id="comodoResumo">
+                <div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">
+                    <span class="loading-spinner"></span> Carregando...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Últimos Orçamentos -->
     <div class="dashboard-content">
-        <h2>📋 Últimos Orçamentos</h2>
+        <div class="section-header">
+            <h2>📋 Últimos Orçamentos</h2>
+            <div class="filtros" id="filtrosStatus">
+                <button class="btn-filtro active" data-status="todos" onclick="filtrarOrcamentos('todos')">Todos</button>
+                <button class="btn-filtro" data-status="pendente" onclick="filtrarOrcamentos('pendente')">⏳ Pendentes</button>
+                <button class="btn-filtro" data-status="aprovado" onclick="filtrarOrcamentos('aprovado')">✅ Aprovados</button>
+                <button class="btn-filtro" data-status="finalizado" onclick="filtrarOrcamentos('finalizado')">🔵 Finalizados</button>
+                <button class="btn-filtro" data-status="cancelado" onclick="filtrarOrcamentos('cancelado')">❌ Cancelados</button>
+            </div>
+        </div>
         <ul class="lista-ultimos" id="ultimosOrcamentos">
             <li style="text-align: center; color: #94a3b8; padding: 24px;">
                 <span class="loading-spinner"></span> Carregando...
@@ -270,16 +487,12 @@
         </ul>
     </div>
 
-    <div class="dashboard-content" style="padding-top: 0;">
-        <h2>📋 Orçamentos por Cômodo (Resumo)</h2>
-        <ul class="lista-ultimos" id="orcamentosComodoResumo">
-            <li style="text-align: center; color: #94a3b8; padding: 24px;">
-                <span class="loading-spinner"></span> Carregando...
-            </li>
-        </ul>
-    </div>
-
     <script>
+        // ============ VARIÁVEIS GLOBAIS ============
+        let todosOrcamentos = [];
+        let orcamentosFiltrados = [];
+        let filtroAtual = 'todos';
+
         // ============ ACESSO AO DB ============
         function getDb() {
             try {
@@ -317,7 +530,8 @@
             const labels = {
                 'aprovado': '✅ Aprovado',
                 'pendente': '⏳ Pendente',
-                'cancelado': '❌ Cancelado'
+                'cancelado': '❌ Cancelado',
+                'finalizado': '🔵 Finalizado'
             };
             return labels[status] || status || 'Pendente';
         }
@@ -326,7 +540,8 @@
             const classes = {
                 'aprovado': 'aprovado',
                 'pendente': 'pendente',
-                'cancelado': 'cancelado'
+                'cancelado': 'cancelado',
+                'finalizado': 'finalizado'
             };
             return classes[status] || 'pendente';
         }
@@ -343,12 +558,14 @@
                 console.log('📊 Carregando dashboard...');
 
                 // Buscar todos os dados
-                const [clientes, produtos, orcamentos, orcamentosComodo] = await Promise.all([
+                const [clientes, produtos, orcamentos] = await Promise.all([
                     db.getClientes(),
                     db.getProdutos(),
-                    db.getOrcamentos(),
-                    carregarTodosOrcamentosComodo(db)
+                    carregarOrcamentosComStatus(db)
                 ]);
+
+                todosOrcamentos = orcamentos;
+                orcamentosFiltrados = [...todosOrcamentos];
 
                 // ===== CARDS =====
                 document.getElementById('totalClientes').textContent = clientes.length;
@@ -362,60 +579,23 @@
                 });
                 document.getElementById('valorTotal').textContent = fmtBRL(totalGeral);
 
+                // ===== STATUS RESUME =====
+                const statusCount = { pendente: 0, aprovado: 0, finalizado: 0, cancelado: 0 };
+                orcamentos.forEach(orc => {
+                    const status = orc.status || 'pendente';
+                    if (statusCount[status] !== undefined) statusCount[status]++;
+                });
+
+                document.getElementById('statusPendente').textContent = statusCount.pendente;
+                document.getElementById('statusAprovado').textContent = statusCount.aprovado;
+                document.getElementById('statusFinalizado').textContent = statusCount.finalizado;
+                document.getElementById('statusCancelado').textContent = statusCount.cancelado;
+
+                // ===== CÔMODO RESUME =====
+                await carregarResumoComodos(db, clientes);
+
                 // ===== ÚLTIMOS ORÇAMENTOS =====
-                const lista = document.getElementById('ultimosOrcamentos');
-                if (orcamentos.length === 0) {
-                    lista.innerHTML = `
-                        <li style="text-align: center; color: #94a3b8; padding: 24px;">
-                            📭 Nenhum orçamento cadastrado ainda.
-                        </li>
-                    `;
-                } else {
-                    const ultimos = orcamentos.slice(0, 5);
-                    lista.innerHTML = ultimos.map(orc => `
-                        <li>
-                            <span>
-                                <span class="cliente">${orc.clienteNome || 'Cliente não definido'}</span>
-                                <span class="data">${fmtDate(orc.dataCriacao)}</span>
-                                <span class="badge-status ${getStatusClass(orc.status)}">${getStatusLabel(orc.status)}</span>
-                            </span>
-                            <span class="valor">${fmtBRL(orc.valorTotal || 0)}</span>
-                        </li>
-                    `).join('');
-                }
-
-                // ===== RESUMO ORÇAMENTOS POR CÔMODO =====
-                const resumoLista = document.getElementById('orcamentosComodoResumo');
-                if (Object.keys(orcamentosComodo).length === 0) {
-                    resumoLista.innerHTML = `
-                        <li style="text-align: center; color: #94a3b8; padding: 24px;">
-                            📭 Nenhum orçamento por cômodo encontrado.
-                        </li>
-                    `;
-                } else {
-                    // Ordenar por valor total (maior primeiro)
-                    const sorted = Object.entries(orcamentosComodo)
-                        .sort((a, b) => b[1].total - a[1].total)
-                        .slice(0, 5);
-
-                    resumoLista.innerHTML = sorted.map(([clienteId, data]) => {
-                        const cliente = clientes.find(c => c.id === clienteId);
-                        const nomeCliente = cliente ? cliente.nome : clienteId;
-                        const totalItens = data.itens || 0;
-                        const totalComodos = data.comodos || 0;
-                        
-                        return `
-                            <li>
-                                <span>
-                                    <span class="cliente">${nomeCliente}</span>
-                                    <span class="comodos-badge">🏠 ${totalComodos} cômodos</span>
-                                    <span class="comodos-badge">📦 ${totalItens} itens</span>
-                                </span>
-                                <span class="valor">${fmtBRL(data.total)}</span>
-                            </li>
-                        `;
-                    }).join('');
-                }
+                aplicarFiltro();
 
                 if (window.parent && window.parent.atualizarStatus) {
                     window.parent.atualizarStatus(`✅ Dashboard atualizado: ${clientes.length} clientes, ${produtos.length} produtos, ${orcamentos.length} orçamentos`);
@@ -430,22 +610,76 @@
                         ❌ Erro ao carregar dados: ${error.message}
                     </li>
                 `;
-                document.getElementById('orcamentosComodoResumo').innerHTML = `
-                    <li style="text-align: center; color: #dc2626; padding: 24px;">
-                        ❌ Erro ao carregar dados: ${error.message}
-                    </li>
-                `;
             }
         }
 
-        // ============ CARREGAR TODOS OS ORÇAMENTOS POR CÔMODO ============
-        async function carregarTodosOrcamentosComodo(db) {
+        // ============ CARREGAR ORÇAMENTOS COM STATUS ============
+        async function carregarOrcamentosComStatus(db) {
             try {
                 // Buscar todos os clientes
                 const clientes = await db.getClientes();
-                const resultado = {};
+                const orcamentos = [];
 
-                // Para cada cliente, buscar seus orçamentos por cômodo
+                for (const cliente of clientes) {
+                    // Buscar orçamento por cômodo do cliente
+                    const data = await db.getOrcamentoComodo(cliente.id);
+                    
+                    if (data && Object.keys(data).length > 0) {
+                        let total = 0;
+                        let itens = 0;
+                        const comodosSet = new Set();
+
+                        Object.values(data).forEach(entry => {
+                            if (entry && entry.qtd > 0) {
+                                total += (entry.qtd || 0) * (entry.preco || 0);
+                                itens += entry.qtd || 0;
+                                if (entry.comodo) comodosSet.add(entry.comodo);
+                            }
+                        });
+
+                        if (total > 0) {
+                            // Buscar status do orçamento (salvo separadamente ou usar pendente como padrão)
+                            let status = 'pendente';
+                            try {
+                                const orcStatus = await db.getOrcamentoStatus(cliente.id);
+                                if (orcStatus && orcStatus.status) {
+                                    status = orcStatus.status;
+                                }
+                            } catch (e) {
+                                // Se não houver status, usar pendente
+                            }
+
+                            orcamentos.push({
+                                clienteId: cliente.id,
+                                clienteNome: cliente.nome || 'Cliente sem nome',
+                                valorTotal: total,
+                                itens: itens,
+                                comodos: comodosSet.size,
+                                status: status,
+                                dataCriacao: new Date().toISOString(),
+                                dataAtualizacao: new Date().toISOString()
+                            });
+                        }
+                    }
+                }
+
+                // Ordenar por data de criação (mais recentes primeiro)
+                orcamentos.sort((a, b) => new Date(b.dataCriacao) - new Date(a.dataCriacao));
+                
+                return orcamentos;
+            } catch (error) {
+                console.error('❌ Erro ao carregar orçamentos:', error);
+                return [];
+            }
+        }
+
+        // ============ CARREGAR RESUMO POR CÔMODO ============
+        async function carregarResumoComodos(db, clientes) {
+            const container = document.getElementById('comodoResumo');
+            
+            try {
+                const comodoData = {};
+
                 for (const cliente of clientes) {
                     const data = await db.getOrcamentoComodo(cliente.id);
                     if (data && Object.keys(data).length > 0) {
@@ -462,7 +696,7 @@
                         });
 
                         if (total > 0) {
-                            resultado[cliente.id] = {
+                            comodoData[cliente.id] = {
                                 total: total,
                                 itens: itens,
                                 comodos: comodosSet.size,
@@ -472,31 +706,103 @@
                     }
                 }
 
-                return resultado;
+                const sorted = Object.entries(comodoData)
+                    .sort((a, b) => b[1].total - a[1].total)
+                    .slice(0, 5);
+
+                if (sorted.length === 0) {
+                    container.innerHTML = `
+                        <div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">
+                            📭 Nenhum orçamento por cômodo encontrado.
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = sorted.map(([clienteId, data]) => `
+                        <div class="status-item">
+                            <span class="label">
+                                <span>🏠 ${data.clienteNome || clienteId}</span>
+                                <span style="font-size:11px;color:#94a3b8;margin-left:4px;">
+                                    (${data.comodos} cômodos, ${data.itens} itens)
+                                </span>
+                            </span>
+                            <span class="count">${fmtBRL(data.total)}</span>
+                        </div>
+                    `).join('');
+                }
             } catch (error) {
-                console.error('❌ Erro ao carregar orçamentos por cômodo:', error);
-                return {};
+                console.error('❌ Erro ao carregar resumo por cômodo:', error);
+                container.innerHTML = `
+                    <div style="text-align:center;color:#dc2626;padding:20px;font-size:13px;">
+                        ❌ Erro ao carregar dados
+                    </div>
+                `;
             }
         }
 
-        // ============ ESCUTAR MUDANÇAS NO FIREBASE ============
+        // ============ FILTRAR ORÇAMENTOS ============
+        function filtrarOrcamentos(status) {
+            filtroAtual = status;
+            
+            // Atualizar botões
+            document.querySelectorAll('.btn-filtro').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.status === status);
+            });
+
+            aplicarFiltro();
+        }
+
+        function aplicarFiltro() {
+            const lista = document.getElementById('ultimosOrcamentos');
+
+            if (filtroAtual === 'todos') {
+                orcamentosFiltrados = [...todosOrcamentos];
+            } else {
+                orcamentosFiltrados = todosOrcamentos.filter(o => o.status === filtroAtual);
+            }
+
+            if (orcamentosFiltrados.length === 0) {
+                const msg = filtroAtual === 'todos' ? 'Nenhum orçamento cadastrado ainda.' : 
+                    `Nenhum orçamento ${filtroAtual} encontrado.`;
+                lista.innerHTML = `
+                    <li style="text-align: center; color: #94a3b8; padding: 24px;">
+                        📭 ${msg}
+                    </li>
+                `;
+                return;
+            }
+
+            const ultimos = orcamentosFiltrados.slice(0, 10);
+            lista.innerHTML = ultimos.map(orc => `
+                <li>
+                    <span>
+                        <span class="cliente">${orc.clienteNome || 'Cliente não definido'}</span>
+                        <span class="data">${fmtDate(orc.dataCriacao)}</span>
+                        <span class="badge-status ${getStatusClass(orc.status)}">${getStatusLabel(orc.status)}</span>
+                        <span class="comodos-badge">🏠 ${orc.comodos || 0} cômodos</span>
+                        <span class="comodos-badge">📦 ${orc.itens || 0} itens</span>
+                    </span>
+                    <span class="valor">${fmtBRL(orc.valorTotal || 0)}</span>
+                </li>
+            `).join('');
+        }
+
+        // ============ ESCUTAR MUDANÇAS ============
         function escutarMudancas() {
             try {
                 const db = getDb();
                 if (!db) return;
 
-                // Escutar mudanças na coleção 'orcamentos_comodo'
+                // Escutar mudanças em orcamentos_comodo
                 const ref = db.database.ref('orcamentos_comodo');
-                
-                ref.on('value', (snapshot) => {
-                    console.log('🔄 Mudança detectada em orcamentos_comodo, recarregando dashboard...');
+                ref.on('value', () => {
+                    console.log('🔄 Mudança detectada em orcamentos_comodo, recarregando...');
                     carregarDashboard();
                 });
 
-                // Escutar mudanças na coleção 'orcamentos'
-                const refOrc = db.database.ref('orcamentos');
-                refOrc.on('value', (snapshot) => {
-                    console.log('🔄 Mudança detectada em orcamentos, recarregando dashboard...');
+                // Escutar mudanças em orcamentos_status
+                const refStatus = db.database.ref('orcamentos_status');
+                refStatus.on('value', () => {
+                    console.log('🔄 Mudança detectada em orcamentos_status, recarregando...');
                     carregarDashboard();
                 });
 

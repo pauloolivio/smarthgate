@@ -788,9 +788,12 @@
         if (cliente) {
             infoNome.textContent = `${cliente.nome}${cliente.telefone ? ' · ' + cliente.telefone : ''}`;
             await carregarOrcamento(clienteId);
+            await carregarStatusOrcamento(clienteId);
         } else {
             infoNome.textContent = 'Nenhum cliente selecionado';
             orcamentoData = {};
+            statusOrcamentoAtual = 'pendente';
+            atualizarDisplayStatus();
         }
 
         renderCatalogo();
@@ -798,7 +801,6 @@
         atualizarTotalCliente();
         atualizarTotalGeral();
     }
-
     // =============================================
     //  RENDER — CATÁLOGO
     // =============================================
@@ -941,6 +943,157 @@
         });
 
         container.innerHTML = html;
+    }
+
+    // =============================================
+//  STATUS DO ORÇAMENTO
+// =============================================
+
+let statusOrcamentoAtual = 'pendente';
+
+/** Carregar status do orçamento do cliente */
+async function carregarStatusOrcamento(clienteId) {
+    try {
+        const db = getDb();
+        if (!db) return 'pendente';
+
+        const statusData = await db.getOrcamentoStatus(clienteId);
+        if (statusData && statusData.status) {
+            statusOrcamentoAtual = statusData.status;
+            atualizarDisplayStatus();
+            return statusData.status;
+        }
+        return 'pendente';
+    } catch (error) {
+        console.error('❌ Erro ao carregar status:', error);
+        return 'pendente';
+    }
+}
+
+/** Salvar status do orçamento */
+async function salvarStatusOrcamento(clienteId, status) {
+    try {
+        const db = getDb();
+        if (!db) return;
+
+        await db.salvarOrcamentoStatus(clienteId, {
+            status: status,
+            dataAtualizacao: new Date().toISOString()
+        });
+        
+        statusOrcamentoAtual = status;
+        atualizarDisplayStatus();
+        console.log(`💾 Status do orçamento atualizado: ${status}`);
+    } catch (error) {
+        console.error('❌ Erro ao salvar status:', error);
+    }
+}
+
+/** Atualizar display do status no header */
+function atualizarDisplayStatus() {
+    const container = document.querySelector('.selecao-cliente');
+    let statusEl = document.getElementById('statusOrcamentoDisplay');
+    
+    if (!statusEl) {
+        statusEl = document.createElement('span');
+        statusEl.id = 'statusOrcamentoDisplay';
+        statusEl.className = 'cliente-info';
+        statusEl.style.cssText = 'margin-left:auto;';
+        
+        // Inserir após o clienteInfo
+        const clienteInfo = document.getElementById('clienteInfo');
+        if (clienteInfo && clienteInfo.parentNode) {
+            clienteInfo.parentNode.insertBefore(statusEl, clienteInfo.nextSibling);
+        }
+    }
+
+    const labels = {
+        'pendente': '⏳ Pendente',
+        'aprovado': '✅ Aprovado',
+        'finalizado': '🔵 Finalizado',
+        'cancelado': '❌ Cancelado'
+    };
+
+    const colors = {
+        'pendente': '#f59e0b',
+        'aprovado': '#0b9e5e',
+        'finalizado': '#4f46e5',
+        'cancelado': '#dc2626'
+    };
+
+    statusEl.innerHTML = `
+        <strong>Status:</strong> 
+        <span style="display:inline-block;padding:2px 14px;border-radius:20px;background:${colors[statusOrcamentoAtual] || '#64748b'}20;color:${colors[statusOrcamentoAtual] || '#64748b'};font-weight:600;font-size:13px;">
+            ${labels[statusOrcamentoAtual] || statusOrcamentoAtual}
+        </span>
+        <button onclick="abrirModalStatus()" style="background:none;border:1px solid #d1d9e6;border-radius:6px;padding:2px 10px;cursor:pointer;font-size:12px;color:#64748b;margin-left:4px;">
+            Alterar
+        </button>
+    `;
+}
+
+/** Abrir modal para alterar status */
+function abrirModalStatus() {
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay active';
+    modal.id = 'modalStatus';
+    modal.innerHTML = `
+        <div class="modal-box" style="max-width:320px;">
+            <h3>📋 Alterar Status do Orçamento</h3>
+            <div style="margin:16px 0;">
+                <div style="display:flex;flex-direction:column;gap:8px;">
+                    <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;border:2px solid ${statusOrcamentoAtual === 'pendente' ? '#f59e0b' : 'transparent'};background:${statusOrcamentoAtual === 'pendente' ? '#fef3c7' : 'transparent'};">
+                        <input type="radio" name="statusModal" value="pendente" ${statusOrcamentoAtual === 'pendente' ? 'checked' : ''}>
+                        <span>⏳ Pendente</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;border:2px solid ${statusOrcamentoAtual === 'aprovado' ? '#0b9e5e' : 'transparent'};background:${statusOrcamentoAtual === 'aprovado' ? '#d1fae5' : 'transparent'};">
+                        <input type="radio" name="statusModal" value="aprovado" ${statusOrcamentoAtual === 'aprovado' ? 'checked' : ''}>
+                        <span>✅ Aprovado</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;border:2px solid ${statusOrcamentoAtual === 'finalizado' ? '#4f46e5' : 'transparent'};background:${statusOrcamentoAtual === 'finalizado' ? '#e0e7ff' : 'transparent'};">
+                        <input type="radio" name="statusModal" value="finalizado" ${statusOrcamentoAtual === 'finalizado' ? 'checked' : ''}>
+                        <span>🔵 Finalizado</span>
+                    </label>
+                    <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;border:2px solid ${statusOrcamentoAtual === 'cancelado' ? '#dc2626' : 'transparent'};background:${statusOrcamentoAtual === 'cancelado' ? '#fee2e2' : 'transparent'};">
+                        <input type="radio" name="statusModal" value="cancelado" ${statusOrcamentoAtual === 'cancelado' ? 'checked' : ''}>
+                        <span>❌ Cancelado</span>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" onclick="fecharModalStatus()">Cancelar</button>
+                <button class="btn btn-primary" onclick="confirmarStatus()">Salvar</button>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Fechar ao clicar fora
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) fecharModalStatus();
+        });
+    }
+
+    function fecharModalStatus() {
+        const modal = document.getElementById('modalStatus');
+        if (modal) modal.remove();
+    }
+
+    async function confirmarStatus() {
+        const selected = document.querySelector('input[name="statusModal"]:checked');
+        if (!selected) return;
+
+        const clienteId = document.getElementById('clienteSelect').value;
+        if (!clienteId) {
+            showToast('⚠️ Selecione um cliente primeiro', 'warning');
+            return;
+        }
+
+        const novoStatus = selected.value;
+        await salvarStatusOrcamento(clienteId, novoStatus);
+        fecharModalStatus();
+        showToast(`✅ Status alterado para ${getStatusLabel(novoStatus)}`, 'success');
     }
 
     // =============================================
@@ -1145,10 +1298,10 @@
             numero:        'ORC-' + Date.now().toString(36).toUpperCase(),
             cliente:       cliente,
             vendedor:      sessionStorage.getItem('userEmail') || 'Não informado',
-            status:        'pendente',
+            status:        statusOrcamentoAtual || 'pendente',
             dataCriacao:   new Date().toISOString(),
             valorTotal:    itens.reduce((s, e) => s + e.qtd * e.preco, 0),
-            produtos:      itens,
+            produtos:      itens.map(e => ({ ...e })),
             empresaNome:   'SmartHome Automação',
             empresaSub:    'Projetos e instalação de automação residencial',
             condicoes: {
@@ -1161,8 +1314,10 @@
             observacoes: ''
         };
 
-        localStorage.setItem('orcamentoPrintData', JSON.stringify(dados));
+        // Salvar no localStorage para a página de impressão
+        localStorage.setItem('orcamentoParaImprimir', JSON.stringify(dados));
 
+        // Abrir a página de impressão
         if (window.parent && window.parent.abrirImpressaoComDados) {
             window.parent.abrirImpressaoComDados(dados);
         } else {
@@ -1170,7 +1325,6 @@
         }
         showToast('🖨️ Abrindo impressão...', 'info');
     }
-
     function exportarOrcamento() {
         const clienteId = document.getElementById('clienteSelect').value;
         const cliente   = clientesData.find(c => c.id === clienteId);

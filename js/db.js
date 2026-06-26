@@ -10,6 +10,7 @@ class Database {
             produtos: null,
             orcamentos: null,
             configuracoes: null,
+            orcamentosStatus: null,
             timestamp: 0
         };
         this.CACHE_TTL = 60000; // 1 minuto
@@ -40,6 +41,7 @@ class Database {
             produtos: null,
             orcamentos: null,
             configuracoes: null,
+            orcamentosStatus: null,
             timestamp: 0
         };
     }
@@ -120,7 +122,10 @@ class Database {
     async deletarCliente(id) {
         try {
             this._clearCache();
+            // Deletar também os dados relacionados
             await this.database.ref(`clientes/${id}`).remove();
+            await this.database.ref(`orcamentos_comodo/${id}`).remove();
+            await this.database.ref(`orcamentos_status/${id}`).remove();
         } catch (error) {
             console.error('Erro ao deletar cliente:', error);
             throw error;
@@ -360,6 +365,113 @@ class Database {
         }
     }
 
+    // ==========================================
+    // ============ ORÇAMENTO STATUS ============
+    // ==========================================
+
+    /**
+     * Salvar status do orçamento de um cliente
+     * @param {string} clienteId - ID do cliente
+     * @param {object} data - { status: 'pendente'|'aprovado'|'finalizado'|'cancelado', dataAtualizacao: string }
+     */
+    async salvarOrcamentoStatus(clienteId, data) {
+        try {
+            const dataToSave = {
+                status: data.status || 'pendente',
+                dataAtualizacao: data.dataAtualizacao || new Date().toISOString()
+            };
+            await this.database.ref(`orcamentos_status/${clienteId}`).set(dataToSave);
+            this._clearCache();
+            console.log(`💾 Status do orçamento salvo para ${clienteId}: ${dataToSave.status}`);
+            return true;
+        } catch (error) {
+            console.error('❌ Erro ao salvar status do orçamento:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Buscar status do orçamento de um cliente
+     * @param {string} clienteId - ID do cliente
+     * @returns {Promise<object>} - { status: string, dataAtualizacao: string }
+     */
+    async getOrcamentoStatus(clienteId) {
+        try {
+            const ref = this.database.ref(`orcamentos_status/${clienteId}`);
+            const snapshot = await ref.once('value');
+            const data = snapshot.val();
+            if (data && data.status) {
+                return data;
+            }
+            return { status: 'pendente', dataAtualizacao: new Date().toISOString() };
+        } catch (error) {
+            console.error('❌ Erro ao buscar status do orçamento:', error);
+            return { status: 'pendente', dataAtualizacao: new Date().toISOString() };
+        }
+    }
+
+    /**
+     * Buscar status de todos os clientes
+     * @returns {Promise<object>} - { clienteId: { status, dataAtualizacao } }
+     */
+    async getTodosStatusOrcamentos() {
+        try {
+            const snapshot = await this.database.ref('orcamentos_status').once('value');
+            return snapshot.val() || {};
+        } catch (error) {
+            console.error('❌ Erro ao buscar todos os status:', error);
+            return {};
+        }
+    }
+
+    /**
+     * Deletar status do orçamento de um cliente
+     * @param {string} clienteId - ID do cliente
+     */
+    async deletarOrcamentoStatus(clienteId) {
+        try {
+            await this.database.ref(`orcamentos_status/${clienteId}`).remove();
+            this._clearCache();
+            console.log(`🗑️ Status do orçamento deletado para ${clienteId}`);
+            return true;
+        } catch (error) {
+            console.error('❌ Erro ao deletar status do orçamento:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Atualizar status de um orçamento baseado no conteúdo
+     * Verifica se há itens no orçamento e atualiza o status se necessário
+     */
+    async atualizarStatusAutomatico(clienteId) {
+        try {
+            // Buscar orçamento por cômodo
+            const orcamento = await this.getOrcamentoComodo(clienteId);
+            const itens = Object.values(orcamento).filter(e => e && e.qtd > 0);
+            
+            // Buscar status atual
+            const statusAtual = await this.getOrcamentoStatus(clienteId);
+            
+            // Se não há itens e o status é pendente, manter pendente
+            // Se não há itens e o status é aprovado ou finalizado, não alterar automaticamente
+            if (itens.length === 0) {
+                if (statusAtual.status === 'aprovado' || statusAtual.status === 'finalizado') {
+                    // Não alterar automaticamente, mantém o status
+                    return statusAtual;
+                }
+                // Se pendente e sem itens, mantém pendente
+                return statusAtual;
+            }
+
+            // Se há itens e o status é pendente, mantém pendente (aguardando ação do usuário)
+            return statusAtual;
+        } catch (error) {
+            console.error('❌ Erro ao atualizar status automaticamente:', error);
+            return { status: 'pendente' };
+        }
+    }
+
     // ============ CONFIGURAÇÕES ============
     async getConfiguracoes(forceRefresh = false) {
         if (!forceRefresh && this._cache.configuracoes && this._isCacheValid()) {
@@ -481,13 +593,22 @@ class Database {
                         console.log('✅ Orçamentos importados do dados.json');
                     }
 
-                    // ============ IMPORTAR ORÇAMENTOS POR CÔMODO ============
+                    // Importar orçamentos por cômodo
                     if (jsonData.orcamentos_comodo) {
                         for (const [clienteId, orcamentos] of Object.entries(jsonData.orcamentos_comodo)) {
                             await this.database.ref(`orcamentos_comodo/${clienteId}`).set(orcamentos);
                             console.log(`✅ Orçamentos do cliente ${clienteId} importados (${Object.keys(orcamentos).length} itens)`);
                         }
                         console.log('✅ Orçamentos por cômodo importados do dados.json');
+                    }
+
+                    // Importar status dos orçamentos
+                    if (jsonData.orcamentos_status) {
+                        for (const [clienteId, statusData] of Object.entries(jsonData.orcamentos_status)) {
+                            await this.database.ref(`orcamentos_status/${clienteId}`).set(statusData);
+                            console.log(`✅ Status do orçamento importado para ${clienteId}: ${statusData.status}`);
+                        }
+                        console.log('✅ Status dos orçamentos importados do dados.json');
                     }
 
                     // Importar configurações
@@ -570,12 +691,13 @@ const db = new Database();
 window.db = db;
 window.Database = Database;
 
-console.log('✅ Database (Realtime) inicializado - v3.0');
+console.log('✅ Database (Realtime) inicializado - v3.1');
 console.log('📦 Estrutura:');
 console.log('   - Clientes: nome, documento, telefone, email, endereco, observacoes');
 console.log('   - Produtos: codigo, nome, dispositivo, marca, categoria, protocolo, preco, comodo');
 console.log('   - Orçamentos: clienteId, clienteNome, vendedor, condicoes, status, valorTotal');
 console.log('   - Orçamentos por Cômodo: orcamentos_comodo/{clienteId}');
+console.log('   - Status dos Orçamentos: orcamentos_status/{clienteId} → { status, dataAtualizacao }');
 
 // Inicializar e fazer seed automático
 (async function() {
