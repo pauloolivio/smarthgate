@@ -249,14 +249,9 @@
             color: #92400e;
         }
 
-        .table-wrapper table .total-col {
-            font-weight: 600;
-            color: #0f172a;
-        }
-
         .table-wrapper table .subtotal-row td {
             background: #f8fafc;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .table-wrapper table .subtotal-row .label-sub {
@@ -457,12 +452,6 @@
             flex-wrap: wrap;
         }
 
-        .seletor-area label {
-            font-weight: 600;
-            color: #334155;
-            font-size: 14px;
-        }
-
         .seletor-area .btn {
             padding: 8px 20px;
             border: none;
@@ -477,16 +466,6 @@
             gap: 6px;
         }
 
-        .seletor-area .btn-primary {
-            background: #4f46e5;
-            color: white;
-        }
-
-        .seletor-area .btn-primary:hover {
-            background: #4338ca;
-            transform: translateY(-1px);
-        }
-
         .seletor-area .btn-success {
             background: #0b9e5e;
             color: white;
@@ -495,6 +474,16 @@
         .seletor-area .btn-success:hover {
             background: #059669;
             transform: translateY(-1px);
+        }
+
+        .seletor-area .btn-outline {
+            background: transparent;
+            border: 2px solid #cbd5e1;
+            color: #334155;
+        }
+
+        .seletor-area .btn-outline:hover {
+            background: #f1f5f9;
         }
 
         @media (max-width: 768px) {
@@ -629,31 +618,35 @@
 </head>
 <body>
     <div class="print-container" id="printContainer">
+        <!-- Barra superior -->
         <div class="seletor-area">
-            <label>📄 Orçamento</label>
+            <span style="font-weight:600; color:#0f172a;">📄 Orçamento</span>
             <span style="flex:1; color:#64748b; font-size:14px;" id="orcamentoInfo">Carregando...</span>
             <button class="btn btn-success" onclick="imprimirPagina()">🖨️ Imprimir</button>
             <button class="btn btn-outline" onclick="voltar()">⬅️ Voltar</button>
         </div>
 
+        <!-- Conteúdo do orçamento -->
         <div id="orcamentoContent">
             <div class="empty-state">
                 <div class="icone">📄</div>
                 <h3>Nenhum orçamento carregado</h3>
-                <p>Selecione um orçamento no menu acima ou crie um na página de orçamento por cômodo.</p>
-                <button class="btn" onclick="window.parent.navegarPara('orcamento-comodo')">🏗️ Ir para Orçamento</button>
+                <p>Clique em "Imprimir" na página de orçamento por cômodo para gerar a impressão.</p>
+                <button class="btn" onclick="voltar()">🏗️ Ir para Orçamento</button>
             </div>
         </div>
 
+        <!-- Botões de ação -->
         <div class="print-actions" id="printActions" style="display: none;">
             <button class="btn btn-primary" onclick="imprimirPagina()">🖨️ Imprimir Orçamento</button>
-            <button class="btn btn-outline" onclick="window.parent.navegarPara('orcamento-comodo')">⬅️ Voltar</button>
+            <button class="btn btn-outline" onclick="voltar()">⬅️ Voltar</button>
         </div>
     </div>
 
     <script>
         let dadosOrcamentoAtual = null;
 
+        // ============ FUNÇÕES ============
         function imprimirPagina() {
             window.print();
         }
@@ -666,6 +659,7 @@
             }
         }
 
+        // ============ RENDERIZAR ORÇAMENTO ============
         function renderizarOrcamento(dados) {
             const container = document.getElementById('orcamentoContent');
             const info = document.getElementById('orcamentoInfo');
@@ -676,7 +670,7 @@
                         <div class="icone">📦</div>
                         <h3>Orçamento sem produtos</h3>
                         <p>Adicione produtos ao orçamento na página de orçamento por cômodo.</p>
-                        <button class="btn" onclick="window.parent.navegarPara('orcamento-comodo')">🏗️ Ir para Orçamento</button>
+                        <button class="btn" onclick="voltar()">🏗️ Ir para Orçamento</button>
                     </div>
                 `;
                 document.getElementById('printActions').style.display = 'none';
@@ -904,7 +898,7 @@
             document.getElementById('printActions').style.display = 'flex';
         }
 
-        // ============ RECEBER DADOS ============
+        // ============ CARREGAR DADOS ============
         function carregarDadosDoLocalStorage() {
             try {
                 const saved = localStorage.getItem('orcamentoPrintData');
@@ -926,7 +920,6 @@
             if (event.data && event.data.type === 'orcamentoData') {
                 dadosOrcamentoAtual = event.data.dados;
                 renderizarOrcamento(dadosOrcamentoAtual);
-                // Salvar no localStorage para recarregar
                 localStorage.setItem('orcamentoPrintData', JSON.stringify(dadosOrcamentoAtual));
             }
         });
