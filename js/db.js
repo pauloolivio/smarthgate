@@ -410,7 +410,7 @@ class Database {
     }
 
     /**
-     * Buscar status de todos os clientes (OTIMIZADO)
+     * Buscar status de todos os clientes
      * @returns {Promise<object>} - { clienteId: { status, dataAtualizacao } }
      */
     async getTodosStatusOrcamentos() {
@@ -442,14 +442,6 @@ class Database {
     }
 
     /**
-     * Buscar status de todos os clientes (FALLBACK - método antigo)
-     * @returns {Promise<object>} - { clienteId: { status, dataAtualizacao } }
-     */
-    async getTodosStatus() {
-        return this.getTodosStatusOrcamentos();
-    }
-
-    /**
      * Deletar status do orçamento de um cliente
      * @param {string} clienteId - ID do cliente
      */
@@ -467,7 +459,6 @@ class Database {
 
     /**
      * Atualizar status de um orçamento baseado no conteúdo
-     * Verifica se há itens no orçamento e atualiza o status se necessário
      */
     async atualizarStatusAutomatico(clienteId) {
         try {
@@ -481,7 +472,6 @@ class Database {
                 }
                 return statusAtual;
             }
-
             return statusAtual;
         } catch (error) {
             console.error('❌ Erro ao atualizar status automaticamente:', error);
@@ -696,6 +686,14 @@ class Database {
 //  CRIAR INSTÂNCIA GLOBAL
 // =============================================
 const db = new Database();
+
+// =============================================
+//  EXPORTAR FUNÇÕES DE STATUS PARA COMPATIBILIDADE
+//  (Isso permite chamar db.salvarOrcamentoStatus diretamente)
+// =============================================
+
+// Já está tudo dentro da classe Database, então db já tem esses métodos.
+// Mas vamos garantir que window.db tenha todos os métodos.
 
 window.db = db;
 window.Database = Database;

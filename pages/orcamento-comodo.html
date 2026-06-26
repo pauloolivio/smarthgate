@@ -966,6 +966,7 @@ async function carregarStatusOrcamento(clienteId) {
         return 'pendente';
     } catch (error) {
         console.error('❌ Erro ao carregar status:', error);
+        showToast('❌ Erro ao carregar status: ' + error.message, 'error');
         return 'pendente';
     }
 }
@@ -976,6 +977,7 @@ async function salvarStatusOrcamento(clienteId, status) {
         const db = getDb();
         if (!db) return;
 
+        // CORRETO: Chamando o método da instância db
         await db.salvarOrcamentoStatus(clienteId, {
             status: status,
             dataAtualizacao: new Date().toISOString()
@@ -986,6 +988,7 @@ async function salvarStatusOrcamento(clienteId, status) {
         console.log(`💾 Status do orçamento atualizado: ${status}`);
     } catch (error) {
         console.error('❌ Erro ao salvar status:', error);
+        showToast('❌ Erro ao salvar status: ' + error.message, 'error');
     }
 }
 

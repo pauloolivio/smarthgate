@@ -1259,6 +1259,7 @@
                 const db = getDb();
                 if (!db) throw new Error('Database não disponível');
 
+                // CORRETO: Chamando o método da instância db
                 await db.salvarOrcamentoStatus(clienteId, {
                     status: novoStatus,
                     dataAtualizacao: new Date().toISOString()
@@ -1283,7 +1284,6 @@
                 mostrarNotificacao('❌ Erro ao alterar status: ' + error.message, 'error');
             }
         }
-
         async function reabrirOrcamento(clienteId) {
             if (!confirm('Tem certeza que deseja REABRIR este orçamento? O status voltará para "Pendente".')) return;
 
