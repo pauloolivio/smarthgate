@@ -419,6 +419,10 @@
         return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     }
 
+    function esc(s) {
+        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
     // =============================================
     //  FIREBASE — CARREGAR / SALVAR
     // =============================================
@@ -710,7 +714,6 @@
             }).join('');
 
             // --- Produtos disponíveis do catálogo (não adicionados ainda) ---
-            // Eles aparecem zerados na lista de seleção
             const opcoesSelect = produtosData.map(p =>
                 `<option value="${p.id}">${esc(p.nome||p.dispositivo||'?')} — ${fmtBRL(p.preco)}</option>`
             ).join('');
@@ -986,7 +989,7 @@
         const dados = {
             id:            'ORC-' + Date.now().toString(36).toUpperCase(),
             numero:        'ORC-' + Date.now().toString(36).toUpperCase(),
-            cliente,
+            cliente:       cliente,
             vendedor:      sessionStorage.getItem('userEmail') || 'Não informado',
             status:        'pendente',
             dataCriacao:   new Date().toISOString(),
@@ -995,14 +998,19 @@
             empresaNome:   'SmartHome Automação',
             empresaSub:    'Projetos e instalação de automação residencial',
             condicoes: {
-                validade: '30 dias', pagamento: '50% entrada + 50% na entrega',
-                garantia: '12 meses', prazo: '15 dias úteis',
+                validade: '30 dias',
+                pagamento: '50% entrada + 50% na entrega',
+                garantia: '12 meses',
+                prazo: '15 dias úteis',
                 observacao: 'Valores sujeitos a alteração conforme cotação do dia'
-            }
+            },
+            observacoes: ''
         };
 
+        // Salva no localStorage para a página de impressão
         localStorage.setItem('orcamentoPrintData', JSON.stringify(dados));
 
+        // Abre a página de impressão
         if (window.parent && window.parent.abrirImpressaoComDados) {
             window.parent.abrirImpressaoComDados(dados);
         } else {
@@ -1066,14 +1074,6 @@
 
     function irParaClientes() {
         if (window.parent && window.parent.navegarPara) window.parent.navegarPara('clientes');
-    }
-
-    // =============================================
-    //  ESCAPE HTML
-    // =============================================
-
-    function esc(s) {
-        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     // =============================================
