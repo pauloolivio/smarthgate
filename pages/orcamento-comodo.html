@@ -1346,7 +1346,7 @@
             body.innerHTML = html;
         }
 
-        // ============ RENDERIZAR CÔMODOS - CORRIGIDO ============
+        // ============ RENDERIZAR CÔMODOS ============
         function renderizarOrcamentoComodo() {
             const container = document.getElementById('comodosContainer');
             const emptyState = document.getElementById('emptyState');
@@ -1360,7 +1360,7 @@
 
             emptyState.style.display = 'none';
 
-            // 1. OBTER TODOS OS CÔMODOS ÚNICOS DOS PRODUTOS
+            // OBTER TODOS OS CÔMODOS ÚNICOS DOS PRODUTOS
             const comodosUnicos = [...new Set(produtosData.map(p => p.comodo).filter(Boolean))].sort();
             
             if (comodosUnicos.length === 0) {
@@ -1379,9 +1379,7 @@
             let totalItens = 0;
             let html = '';
 
-            // 2. PARA CADA CÔMODO, MOSTRAR TODOS OS PRODUTOS
             comodosUnicos.forEach(comodo => {
-                // Filtrar produtos deste cômodo
                 const produtosDoComodo = produtosData.filter(p => p.comodo === comodo);
                 let totalComodo = 0;
 
@@ -1401,13 +1399,11 @@
                         <div class="comodo-body">
                 `;
 
-                // 3. PARA CADA PRODUTO DO CÔMODO, MOSTRAR COM QUANTIDADE
                 produtosDoComodo.forEach(p => {
                     // Buscar a quantidade deste produto neste cômodo
                     let qtd = 0;
                     let total = 0;
                     
-                    // Procurar no orcamentoData
                     Object.entries(orcamentoData).forEach(([key, entry]) => {
                         if (entry && entry.comodo === comodo) {
                             const productId = key.split('_')[0];
@@ -1451,7 +1447,7 @@
                     `;
                 });
 
-                // 4. ÁREA PARA ADICIONAR PRODUTOS A ESTE CÔMODO
+                // ÁREA PARA ADICIONAR PRODUTOS A ESTE CÔMODO
                 html += `
                         <div class="add-item-area">
                             <label>➕ Adicionar:</label>
@@ -1469,7 +1465,6 @@
                 </div>
                 `;
 
-                // Atualizar total do cômodo
                 setTimeout(() => {
                     const el = document.getElementById(`total-${comodo.replace(/\s/g, '_')}`);
                     if (el) el.textContent = `R$ ${totalComodo.toFixed(2)}`;
@@ -1490,8 +1485,10 @@
             container.innerHTML = html;
         }
 
-        // ============ AJUSTAR QUANTIDADE ============
+        // ============ AJUSTAR QUANTIDADE - CORRIGIDO ============
         function ajustarQuantidade(produtoId, comodo, delta) {
+            console.log(`🔄 Ajustando ${produtoId} no ${comodo}: ${delta}`);
+            
             // Buscar a chave correta no orcamentoData
             let targetKey = null;
             
@@ -1509,10 +1506,13 @@
                 }
             }
             
+            // Se não encontrou, criar nova entrada
             if (!targetKey) {
-                // Criar nova entrada
                 const produto = produtosData.find(p => p.id === produtoId);
-                if (!produto) return;
+                if (!produto) {
+                    console.error('❌ Produto não encontrado:', produtoId);
+                    return;
+                }
                 
                 targetKey = `${produtoId}_${comodo}`;
                 orcamentoData[targetKey] = { 
@@ -1525,15 +1525,19 @@
                     preco: produto.preco || 0,
                     cor: produto.cor || '#4f46e5'
                 };
+                console.log('✅ Nova entrada criada:', targetKey);
             }
             
+            // Ajustar quantidade
             let novaQtd = (orcamentoData[targetKey].qtd || 0) + delta;
             if (novaQtd < 0) novaQtd = 0;
             
             if (novaQtd === 0) {
                 delete orcamentoData[targetKey];
+                console.log('🗑️ Entrada removida:', targetKey);
             } else {
                 orcamentoData[targetKey].qtd = novaQtd;
+                console.log(`✅ Quantidade ajustada para ${novaQtd}:`, targetKey);
             }
             
             renderizarCatalogo();
@@ -1545,18 +1549,26 @@
             }, 1000);
         }
 
-        // ============ REMOVER ITEM ============
+        // ============ REMOVER ITEM - CORRIGIDO ============
         function removerItemDoComodo(produtoId, comodo) {
+            console.log(`🗑️ Removendo ${produtoId} do ${comodo}`);
+            
             let removed = false;
+            const keysToRemove = [];
             
             Object.keys(orcamentoData).forEach(key => {
                 if (orcamentoData[key] && orcamentoData[key].comodo === comodo) {
                     const productId = key.split('_')[0];
                     if (productId === produtoId) {
-                        delete orcamentoData[key];
-                        removed = true;
+                        keysToRemove.push(key);
                     }
                 }
+            });
+            
+            keysToRemove.forEach(key => {
+                delete orcamentoData[key];
+                removed = true;
+                console.log('🗑️ Removido:', key);
             });
             
             if (removed) {
@@ -1564,10 +1576,12 @@
                 renderizarOrcamentoComodo();
                 salvarOrcamentoNoFirebase();
                 showToast(`🗑️ Item removido do ${comodo}`, 'info');
+            } else {
+                showToast('⚠️ Item não encontrado neste cômodo', 'warning');
             }
         }
 
-        // ============ ADICIONAR ITEM AO CÔMODO ============
+        // ============ ADICIONAR ITEM AO CÔMODO - CORRIGIDO ============
         function adicionarItemAoComodo(comodo) {
             const selectId = `addSelect-${comodo.replace(/\s/g, '_')}`;
             const select = document.getElementById(selectId);
@@ -1579,27 +1593,35 @@
             }
 
             const produto = produtosData.find(p => p.id === produtoId);
-            if (!produto) return;
+            if (!produto) {
+                showToast('⚠️ Produto não encontrado', 'warning');
+                return;
+            }
+
+            console.log(`➕ Adicionando ${produtoId} ao ${comodo}`);
 
             // Verificar se este produto já existe neste cômodo
-            let targetKey = `${produtoId}`;
-            let existe = false;
+            let targetKey = null;
             
-            if (orcamentoData[targetKey] && orcamentoData[targetKey].comodo === comodo) {
-                existe = true;
+            if (orcamentoData[produtoId] && orcamentoData[produtoId].comodo === comodo) {
+                targetKey = produtoId;
             } else {
                 const chaveComSufixo = `${produtoId}_${comodo}`;
                 if (orcamentoData[chaveComSufixo]) {
                     targetKey = chaveComSufixo;
-                    existe = true;
                 }
             }
 
-            if (!existe) {
+            if (!targetKey) {
                 // Verificar se o produto já está em outro cômodo
                 if (orcamentoData[produtoId] && orcamentoData[produtoId].comodo !== comodo) {
                     targetKey = `${produtoId}_${comodo}`;
+                } else if (orcamentoData[produtoId]) {
+                    targetKey = produtoId;
+                } else {
+                    targetKey = `${produtoId}_${comodo}`;
                 }
+                
                 orcamentoData[targetKey] = { 
                     id: produtoId,
                     qtd: 0, 
@@ -1610,9 +1632,11 @@
                     preco: produto.preco || 0,
                     cor: produto.cor || '#4f46e5'
                 };
+                console.log('✅ Nova entrada criada:', targetKey);
             }
 
             orcamentoData[targetKey].qtd = (orcamentoData[targetKey].qtd || 0) + 1;
+            console.log(`✅ Quantidade ajustada para ${orcamentoData[targetKey].qtd}`);
 
             select.value = '';
 
@@ -1682,23 +1706,26 @@
             }
 
             const produto = produtoModalAtual;
-            let targetKey = `${produto.id}`;
-            let existe = false;
+            let targetKey = null;
             
-            if (orcamentoData[targetKey] && orcamentoData[targetKey].comodo === comodo) {
-                existe = true;
+            if (orcamentoData[produto.id] && orcamentoData[produto.id].comodo === comodo) {
+                targetKey = produto.id;
             } else {
                 const chaveComSufixo = `${produto.id}_${comodo}`;
                 if (orcamentoData[chaveComSufixo]) {
                     targetKey = chaveComSufixo;
-                    existe = true;
                 }
             }
 
-            if (!existe) {
+            if (!targetKey) {
                 if (orcamentoData[produto.id] && orcamentoData[produto.id].comodo !== comodo) {
                     targetKey = `${produto.id}_${comodo}`;
+                } else if (orcamentoData[produto.id]) {
+                    targetKey = produto.id;
+                } else {
+                    targetKey = `${produto.id}_${comodo}`;
                 }
+                
                 orcamentoData[targetKey] = { 
                     id: produto.id,
                     qtd: 0, 
