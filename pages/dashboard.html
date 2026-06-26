@@ -113,6 +113,15 @@
             font-size: 12px;
         }
 
+        .lista-ultimos .comodos-badge {
+            font-size: 11px;
+            color: #64748b;
+            background: #e9edf2;
+            padding: 1px 10px;
+            border-radius: 12px;
+            margin-left: 8px;
+        }
+
         .empty-state {
             text-align: center;
             padding: 40px 20px;
@@ -123,6 +132,34 @@
             font-size: 48px;
             opacity: 0.5;
             margin-bottom: 12px;
+        }
+
+        .badge-status {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .badge-status.aprovado { background: #d1fae5; color: #065f46; }
+        .badge-status.pendente { background: #fef3c7; color: #92400e; }
+        .badge-status.cancelado { background: #fee2e2; color: #991b1b; }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e9edf2;
+            border-top: 2px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         @media (max-width: 768px) {
@@ -141,6 +178,57 @@
             .dashboard-grid {
                 grid-template-columns: 1fr;
             }
+        }
+
+        body.dark-mode .page-header {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .page-header h2 {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .card-dashboard {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .card-dashboard .numero {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .lista-ultimos {
+            background: #0f172a;
+        }
+
+        body.dark-mode .lista-ultimos li {
+            border-color: #334155;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .lista-ultimos .cliente {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .lista-ultimos .comodos-badge {
+            background: #334155;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .badge-status.aprovado {
+            background: #065f46;
+            color: #d1fae5;
+        }
+
+        body.dark-mode .badge-status.pendente {
+            background: #92400e;
+            color: #fef3c7;
+        }
+
+        body.dark-mode .badge-status.cancelado {
+            background: #991b1b;
+            color: #fee2e2;
         }
     </style>
 </head>
@@ -177,70 +265,265 @@
         <h2>📋 Últimos Orçamentos</h2>
         <ul class="lista-ultimos" id="ultimosOrcamentos">
             <li style="text-align: center; color: #94a3b8; padding: 24px;">
-                Carregando...
+                <span class="loading-spinner"></span> Carregando...
+            </li>
+        </ul>
+    </div>
+
+    <div class="dashboard-content" style="padding-top: 0;">
+        <h2>📋 Orçamentos por Cômodo (Resumo)</h2>
+        <ul class="lista-ultimos" id="orcamentosComodoResumo">
+            <li style="text-align: center; color: #94a3b8; padding: 24px;">
+                <span class="loading-spinner"></span> Carregando...
             </li>
         </ul>
     </div>
 
     <script>
+        // ============ ACESSO AO DB ============
+        function getDb() {
+            try {
+                if (window.parent && window.parent.getParentDb) {
+                    return window.parent.getParentDb();
+                }
+                if (window.parent && window.parent.getDadosGlobais) {
+                    return window.parent.getDadosGlobais().db;
+                }
+                if (window.db) {
+                    return window.db;
+                }
+                return null;
+            } catch (error) {
+                console.error('Erro ao acessar database:', error);
+                return null;
+            }
+        }
+
+        // ============ FORMATADORES ============
+        function fmtBRL(v) {
+            return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        function fmtDate(dateString) {
+            if (!dateString) return '-';
+            try {
+                return new Date(dateString).toLocaleDateString('pt-BR');
+            } catch {
+                return '-';
+            }
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'aprovado': '✅ Aprovado',
+                'pendente': '⏳ Pendente',
+                'cancelado': '❌ Cancelado'
+            };
+            return labels[status] || status || 'Pendente';
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'aprovado': 'aprovado',
+                'pendente': 'pendente',
+                'cancelado': 'cancelado'
+            };
+            return classes[status] || 'pendente';
+        }
+
+        // ============ CARREGAR DASHBOARD ============
         async function carregarDashboard() {
             try {
-                const db = window.parent.getParentDb ? window.parent.getParentDb() : window.db;
+                const db = getDb();
                 
                 if (!db) {
                     throw new Error('Database não disponível');
                 }
 
-                const [clientes, produtos, orcamentos] = await Promise.all([
+                console.log('📊 Carregando dashboard...');
+
+                // Buscar todos os dados
+                const [clientes, produtos, orcamentos, orcamentosComodo] = await Promise.all([
                     db.getClientes(),
                     db.getProdutos(),
-                    db.getOrcamentos()
+                    db.getOrcamentos(),
+                    carregarTodosOrcamentosComodo(db)
                 ]);
 
+                // ===== CARDS =====
                 document.getElementById('totalClientes').textContent = clientes.length;
                 document.getElementById('totalProdutos').textContent = produtos.length;
                 document.getElementById('totalOrcamentos').textContent = orcamentos.length;
 
+                // Calcular valor total dos orçamentos
                 let totalGeral = 0;
                 orcamentos.forEach(orc => {
                     if (orc.valorTotal) totalGeral += orc.valorTotal;
                 });
-                document.getElementById('valorTotal').textContent = 
-                    'R$ ' + totalGeral.toFixed(2).replace('.', ',');
+                document.getElementById('valorTotal').textContent = fmtBRL(totalGeral);
 
+                // ===== ÚLTIMOS ORÇAMENTOS =====
                 const lista = document.getElementById('ultimosOrcamentos');
                 if (orcamentos.length === 0) {
                     lista.innerHTML = `
                         <li style="text-align: center; color: #94a3b8; padding: 24px;">
-                            Nenhum orçamento cadastrado ainda.
+                            📭 Nenhum orçamento cadastrado ainda.
                         </li>
                     `;
-                    return;
+                } else {
+                    const ultimos = orcamentos.slice(0, 5);
+                    lista.innerHTML = ultimos.map(orc => `
+                        <li>
+                            <span>
+                                <span class="cliente">${orc.clienteNome || 'Cliente não definido'}</span>
+                                <span class="data">${fmtDate(orc.dataCriacao)}</span>
+                                <span class="badge-status ${getStatusClass(orc.status)}">${getStatusLabel(orc.status)}</span>
+                            </span>
+                            <span class="valor">${fmtBRL(orc.valorTotal || 0)}</span>
+                        </li>
+                    `).join('');
                 }
 
-                const ultimos = orcamentos.slice(0, 5);
-                lista.innerHTML = ultimos.map(orc => `
-                    <li>
-                        <span>
-                            <span class="cliente">${orc.clienteNome || 'Cliente não definido'}</span>
-                            <span class="data">${orc.dataCriacao ? new Date(orc.dataCriacao).toLocaleDateString('pt-BR') : ''}</span>
-                        </span>
-                        <span class="valor">R$ ${(orc.valorTotal || 0).toFixed(2).replace('.', ',')}</span>
-                    </li>
-                `).join('');
+                // ===== RESUMO ORÇAMENTOS POR CÔMODO =====
+                const resumoLista = document.getElementById('orcamentosComodoResumo');
+                if (Object.keys(orcamentosComodo).length === 0) {
+                    resumoLista.innerHTML = `
+                        <li style="text-align: center; color: #94a3b8; padding: 24px;">
+                            📭 Nenhum orçamento por cômodo encontrado.
+                        </li>
+                    `;
+                } else {
+                    // Ordenar por valor total (maior primeiro)
+                    const sorted = Object.entries(orcamentosComodo)
+                        .sort((a, b) => b[1].total - a[1].total)
+                        .slice(0, 5);
+
+                    resumoLista.innerHTML = sorted.map(([clienteId, data]) => {
+                        const cliente = clientes.find(c => c.id === clienteId);
+                        const nomeCliente = cliente ? cliente.nome : clienteId;
+                        const totalItens = data.itens || 0;
+                        const totalComodos = data.comodos || 0;
+                        
+                        return `
+                            <li>
+                                <span>
+                                    <span class="cliente">${nomeCliente}</span>
+                                    <span class="comodos-badge">🏠 ${totalComodos} cômodos</span>
+                                    <span class="comodos-badge">📦 ${totalItens} itens</span>
+                                </span>
+                                <span class="valor">${fmtBRL(data.total)}</span>
+                            </li>
+                        `;
+                    }).join('');
+                }
+
+                if (window.parent && window.parent.atualizarStatus) {
+                    window.parent.atualizarStatus(`✅ Dashboard atualizado: ${clientes.length} clientes, ${produtos.length} produtos, ${orcamentos.length} orçamentos`);
+                }
+
+                console.log('✅ Dashboard carregado com sucesso');
 
             } catch (error) {
-                console.error('Erro ao carregar dashboard:', error);
+                console.error('❌ Erro ao carregar dashboard:', error);
                 document.getElementById('ultimosOrcamentos').innerHTML = `
                     <li style="text-align: center; color: #dc2626; padding: 24px;">
-                        ❌ Erro ao carregar dados
+                        ❌ Erro ao carregar dados: ${error.message}
+                    </li>
+                `;
+                document.getElementById('orcamentosComodoResumo').innerHTML = `
+                    <li style="text-align: center; color: #dc2626; padding: 24px;">
+                        ❌ Erro ao carregar dados: ${error.message}
                     </li>
                 `;
             }
         }
 
-        carregarDashboard();
-        setInterval(carregarDashboard, 60000);
+        // ============ CARREGAR TODOS OS ORÇAMENTOS POR CÔMODO ============
+        async function carregarTodosOrcamentosComodo(db) {
+            try {
+                // Buscar todos os clientes
+                const clientes = await db.getClientes();
+                const resultado = {};
+
+                // Para cada cliente, buscar seus orçamentos por cômodo
+                for (const cliente of clientes) {
+                    const data = await db.getOrcamentoComodo(cliente.id);
+                    if (data && Object.keys(data).length > 0) {
+                        let total = 0;
+                        let itens = 0;
+                        const comodosSet = new Set();
+
+                        Object.values(data).forEach(entry => {
+                            if (entry && entry.qtd > 0) {
+                                total += (entry.qtd || 0) * (entry.preco || 0);
+                                itens += entry.qtd || 0;
+                                if (entry.comodo) comodosSet.add(entry.comodo);
+                            }
+                        });
+
+                        if (total > 0) {
+                            resultado[cliente.id] = {
+                                total: total,
+                                itens: itens,
+                                comodos: comodosSet.size,
+                                clienteNome: cliente.nome
+                            };
+                        }
+                    }
+                }
+
+                return resultado;
+            } catch (error) {
+                console.error('❌ Erro ao carregar orçamentos por cômodo:', error);
+                return {};
+            }
+        }
+
+        // ============ ESCUTAR MUDANÇAS NO FIREBASE ============
+        function escutarMudancas() {
+            try {
+                const db = getDb();
+                if (!db) return;
+
+                // Escutar mudanças na coleção 'orcamentos_comodo'
+                const ref = db.database.ref('orcamentos_comodo');
+                
+                ref.on('value', (snapshot) => {
+                    console.log('🔄 Mudança detectada em orcamentos_comodo, recarregando dashboard...');
+                    carregarDashboard();
+                });
+
+                // Escutar mudanças na coleção 'orcamentos'
+                const refOrc = db.database.ref('orcamentos');
+                refOrc.on('value', (snapshot) => {
+                    console.log('🔄 Mudança detectada em orcamentos, recarregando dashboard...');
+                    carregarDashboard();
+                });
+
+                console.log('👂 Escutando mudanças no Firebase...');
+            } catch (error) {
+                console.error('❌ Erro ao configurar escuta:', error);
+            }
+        }
+
+        // ============ INICIALIZAR ============
+        document.addEventListener('DOMContentLoaded', function() {
+            const isDark = localStorage.getItem('darkMode') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark-mode');
+            }
+
+            // Carregar dados
+            carregarDashboard();
+
+            // Configurar escuta de mudanças
+            setTimeout(() => {
+                escutarMudancas();
+            }, 2000);
+
+            // Recarregar a cada 30 segundos (fallback)
+            setInterval(carregarDashboard, 30000);
+        });
     </script>
 </body>
 </html>
