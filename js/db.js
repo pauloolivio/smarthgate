@@ -20,7 +20,6 @@ class Database {
     async init() {
         if (this._initialized) return;
         try {
-            // Verificar conexão
             await this.database.ref('.info/connected').once('value');
             this._initialized = true;
             console.log('✅ Database inicializado');
@@ -142,7 +141,7 @@ class Database {
         }
     }
 
-    // ============ PRODUTOS - CORRIGIDO ============
+    // ============ PRODUTOS ============
     async getProdutos(forceRefresh = false) {
         if (!forceRefresh && this._cache.produtos && this._isCacheValid()) {
             console.log('📦 Usando cache de produtos:', this._cache.produtos.length);
@@ -163,7 +162,6 @@ class Database {
             const data = this._snapshotToArray(snapshot);
             console.log(`📦 ${data.length} produtos carregados do Firebase`);
             
-            // Ordenar por código
             data.sort((a, b) => (a.codigo || '').localeCompare(b.codigo || ''));
             
             this._cache.produtos = data;
@@ -179,13 +177,11 @@ class Database {
         try {
             this._clearCache();
             
-            // Garantir que o código existe
             let codigo = data.codigo;
             if (!codigo) {
                 codigo = this._generateCodigo();
             }
             
-            // Garantir que nome e dispositivo estão alinhados
             const nome = data.nome || data.dispositivo || 'Produto sem nome';
             const dispositivo = data.dispositivo || nome;
 
@@ -333,6 +329,37 @@ class Database {
         }
     }
 
+    // ============ ORÇAMENTOS POR CÔMODO ============
+    async getOrcamentoComodo(clienteId) {
+        try {
+            const snapshot = await this.database.ref(`orcamentos_comodo/${clienteId}`).once('value');
+            return snapshot.val() || {};
+        } catch (error) {
+            console.error('Erro ao buscar orçamento por cômodo:', error);
+            return {};
+        }
+    }
+
+    async salvarOrcamentoComodo(clienteId, data) {
+        try {
+            await this.database.ref(`orcamentos_comodo/${clienteId}`).set(data);
+            return true;
+        } catch (error) {
+            console.error('Erro ao salvar orçamento por cômodo:', error);
+            throw error;
+        }
+    }
+
+    async deletarOrcamentoComodo(clienteId) {
+        try {
+            await this.database.ref(`orcamentos_comodo/${clienteId}`).remove();
+            return true;
+        } catch (error) {
+            console.error('Erro ao deletar orçamento por cômodo:', error);
+            throw error;
+        }
+    }
+
     // ============ CONFIGURAÇÕES ============
     async getConfiguracoes(forceRefresh = false) {
         if (!forceRefresh && this._cache.configuracoes && this._isCacheValid()) {
@@ -417,11 +444,60 @@ class Database {
             // Verificar se já existem produtos
             const produtos = await this.getProdutos(true);
             if (produtos.length > 0) {
-                console.log('📦 Produtos já existem, pulando seed');
+                console.log('📦 Dados já existem, pulando seed');
                 return;
             }
 
-            // Produtos exemplo
+            // Tenta carregar do dados.json
+            try {
+                const response = await fetch('dados.json');
+                if (response.ok) {
+                    const jsonData = await response.json();
+                    
+                    // Importar clientes
+                    if (jsonData.clientes) {
+                        for (const [key, c] of Object.entries(jsonData.clientes)) {
+                            await this.salvarCliente({ ...c, id: key });
+                        }
+                        console.log('✅ Clientes importados do dados.json');
+                    }
+
+                    // Importar produtos
+                    if (jsonData.produtos) {
+                        for (const [key, p] of Object.entries(jsonData.produtos)) {
+                            await this.salvarProduto({ ...p, id: key });
+                        }
+                        console.log('✅ Produtos importados do dados.json');
+                    }
+
+                    // Importar orçamentos
+                    if (jsonData.orcamentos) {
+                        for (const [key, o] of Object.entries(jsonData.orcamentos)) {
+                            await this.database.ref(`orcamentos/${key}`).set({
+                                ...o,
+                                id: key
+                            });
+                        }
+                        console.log('✅ Orçamentos importados do dados.json');
+                    }
+
+                    // Importar configurações
+                    if (jsonData.configuracoes) {
+                        for (const [key, config] of Object.entries(jsonData.configuracoes)) {
+                            await this.database.ref(`configuracoes/${key}`).set(config);
+                        }
+                        console.log('✅ Configurações importadas do dados.json');
+                    }
+
+                    console.log('✅ Seed concluído com sucesso!');
+                    this._clearCache();
+                    return true;
+                }
+            } catch (fetchError) {
+                console.log('⚠️ dados.json não encontrado, usando dados padrão');
+            }
+
+            // Dados padrão (fallback)
             const produtosExemplo = [
                 {
                     codigo: 'PRD001',
@@ -461,32 +537,6 @@ class Database {
                     especificacoes: 'Alimentação: 110-220V\nCorrente: 10A\nPotência: 2200W',
                     comodo: 'Cozinha',
                     cor: '#f59e0b'
-                },
-                {
-                    codigo: 'PRD004',
-                    nome: 'Lâmpada LED Inteligente',
-                    dispositivo: 'Lâmpada LED Inteligente',
-                    marca: 'Philips',
-                    categoria: 'Lâmpadas',
-                    protocolo: 'Zigbee',
-                    preco: 120,
-                    qtdPadrao: 0,
-                    especificacoes: 'Potência: 9W\nFluxo Luminoso: 800lm\nTemperatura: 2700-6500K',
-                    comodo: 'Quarto',
-                    cor: '#8b5cf6'
-                },
-                {
-                    codigo: 'PRD005',
-                    nome: 'Câmera Wi-Fi 1080p',
-                    dispositivo: 'Câmera Wi-Fi 1080p',
-                    marca: 'Intelbras',
-                    categoria: 'Câmeras',
-                    protocolo: 'Wi-Fi',
-                    preco: 450,
-                    qtdPadrao: 0,
-                    especificacoes: 'Resolução: 1080p\nVisão Noturna: 10m\nÂngulo: 110°\nArmazenamento: MicroSD',
-                    comodo: 'Área Externa',
-                    cor: '#ef4444'
                 }
             ];
 
@@ -494,7 +544,8 @@ class Database {
                 await this.salvarProduto(p);
             }
 
-            console.log('✅ Seed concluído com sucesso!');
+            console.log('✅ Seed concluído com dados padrão!');
+            this._clearCache();
             return true;
         } catch (error) {
             console.error('❌ Erro ao fazer seed:', error);
@@ -515,12 +566,12 @@ console.log('📦 Estrutura:');
 console.log('   - Clientes: nome, documento, telefone, email, endereco, observacoes');
 console.log('   - Produtos: codigo, nome, dispositivo, marca, categoria, protocolo, preco, comodo');
 console.log('   - Orçamentos: clienteId, clienteNome, vendedor, condicoes, status, valorTotal');
+console.log('   - Orçamentos por Cômodo: orcamentos_comodo/{clienteId}');
 
 // Inicializar e fazer seed automático
 (async function() {
     try {
         await db.init();
-        // Tentar fazer seed após inicialização
         setTimeout(async () => {
             try {
                 await db.seedDadosExemplo();
