@@ -203,12 +203,6 @@
             color: #94a3b8;
         }
 
-        .catalogo-body .item-catalogo .info .detalhe .marca {
-            background: #f1f5f9;
-            padding: 1px 8px;
-            border-radius: 8px;
-        }
-
         .catalogo-body .item-catalogo .acoes-catalogo {
             display: flex;
             align-items: center;
@@ -369,12 +363,6 @@
             margin-left: 6px;
         }
 
-        .item-linha .item-info .detalhe .marca {
-            background: #f1f5f9;
-            padding: 1px 10px;
-            border-radius: 10px;
-        }
-
         .item-linha .item-actions {
             display: flex;
             align-items: center;
@@ -417,10 +405,6 @@
         .item-linha .item-actions .qtd-control button:hover {
             background: #e2e8f0;
             color: #0f172a;
-        }
-
-        .item-linha .item-actions .qtd-control button:active {
-            transform: scale(0.9);
         }
 
         .item-linha .item-actions .qtd-control .qtd-value {
@@ -545,12 +529,6 @@
             display: flex;
             gap: 16px;
             align-items: center;
-        }
-
-        .total-geral-box .detalhes span {
-            display: flex;
-            align-items: center;
-            gap: 4px;
         }
 
         .empty-state {
@@ -1089,8 +1067,7 @@
         // ============ ESTADO GLOBAL ============
         let produtosData = [];
         let clientesData = [];
-        let orcamentoData = {}; // { produtoId: { qtd: number, comodo: string } }
-        let comodosOrdenados = [];
+        let orcamentoData = {}; // { produtoId_comodo: { id, qtd, comodo, nome, marca, protocolo, preco, cor } }
         let clienteAtual = null;
         let produtoModalAtual = null;
         let _saveTimeout = null;
@@ -1152,7 +1129,7 @@
 
                 console.log(`📂 Carregando orçamento do cliente ${clienteId}...`);
                 
-                // Usar a função do db.js para buscar do Firebase
+                // Buscar do Firebase
                 const data = await db.getOrcamentoComodo(clienteId);
                 
                 if (data && Object.keys(data).length > 0) {
@@ -1284,6 +1261,7 @@
 
         async function salvarOrcamento() {
             await salvarOrcamentoNoFirebase();
+            showToast('💾 Orçamento salvo com sucesso!', 'success');
         }
 
         async function limparOrcamento() {
@@ -1356,7 +1334,7 @@
             body.innerHTML = html;
         }
 
-        // ============ RENDERIZAR CÔMODOS ============
+        // ============ RENDERIZAR CÔMODOS - CORRIGIDO ============
         function renderizarOrcamentoComodo() {
             const container = document.getElementById('comodosContainer');
             const emptyState = document.getElementById('emptyState');
@@ -1368,18 +1346,20 @@
                 return;
             }
 
-            // Agrupar produtos por cômodo baseado no orcamentoData
+            // Agrupar itens do orcamentoData por cômodo
             const comodosMap = {};
             
             Object.entries(orcamentoData).forEach(([key, entry]) => {
                 if (entry && entry.qtd > 0 && entry.comodo) {
+                    // Buscar dados completos do produto
                     const produto = produtosData.find(p => p.id === entry.id);
                     if (produto) {
                         if (!comodosMap[entry.comodo]) comodosMap[entry.comodo] = [];
                         comodosMap[entry.comodo].push({
                             ...produto,
                             qtd: entry.qtd,
-                            comodo: entry.comodo
+                            comodo: entry.comodo,
+                            key: key // Guardar a chave para referência
                         });
                     }
                 }
@@ -1420,31 +1400,34 @@
                         <div class="comodo-body">
                 `;
 
-                itens.forEach(entry => {
-                    const total = entry.qtd * (entry.preco || 0);
+                itens.forEach(item => {
+                    const total = item.qtd * (item.preco || 0);
                     totalComodo += total;
                     totalGeral += total;
-                    totalItens += entry.qtd;
+                    totalItens += item.qtd;
+
+                    const qtdId = `qtd-${item.id}-${comodo.replace(/\s/g, '_')}`;
+                    const totalId = `total-item-${item.id}-${comodo.replace(/\s/g, '_')}`;
 
                     html += `
-                        <div class="item-linha" data-id="${entry.id}" data-comodo="${comodo}">
+                        <div class="item-linha" data-id="${item.id}" data-comodo="${comodo}">
                             <div class="item-info">
-                                <span class="dot" style="background: ${entry.cor || '#4f46e5'};"></span>
-                                <span class="nome">${entry.nome || entry.dispositivo || 'Sem nome'}</span>
+                                <span class="dot" style="background: ${item.cor || '#4f46e5'};"></span>
+                                <span class="nome">${item.nome || item.dispositivo || 'Sem nome'}</span>
                                 <span class="detalhe">
-                                    <span class="marca">${entry.marca || 'Sem marca'}</span>
-                                    ${entry.protocolo ? '· ' + entry.protocolo : ''}
+                                    <span class="marca">${item.marca || 'Sem marca'}</span>
+                                    ${item.protocolo ? '· ' + item.protocolo : ''}
                                 </span>
                             </div>
                             <div class="item-actions">
-                                <span class="preco-unit">R$ ${(entry.preco || 0).toFixed(2)}</span>
+                                <span class="preco-unit">R$ ${(item.preco || 0).toFixed(2)}</span>
                                 <div class="qtd-control">
-                                    <button onclick="ajustarQuantidade('${entry.id}', '${comodo}', -1)">−</button>
-                                    <span class="qtd-value" id="qtd-${entry.id}-${comodo.replace(/\s/g, '_')}">${entry.qtd}</span>
-                                    <button onclick="ajustarQuantidade('${entry.id}', '${comodo}', 1)">+</button>
+                                    <button onclick="ajustarQuantidade('${item.id}', '${comodo}', -1)">−</button>
+                                    <span class="qtd-value" id="${qtdId}">${item.qtd}</span>
+                                    <button onclick="ajustarQuantidade('${item.id}', '${comodo}', 1)">+</button>
                                 </div>
-                                <span class="total-item" id="total-item-${entry.id}-${comodo.replace(/\s/g, '_')}">R$ ${total.toFixed(2)}</span>
-                                <button class="btn-remover" onclick="removerItemDoComodo('${entry.id}', '${comodo}')" title="Remover">✕</button>
+                                <span class="total-item" id="${totalId}">R$ ${total.toFixed(2)}</span>
+                                <button class="btn-remover" onclick="removerItemDoComodo('${item.id}', '${comodo}')" title="Remover">✕</button>
                             </div>
                         </div>
                     `;
@@ -1488,9 +1471,9 @@
             container.innerHTML = html;
         }
 
-        // ============ CONTROLE DE QUANTIDADE ============
+        // ============ AJUSTAR QUANTIDADE ============
         function ajustarQuantidade(produtoId, comodo, delta) {
-            // Buscar a chave correta
+            // Buscar a chave correta no orcamentoData
             let targetKey = null;
             
             // Verificar se existe com o ID puro
@@ -1509,22 +1492,20 @@
             
             if (!targetKey) {
                 // Criar nova entrada
-                targetKey = produtoId;
+                const produto = produtosData.find(p => p.id === produtoId);
+                if (!produto) return;
+                
+                targetKey = `${produtoId}_${comodo}`;
                 orcamentoData[targetKey] = { 
                     id: produtoId,
                     qtd: 0, 
-                    comodo: comodo 
+                    comodo: comodo,
+                    nome: produto.nome || produto.dispositivo || 'Sem nome',
+                    marca: produto.marca || '',
+                    protocolo: produto.protocolo || '',
+                    preco: produto.preco || 0,
+                    cor: produto.cor || '#4f46e5'
                 };
-                
-                // Buscar dados do produto
-                const produto = produtosData.find(p => p.id === produtoId);
-                if (produto) {
-                    orcamentoData[targetKey].nome = produto.nome || produto.dispositivo || 'Sem nome';
-                    orcamentoData[targetKey].marca = produto.marca || '';
-                    orcamentoData[targetKey].protocolo = produto.protocolo || '';
-                    orcamentoData[targetKey].preco = produto.preco || 0;
-                    orcamentoData[targetKey].cor = produto.cor || '#4f46e5';
-                }
             }
             
             let novaQtd = (orcamentoData[targetKey].qtd || 0) + delta;
@@ -1545,11 +1526,10 @@
             }, 1000);
         }
 
-        // ============ REMOVER ITEM DO CÔMODO ============
+        // ============ REMOVER ITEM ============
         function removerItemDoComodo(produtoId, comodo) {
             let removed = false;
             
-            // Procurar e remover a entrada correta
             Object.keys(orcamentoData).forEach(key => {
                 if (orcamentoData[key] && orcamentoData[key].comodo === comodo) {
                     const productId = key.split('_')[0];
@@ -1583,16 +1563,15 @@
             if (!produto) return;
 
             // Verificar se este produto já existe neste cômodo
-            let key = `${produtoId}`;
+            let targetKey = `${produtoId}`;
             let existe = false;
             
-            if (orcamentoData[key] && orcamentoData[key].comodo === comodo) {
+            if (orcamentoData[targetKey] && orcamentoData[targetKey].comodo === comodo) {
                 existe = true;
             } else {
-                // Verificar se existe com sufixo
                 const chaveComSufixo = `${produtoId}_${comodo}`;
                 if (orcamentoData[chaveComSufixo]) {
-                    key = chaveComSufixo;
+                    targetKey = chaveComSufixo;
                     existe = true;
                 }
             }
@@ -1600,10 +1579,9 @@
             if (!existe) {
                 // Verificar se o produto já está em outro cômodo
                 if (orcamentoData[produtoId] && orcamentoData[produtoId].comodo !== comodo) {
-                    // Criar nova entrada com sufixo
-                    key = `${produtoId}_${comodo}`;
+                    targetKey = `${produtoId}_${comodo}`;
                 }
-                orcamentoData[key] = { 
+                orcamentoData[targetKey] = { 
                     id: produtoId,
                     qtd: 0, 
                     comodo: comodo,
@@ -1615,7 +1593,7 @@
                 };
             }
 
-            orcamentoData[key].qtd = (orcamentoData[key].qtd || 0) + 1;
+            orcamentoData[targetKey].qtd = (orcamentoData[targetKey].qtd || 0) + 1;
 
             select.value = '';
 
@@ -1640,16 +1618,13 @@
             const select = document.getElementById('modalSelectComodo');
             select.innerHTML = '<option value="">Escolha um cômodo...</option>';
             
-            // Mostrar cômodos disponíveis
             const comodosUnicos = [...new Set(produtosData.map(p => p.comodo).filter(Boolean))].sort();
             comodosUnicos.forEach(c => {
                 select.innerHTML += `<option value="${c}">${c}</option>`;
             });
 
-            // Adicionar opção para criar novo
             select.innerHTML += `<option value="__novo__">➕ Criar novo cômodo...</option>`;
 
-            // Pré-selecionar o cômodo do produto se disponível
             if (produto.comodo && comodosUnicos.includes(produto.comodo)) {
                 select.value = produto.comodo;
             }
@@ -1687,43 +1662,43 @@
                 comodo = novoComodo.trim();
             }
 
-            // Verificar se o produto já existe neste cômodo
-            let key = `${produtoModalAtual.id}`;
+            const produto = produtoModalAtual;
+            let targetKey = `${produto.id}`;
             let existe = false;
             
-            if (orcamentoData[key] && orcamentoData[key].comodo === comodo) {
+            if (orcamentoData[targetKey] && orcamentoData[targetKey].comodo === comodo) {
                 existe = true;
             } else {
-                const chaveComSufixo = `${produtoModalAtual.id}_${comodo}`;
+                const chaveComSufixo = `${produto.id}_${comodo}`;
                 if (orcamentoData[chaveComSufixo]) {
-                    key = chaveComSufixo;
+                    targetKey = chaveComSufixo;
                     existe = true;
                 }
             }
 
             if (!existe) {
-                if (orcamentoData[produtoModalAtual.id] && orcamentoData[produtoModalAtual.id].comodo !== comodo) {
-                    key = `${produtoModalAtual.id}_${comodo}`;
+                if (orcamentoData[produto.id] && orcamentoData[produto.id].comodo !== comodo) {
+                    targetKey = `${produto.id}_${comodo}`;
                 }
-                orcamentoData[key] = { 
-                    id: produtoModalAtual.id,
+                orcamentoData[targetKey] = { 
+                    id: produto.id,
                     qtd: 0, 
                     comodo: comodo,
-                    nome: produtoModalAtual.nome || produtoModalAtual.dispositivo || 'Sem nome',
-                    marca: produtoModalAtual.marca || '',
-                    protocolo: produtoModalAtual.protocolo || '',
-                    preco: produtoModalAtual.preco || 0,
-                    cor: produtoModalAtual.cor || '#4f46e5'
+                    nome: produto.nome || produto.dispositivo || 'Sem nome',
+                    marca: produto.marca || '',
+                    protocolo: produto.protocolo || '',
+                    preco: produto.preco || 0,
+                    cor: produto.cor || '#4f46e5'
                 };
             }
 
-            orcamentoData[key].qtd = (orcamentoData[key].qtd || 0) + quantidade;
+            orcamentoData[targetKey].qtd = (orcamentoData[targetKey].qtd || 0) + quantidade;
 
             fecharModalRapido();
             renderizarCatalogo();
             renderizarOrcamentoComodo();
             salvarOrcamentoNoFirebase();
-            showToast(`✅ ${quantidade}x ${produtoModalAtual.nome || produtoModalAtual.dispositivo} adicionado ao ${comodo}`, 'success');
+            showToast(`✅ ${quantidade}x ${produto.nome || produto.dispositivo} adicionado ao ${comodo}`, 'success');
         }
 
         // ============ TOGGLE ============
@@ -1810,7 +1785,6 @@
             const clienteNome = cliente ? cliente.nome : 'Cliente não selecionado';
             const dataAtual = new Date().toLocaleString('pt-BR');
 
-            // Agrupar por cômodo
             const comodosMap = {};
             
             Object.values(orcamentoData).forEach(entry => {
