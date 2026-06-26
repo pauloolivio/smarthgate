@@ -583,3 +583,34 @@ console.log('   - Orçamentos por Cômodo: orcamentos_comodo/{clienteId}');
         console.error('❌ Erro na inicialização:', error);
     }
 })();
+
+// ============ ORÇAMENTOS POR CÔMODO ============
+async getOrcamentoComodo(clienteId) {
+    try {
+        const snapshot = await this.database.ref(`orcamentos_comodo/${clienteId}`).once('value');
+        return snapshot.val() || {};
+    } catch (error) {
+        console.error('Erro ao buscar orçamento por cômodo:', error);
+        return {};
+    }
+}
+
+async salvarOrcamentoComodo(clienteId, data) {
+    try {
+        await this.database.ref(`orcamentos_comodo/${clienteId}`).set(data);
+        return true;
+    } catch (error) {
+        console.error('Erro ao salvar orçamento por cômodo:', error);
+        throw error;
+    }
+}
+
+async deletarOrcamentoComodo(clienteId) {
+    try {
+        await this.database.ref(`orcamentos_comodo/${clienteId}`).remove();
+        return true;
+    } catch (error) {
+        console.error('Erro ao deletar orçamento por cômodo:', error);
+        throw error;
+    }
+}
