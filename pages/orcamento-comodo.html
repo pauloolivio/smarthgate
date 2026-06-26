@@ -1140,6 +1140,8 @@
                 if (!db) {
                     console.warn('⚠️ Database não disponível');
                     orcamentoData = {};
+                    renderizarCatalogo();
+                    renderizarOrcamentoComodo();
                     return;
                 }
 
@@ -1149,6 +1151,7 @@
                 
                 if (data && Object.keys(data).length > 0) {
                     console.log(`📂 Orçamento carregado: ${Object.keys(data).length} itens`);
+                    console.log('📂 Dados:', data);
                     orcamentoData = {};
                     Object.entries(data).forEach(([key, value]) => {
                         if (value && value.qtd > 0) {
@@ -1163,6 +1166,9 @@
                 console.error('❌ Erro ao carregar orçamento:', e);
                 orcamentoData = {};
             }
+            
+            renderizarCatalogo();
+            renderizarOrcamentoComodo();
         }
 
         async function salvarOrcamentoNoFirebase() {
@@ -1226,10 +1232,9 @@
                     await carregarOrcamentoSalvo(clienteId);
                 } else {
                     orcamentoData = {};
+                    renderizarCatalogo();
+                    renderizarOrcamentoComodo();
                 }
-                
-                renderizarCatalogo();
-                renderizarOrcamentoComodo();
                 
                 if (window.parent && window.parent.atualizarStatus) {
                     window.parent.atualizarStatus(`✅ ${produtosData.length} produtos e ${clientesData.length} clientes carregados`);
@@ -1266,10 +1271,9 @@
             } else {
                 info.textContent = 'Nenhum cliente selecionado';
                 orcamentoData = {};
+                renderizarCatalogo();
+                renderizarOrcamentoComodo();
             }
-
-            renderizarCatalogo();
-            renderizarOrcamentoComodo();
         }
 
         async function salvarOrcamento() {
@@ -1485,7 +1489,7 @@
             container.innerHTML = html;
         }
 
-        // ============ AJUSTAR QUANTIDADE - CORRIGIDO ============
+        // ============ AJUSTAR QUANTIDADE ============
         function ajustarQuantidade(produtoId, comodo, delta) {
             console.log(`🔄 Ajustando ${produtoId} no ${comodo}: ${delta}`);
             
@@ -1549,7 +1553,7 @@
             }, 1000);
         }
 
-        // ============ REMOVER ITEM - CORRIGIDO ============
+        // ============ REMOVER ITEM ============
         function removerItemDoComodo(produtoId, comodo) {
             console.log(`🗑️ Removendo ${produtoId} do ${comodo}`);
             
@@ -1581,7 +1585,7 @@
             }
         }
 
-        // ============ ADICIONAR ITEM AO CÔMODO - CORRIGIDO ============
+        // ============ ADICIONAR ITEM AO CÔMODO ============
         function adicionarItemAoComodo(comodo) {
             const selectId = `addSelect-${comodo.replace(/\s/g, '_')}`;
             const select = document.getElementById(selectId);
