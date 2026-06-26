@@ -6,6 +6,7 @@
     <title>Orçamento Total</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
+        /* ===== HEADER ===== */
         .page-header {
             padding: 16px 24px;
             background: #f8fafc;
@@ -15,6 +16,9 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         .page-header h2 {
@@ -29,145 +33,362 @@
         .page-content {
             padding: 24px;
             overflow-y: auto;
-            max-height: calc(100vh - 200px);
+            max-height: calc(100vh - 180px);
         }
 
-        .orcamento-form {
-            background: #f8fafc;
-            padding: 20px 24px;
-            border-radius: 12px;
+        /* ===== FILTROS ===== */
+        .filtros-bar {
+            background: #ffffff;
             border: 1px solid #e9edf2;
-            margin-bottom: 24px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
+            border-radius: 12px;
+            padding: 14px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
 
-        .orcamento-form .form-group {
-            margin-bottom: 0;
+        .filtros-bar .filtro-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
         }
 
-        .orcamento-form .form-group label {
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            color: #94a3b8;
+        .filtros-bar .filtro-group label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
         }
 
-        .orcamento-form select,
-        .orcamento-form input {
-            padding: 8px 12px;
-            border: 1px solid #d1d9e6;
+        .filtros-bar .filtro-group select,
+        .filtros-bar .filtro-group input {
+            padding: 6px 12px;
+            border: 1.5px solid #d1d9e6;
             border-radius: 8px;
-            font-size: 14px;
-            width: 100%;
-            background: white;
+            font-size: 13px;
+            background: #fafbfc;
+            transition: border-color 0.2s;
+            font-family: 'Inter', sans-serif;
         }
 
-        .orcamento-form select:focus,
-        .orcamento-form input:focus {
+        .filtros-bar .filtro-group select:focus,
+        .filtros-bar .filtro-group input:focus {
             outline: none;
             border-color: #4f46e5;
-        }
-
-        .resumo-orcamento {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .resumo-card {
             background: white;
+        }
+
+        .filtros-bar .filtro-group .btn-filtro-status {
+            padding: 4px 14px;
+            border: 1.5px solid #d1d9e6;
+            border-radius: 20px;
+            font-size: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            color: #64748b;
+        }
+
+        .filtros-bar .filtro-group .btn-filtro-status:hover {
+            background: #f1f5f9;
+        }
+
+        .filtros-bar .filtro-group .btn-filtro-status.active {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: white;
+        }
+
+        .filtros-bar .filtro-group .btn-filtro-status.active.pendente { background: #f59e0b; border-color: #f59e0b; }
+        .filtros-bar .filtro-group .btn-filtro-status.active.aprovado { background: #0b9e5e; border-color: #0b9e5e; }
+        .filtros-bar .filtro-group .btn-filtro-status.active.finalizado { background: #4f46e5; border-color: #4f46e5; }
+        .filtros-bar .filtro-group .btn-filtro-status.active.cancelado { background: #dc2626; border-color: #dc2626; }
+
+        .filtros-bar .search-input-wrapper {
+            flex: 1;
+            min-width: 180px;
+            position: relative;
+        }
+
+        .filtros-bar .search-input-wrapper input {
+            width: 100%;
+            padding: 6px 12px 6px 32px;
+            border: 1.5px solid #d1d9e6;
+            border-radius: 8px;
+            font-size: 13px;
+            background: #fafbfc;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .filtros-bar .search-input-wrapper input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            background: white;
+        }
+
+        .filtros-bar .search-input-wrapper .icone-busca {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .filtros-bar .stats {
+            font-size: 13px;
+            color: #64748b;
+            white-space: nowrap;
+            padding: 4px 12px;
+            background: #f1f5f9;
+            border-radius: 20px;
+        }
+
+        .filtros-bar .stats strong {
+            color: #0f172a;
+        }
+
+        /* ===== TABELA ===== */
+        .table-container {
+            background: #ffffff;
             border: 1px solid #e9edf2;
             border-radius: 12px;
-            padding: 16px 20px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
         }
 
-        .resumo-card .label {
-            font-size: 12px;
-            text-transform: uppercase;
-            color: #94a3b8;
-            font-weight: 600;
-            letter-spacing: 0.3px;
+        .table-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
-        .resumo-card .valor {
-            font-size: 22px;
-            font-weight: 700;
-            color: #0f172a;
-            margin-top: 4px;
-        }
-
-        .resumo-card .valor.destaque {
-            color: #4f46e5;
-        }
-
-        .orcamento-table {
+        .orcamentos-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
         }
 
-        .orcamento-table th {
+        .orcamentos-table thead {
             background: #f8fafc;
-            color: #1e293b;
-            font-weight: 600;
-            padding: 10px 14px;
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .orcamentos-table th {
+            padding: 12px 16px;
             text-align: left;
-            border-bottom: 2px solid #e9edf2;
+            font-weight: 600;
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+            color: #475569;
+            border-bottom: 2px solid #e9edf2;
+            white-space: nowrap;
         }
 
-        .orcamento-table td {
-            padding: 10px 14px;
-            border-bottom: 1px solid #edf2f7;
+        .orcamentos-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f5f9;
             vertical-align: middle;
+            color: #0f172a;
         }
 
-        .orcamento-table tr:hover td {
-            background: #fafbff;
+        .orcamentos-table tbody tr {
+            transition: background 0.15s;
         }
 
-        .orcamento-table .total-row {
-            background: #f0f4ff;
+        .orcamentos-table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .orcamentos-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .orcamentos-table .cliente-nome {
             font-weight: 600;
+            color: #0f172a;
         }
 
-        .orcamento-table .total-row td {
-            border-top: 2px solid #4f46e5;
-            padding: 12px 14px;
+        .orcamentos-table .cliente-info {
+            font-size: 12px;
+            color: #94a3b8;
         }
 
-        .orcamento-table .total-row .valor-total {
+        .orcamentos-table .valor-total {
+            font-weight: 700;
             color: #4f46e5;
-            font-size: 18px;
+            font-size: 15px;
         }
 
-        .badge-status {
+        .orcamentos-table .badge-status {
             display: inline-block;
-            padding: 2px 12px;
+            padding: 3px 14px;
             border-radius: 40px;
             font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-status.pendente { background: #fef3c7; color: #92400e; }
+        .badge-status.aprovado { background: #d1fae5; color: #065f46; }
+        .badge-status.finalizado { background: #e0e7ff; color: #3730a3; }
+        .badge-status.cancelado { background: #fee2e2; color: #991b1b; }
+
+        .orcamentos-table .acoes-cell {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .orcamentos-table .acoes-cell .btn {
+            padding: 4px 10px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .orcamentos-table .acoes-cell .btn-aprovar {
+            background: #0b9e5e;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
             font-weight: 500;
         }
 
-        .badge-status.aprovado { background: #d1fae5; color: #065f46; }
-        .badge-status.pendente { background: #fef3c7; color: #92400e; }
-        .badge-status.cancelado { background: #fee2e2; color: #991b1b; }
-
-        .acoes-orcamento {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 20px;
+        .orcamentos-table .acoes-cell .btn-aprovar:hover {
+            background: #0a8a4f;
+            transform: translateY(-1px);
         }
 
+        .orcamentos-table .acoes-cell .btn-finalizar {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+
+        .orcamentos-table .acoes-cell .btn-finalizar:hover {
+            background: #4338ca;
+            transform: translateY(-1px);
+        }
+
+        .orcamentos-table .acoes-cell .btn-cancelar {
+            background: #dc2626;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+
+        .orcamentos-table .acoes-cell .btn-cancelar:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+        }
+
+        .orcamentos-table .acoes-cell .btn-ver {
+            background: #f1f5f9;
+            color: #475569;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+        }
+
+        .orcamentos-table .acoes-cell .btn-ver:hover {
+            background: #e2e8f0;
+        }
+
+        .orcamentos-table .comodos-info {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .orcamentos-table .comodos-info span {
+            background: #f1f5f9;
+            padding: 1px 8px;
+            border-radius: 10px;
+            margin-right: 4px;
+        }
+
+        /* ===== PAGINAÇÃO ===== */
+        .pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-top: 1px solid #e9edf2;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .pagination .info {
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .pagination .info strong {
+            color: #0f172a;
+        }
+
+        .pagination .buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .pagination .buttons button {
+            padding: 6px 14px;
+            border: 1px solid #d1d9e6;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .pagination .buttons button:hover:not(:disabled) {
+            background: #f8fafc;
+            border-color: #4f46e5;
+            color: #4f46e5;
+        }
+
+        .pagination .buttons button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pagination .buttons button.active {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: white;
+        }
+
+        .pagination .buttons button.active:hover {
+            background: #4338ca;
+        }
+
+        /* ===== EMPTY STATE ===== */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -180,60 +401,40 @@
             margin-bottom: 12px;
         }
 
-        /* TOAST */
-        .toast-notification {
+        .empty-state h3 {
+            color: #475569;
+            margin-bottom: 4px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
             position: fixed;
-            bottom: 20px;
+            bottom: 80px;
             right: 20px;
-            padding: 12px 20px;
+            padding: 12px 22px;
             border-radius: 12px;
             font-size: 14px;
             font-family: 'Inter', sans-serif;
             box-shadow: 0 8px 30px rgba(0,0,0,0.2);
             z-index: 9999;
-            max-width: 400px;
-            animation: slideIn 0.3s ease;
+            color: white;
+            max-width: 380px;
+            animation: toastIn 0.3s ease;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        @keyframes slideIn {
+        @keyframes toastIn {
             from { opacity: 0; transform: translateX(30px); }
-            to { opacity: 1; transform: translateX(0); }
+            to   { opacity: 1; transform: translateX(0); }
         }
 
-        @media (max-width: 768px) {
-            .page-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .orcamento-form {
-                grid-template-columns: 1fr;
-            }
-
-            .resumo-orcamento {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .orcamento-table {
-                font-size: 12px;
-            }
-
-            .orcamento-table th,
-            .orcamento-table td {
-                padding: 6px 8px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .resumo-orcamento {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Dark Mode */
+        /* ===== DARK MODE ===== */
         body.dark-mode .page-header {
             background: #1e293b;
             border-color: #334155;
@@ -243,49 +444,87 @@
             color: #f1f5f9;
         }
 
-        body.dark-mode .orcamento-form {
+        body.dark-mode .filtros-bar {
             background: #1e293b;
             border-color: #334155;
         }
 
-        body.dark-mode .orcamento-form select,
-        body.dark-mode .orcamento-form input {
+        body.dark-mode .filtros-bar .filtro-group label {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .filtros-bar .filtro-group select,
+        body.dark-mode .filtros-bar .filtro-group input,
+        body.dark-mode .filtros-bar .search-input-wrapper input {
             background: #0f172a;
             border-color: #334155;
             color: #f1f5f9;
         }
 
-        body.dark-mode .resumo-card {
+        body.dark-mode .filtros-bar .filtro-group select:focus,
+        body.dark-mode .filtros-bar .filtro-group input:focus,
+        body.dark-mode .filtros-bar .search-input-wrapper input:focus {
+            border-color: #818cf8;
+            background: #0f172a;
+        }
+
+        body.dark-mode .filtros-bar .filtro-group .btn-filtro-status {
+            background: #0f172a;
+            border-color: #334155;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .filtros-bar .filtro-group .btn-filtro-status:hover {
+            background: #1e293b;
+        }
+
+        body.dark-mode .filtros-bar .stats {
+            background: #334155;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .filtros-bar .stats strong {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .table-container {
             background: #1e293b;
             border-color: #334155;
         }
 
-        body.dark-mode .resumo-card .valor {
-            color: #f1f5f9;
+        body.dark-mode .orcamentos-table thead {
+            background: #0f172a;
         }
 
-        body.dark-mode .orcamento-table th {
-            background: #0f172a;
+        body.dark-mode .orcamentos-table th {
             color: #94a3b8;
             border-color: #334155;
         }
 
-        body.dark-mode .orcamento-table td {
-            border-color: #334155;
+        body.dark-mode .orcamentos-table td {
             color: #f1f5f9;
+            border-color: #334155;
         }
 
-        body.dark-mode .orcamento-table tr:hover td {
+        body.dark-mode .orcamentos-table tbody tr:hover {
             background: #0f172a;
         }
 
-        body.dark-mode .orcamento-table .total-row {
-            background: #1a2332;
+        body.dark-mode .orcamentos-table .cliente-nome {
+            color: #f1f5f9;
         }
 
-        body.dark-mode .badge-status.aprovado {
-            background: #065f46;
-            color: #d1fae5;
+        body.dark-mode .orcamentos-table .cliente-info {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .orcamentos-table .valor-total {
+            color: #818cf8;
+        }
+
+        body.dark-mode .orcamentos-table .comodos-info span {
+            background: #334155;
+            color: #94a3b8;
         }
 
         body.dark-mode .badge-status.pendente {
@@ -293,168 +532,233 @@
             color: #fef3c7;
         }
 
+        body.dark-mode .badge-status.aprovado {
+            background: #065f46;
+            color: #d1fae5;
+        }
+
+        body.dark-mode .badge-status.finalizado {
+            background: #3730a3;
+            color: #e0e7ff;
+        }
+
         body.dark-mode .badge-status.cancelado {
             background: #991b1b;
             color: #fee2e2;
         }
+
+        body.dark-mode .orcamentos-table .acoes-cell .btn-ver {
+            background: #334155;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .orcamentos-table .acoes-cell .btn-ver:hover {
+            background: #475569;
+        }
+
+        body.dark-mode .pagination {
+            border-color: #334155;
+        }
+
+        body.dark-mode .pagination .info {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .pagination .info strong {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .pagination .buttons button {
+            background: #0f172a;
+            border-color: #334155;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .pagination .buttons button:hover:not(:disabled) {
+            background: #1e293b;
+            border-color: #818cf8;
+            color: #818cf8;
+        }
+
+        body.dark-mode .pagination .buttons button.active {
+            background: #818cf8;
+            border-color: #818cf8;
+            color: #0f172a;
+        }
+
+        body.dark-mode .empty-state h3 {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .empty-state p {
+            color: #64748b;
+        }
+
+        /* ===== RESPONSIVO ===== */
+        @media (max-width: 768px) {
+            .page-content {
+                padding: 12px;
+            }
+
+            .filtros-bar {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 12px 16px;
+            }
+
+            .filtros-bar .filtro-group {
+                flex-wrap: wrap;
+            }
+
+            .filtros-bar .search-input-wrapper {
+                min-width: 100%;
+            }
+
+            .orcamentos-table th,
+            .orcamentos-table td {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            .orcamentos-table .acoes-cell .btn span {
+                display: none;
+            }
+
+            .orcamentos-table .acoes-cell .btn {
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+
+            .pagination {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .pagination .buttons {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .orcamentos-table th:nth-child(3),
+            .orcamentos-table td:nth-child(3) {
+                display: none;
+            }
+
+            .orcamentos-table th:nth-child(5),
+            .orcamentos-table td:nth-child(5) {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
+    <!-- HEADER -->
     <div class="page-header">
         <div>
-            <h2>💰 Orçamento Total</h2>
-            <p>Visualize e gerencie orçamentos completos com cliente, vendedor e condições</p>
+            <h2>📋 Orçamento Total</h2>
+            <p>Gerencie todos os orçamentos dos clientes</p>
         </div>
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-            <button class="btn btn-primary" onclick="novoOrcamento()">➕ Novo Orçamento</button>
-            <button class="btn btn-success" onclick="exportarOrcamentoTotal()">📊 Exportar</button>
-            <button class="btn btn-outline" onclick="carregarOrcamentos()">🔄 Atualizar</button>
+            <button class="btn btn-primary" onclick="carregarOrcamentos()">🔄 Atualizar</button>
+            <button class="btn btn-success" onclick="exportarRelatorio()">📊 Exportar Relatório</button>
         </div>
     </div>
 
     <div class="page-content">
-        <div class="orcamento-form" id="formFiltros">
-            <div class="form-group">
-                <label>Cliente</label>
-                <select id="filterCliente" onchange="filtrarOrcamentos()">
-                    <option value="">Todos os clientes</option>
-                </select>
+        <!-- FILTROS -->
+        <div class="filtros-bar">
+            <div class="filtro-group">
+                <label>Status:</label>
+                <button class="btn-filtro-status active" data-status="todos" onclick="filtrarPorStatus('todos')">Todos</button>
+                <button class="btn-filtro-status" data-status="pendente" onclick="filtrarPorStatus('pendente')">⏳ Pendentes</button>
+                <button class="btn-filtro-status" data-status="aprovado" onclick="filtrarPorStatus('aprovado')">✅ Aprovados</button>
+                <button class="btn-filtro-status" data-status="finalizado" onclick="filtrarPorStatus('finalizado')">🔵 Finalizados</button>
+                <button class="btn-filtro-status" data-status="cancelado" onclick="filtrarPorStatus('cancelado')">❌ Cancelados</button>
             </div>
-            <div class="form-group">
-                <label>Vendedor</label>
-                <select id="filterVendedor" onchange="filtrarOrcamentos()">
-                    <option value="">Todos os vendedores</option>
-                </select>
+
+            <div class="search-input-wrapper">
+                <span class="icone-busca">🔍</span>
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Buscar cliente..."
+                    oninput="filtrarOrcamentos()"
+                >
             </div>
-            <div class="form-group">
-                <label>Status</label>
-                <select id="filterStatus" onchange="filtrarOrcamentos()">
-                    <option value="">Todos os status</option>
-                    <option value="aprovado">✅ Aprovado</option>
-                    <option value="pendente">⏳ Pendente</option>
-                    <option value="cancelado">❌ Cancelado</option>
-                </select>
-            </div>
+
+            <span class="stats" id="stats">
+                <strong id="totalOrcamentosDisplay">0</strong> orçamentos
+            </span>
         </div>
 
-        <div class="resumo-orcamento">
-            <div class="resumo-card">
-                <div class="label">Total de Orçamentos</div>
-                <div class="valor" id="totalOrcamentos">0</div>
+        <!-- TABELA -->
+        <div class="table-container">
+            <div class="table-scroll">
+                <table class="orcamentos-table">
+                    <thead>
+                        <tr>
+                            <th style="width:30px;">#</th>
+                            <th>Cliente</th>
+                            <th>Contato</th>
+                            <th style="text-align:center;">Cômodos</th>
+                            <th style="text-align:center;">Itens</th>
+                            <th style="text-align:right;">Valor Total</th>
+                            <th style="text-align:center;">Status</th>
+                            <th style="text-align:center;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orcamentosBody">
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8;">
+                                <span class="loading-spinner"></span> Carregando orçamentos...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="resumo-card">
-                <div class="label">Valor Total</div>
-                <div class="valor destaque" id="valorTotalOrcamentos">R$ 0,00</div>
-            </div>
-            <div class="resumo-card">
-                <div class="label">Média por Orçamento</div>
-                <div class="valor" id="mediaOrcamentos">R$ 0,00</div>
-            </div>
-            <div class="resumo-card">
-                <div class="label">Aprovados</div>
-                <div class="valor" id="aprovadosCount">0</div>
-            </div>
-        </div>
 
-        <div class="table-responsive">
-            <table class="orcamento-table">
-                <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Cliente</th>
-                        <th>Vendedor</th>
-                        <th>Condições</th>
-                        <th>Valor</th>
-                        <th>Status</th>
-                        <th>Data</th>
-                        <th>Ações</th>
-                    </tr>
-                </thead>
-                <tbody id="orcamentosBody">
-                    <tr>
-                        <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8;">
-                            Carregando orçamentos...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="acoes-orcamento">
-            <button class="btn btn-outline btn-sm" onclick="carregarOrcamentos()">🔄 Recarregar</button>
-        </div>
-    </div>
-
-    <!-- MODAL ORÇAMENTO -->
-    <div class="modal" id="modalOrcamento">
-        <div class="modal-content" style="max-width: 700px;">
-            <h2 id="modalOrcamentoTitle">Novo Orçamento</h2>
-            <form id="orcamentoForm" onsubmit="salvarOrcamento(event)">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Cliente *</label>
-                        <select id="formCliente" required>
-                            <option value="">Selecione</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Vendedor *</label>
-                        <input type="text" id="formVendedor" required placeholder="Nome do vendedor">
-                    </div>
+            <!-- PAGINAÇÃO -->
+            <div class="pagination" id="pagination">
+                <div class="info">
+                    Mostrando <strong id="paginaInicio">0</strong> - <strong id="paginaFim">0</strong> 
+                    de <strong id="totalRegistros">0</strong> orçamentos
                 </div>
-                <div class="form-group">
-                    <label>Condições de Pagamento</label>
-                    <select id="formCondicoes">
-                        <option value="50% entrada + 50% na entrega">50% entrada + 50% na entrega</option>
-                        <option value="30% entrada + 70% na entrega">30% entrada + 70% na entrega</option>
-                        <option value="100% na entrega">100% na entrega</option>
-                        <option value="Parcelado em 3x sem juros">Parcelado em 3x sem juros</option>
-                        <option value="Parcelado em 6x sem juros">Parcelado em 6x sem juros</option>
-                    </select>
+                <div class="buttons" id="paginationButtons">
+                    <button onclick="irPagina(1)" id="btnPrimeira">«</button>
+                    <button onclick="paginaAnterior()" id="btnAnterior">‹</button>
+                    <span id="paginasNumeros"></span>
+                    <button onclick="proximaPagina()" id="btnProxima">›</button>
+                    <button onclick="irPagina(totalPaginas)" id="btnUltima">»</button>
                 </div>
-                <div class="form-group">
-                    <label>Prazo de Entrega</label>
-                    <select id="formPrazo">
-                        <option value="15 dias úteis">15 dias úteis</option>
-                        <option value="20 dias úteis">20 dias úteis</option>
-                        <option value="30 dias úteis">30 dias úteis</option>
-                        <option value="45 dias úteis">45 dias úteis</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Observações</label>
-                    <textarea id="formObservacoes" rows="2" placeholder="Informações adicionais..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="formStatus">
-                        <option value="pendente">⏳ Pendente</option>
-                        <option value="aprovado">✅ Aprovado</option>
-                        <option value="cancelado">❌ Cancelado</option>
-                    </select>
-                </div>
-                <div class="form-group" style="background: #f8fafc; padding: 12px; border-radius: 8px;">
-                    <label>💰 Valor Total do Orçamento</label>
-                    <input type="number" id="formValorTotal" step="0.01" placeholder="0.00" required>
-                    <small style="color: #94a3b8;">Preencha com o valor total do projeto</small>
-                </div>
-                <input type="hidden" id="formEditIndex" value="-1">
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-outline" onclick="fecharModal('modalOrcamento')">Cancelar</button>
-                    <button type="submit" class="btn btn-primary">Salvar</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 
     <script>
+        // =============================================
+        //  CONFIGURAÇÕES
+        // =============================================
+        const ITENS_POR_PAGINA = 15;
+
+        // =============================================
+        //  ESTADO
+        // =============================================
         let orcamentosData = [];
         let orcamentosFiltrados = [];
-        let clientesData = [];
+        let paginaAtual = 1;
+        let totalPaginas = 1;
+        let filtroStatusAtual = 'todos';
 
-        // ============ ACESSO AO DB ============
+        // =============================================
+        //  ACESSO AO DB
+        // =============================================
         function getDb() {
             try {
+                if (window.parent && window.parent.getParentDb) {
+                    return window.parent.getParentDb();
+                }
                 if (window.parent && window.parent.getDadosGlobais) {
                     return window.parent.getDadosGlobais().db;
                 }
@@ -469,7 +773,9 @@
             }
         }
 
-        // ============ NOTIFICAÇÕES ============
+        // =============================================
+        //  TOAST / NOTIFICAÇÕES
+        // =============================================
         function mostrarNotificacao(mensagem, tipo = 'info') {
             const cores = {
                 success: '#0b9e5e',
@@ -499,7 +805,7 @@
                 box-shadow: 0 8px 30px rgba(0,0,0,0.2);
                 z-index: 9999;
                 max-width: 400px;
-                animation: slideIn 0.3s ease;
+                animation: toastIn 0.3s ease;
                 display: flex;
                 align-items: center;
                 gap: 10px;
@@ -520,7 +826,45 @@
             }, 4000);
         }
 
-        // ============ CARREGAR ORÇAMENTOS ============
+        // =============================================
+        //  FORMATADORES
+        // =============================================
+        function fmtBRL(v) {
+            return 'R$ ' + Number(v || 0).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+        }
+
+        function fmtDate(dateString) {
+            if (!dateString) return '-';
+            try {
+                return new Date(dateString).toLocaleDateString('pt-BR');
+            } catch {
+                return '-';
+            }
+        }
+
+        function getStatusLabel(status) {
+            const labels = {
+                'pendente': '⏳ Pendente',
+                'aprovado': '✅ Aprovado',
+                'finalizado': '🔵 Finalizado',
+                'cancelado': '❌ Cancelado'
+            };
+            return labels[status] || status || 'Pendente';
+        }
+
+        function getStatusClass(status) {
+            const classes = {
+                'pendente': 'pendente',
+                'aprovado': 'aprovado',
+                'finalizado': 'finalizado',
+                'cancelado': 'cancelado'
+            };
+            return classes[status] || 'pendente';
+        }
+
+        // =============================================
+        //  CARREGAR ORÇAMENTOS
+        // =============================================
         async function carregarOrcamentos() {
             try {
                 const db = getDb();
@@ -528,471 +872,545 @@
                     throw new Error('Database não disponível');
                 }
 
-                const [orcamentos, clientes] = await Promise.all([
-                    db.getOrcamentos(),
-                    db.getClientes()
-                ]);
+                // Buscar clientes
+                const clientes = await db.getClientes();
+                
+                // Buscar status de todos os clientes
+                const statusData = await db.getTodosStatusOrcamentos();
+                
+                const orcamentos = [];
 
+                for (const cliente of clientes) {
+                    // Buscar orçamento por cômodo
+                    const data = await db.getOrcamentoComodo(cliente.id);
+                    
+                    if (data && Object.keys(data).length > 0) {
+                        let total = 0;
+                        let itens = 0;
+                        const comodosSet = new Set();
+
+                        Object.values(data).forEach(entry => {
+                            if (entry && entry.qtd > 0) {
+                                total += (entry.qtd || 0) * (entry.preco || 0);
+                                itens += entry.qtd || 0;
+                                if (entry.comodo) comodosSet.add(entry.comodo);
+                            }
+                        });
+
+                        // Buscar status
+                        let status = 'pendente';
+                        if (statusData && statusData[cliente.id] && statusData[cliente.id].status) {
+                            status = statusData[cliente.id].status;
+                        }
+
+                        if (total > 0 || itens > 0) {
+                            orcamentos.push({
+                                clienteId: cliente.id,
+                                clienteNome: cliente.nome || 'Cliente sem nome',
+                                telefone: cliente.telefone || '',
+                                email: cliente.email || '',
+                                documento: cliente.documento || '',
+                                valorTotal: total,
+                                itens: itens,
+                                comodos: comodosSet.size,
+                                comodosList: [...comodosSet],
+                                status: status,
+                                dataCriacao: new Date().toISOString(),
+                                dataAtualizacao: new Date().toISOString()
+                            });
+                        }
+                    }
+                }
+
+                // Ordenar por data de criação (mais recentes primeiro)
+                orcamentos.sort((a, b) => new Date(b.dataCriacao) - new Date(a.dataCriacao));
+                
                 orcamentosData = orcamentos;
-                clientesData = clientes;
                 orcamentosFiltrados = [...orcamentosData];
-
-                atualizarFiltros();
-                renderizarOrcamentos();
-                atualizarResumo();
+                paginaAtual = 1;
+                
+                aplicarFiltroStatus();
+                
+                mostrarNotificacao(`✅ ${orcamentos.length} orçamentos carregados`, 'success');
                 
                 if (window.parent && window.parent.atualizarStatus) {
                     window.parent.atualizarStatus(`✅ ${orcamentos.length} orçamentos carregados`);
                 }
+
             } catch (error) {
-                console.error('Erro ao carregar orçamentos:', error);
+                console.error('❌ Erro ao carregar orçamentos:', error);
                 mostrarNotificacao('❌ Erro ao carregar orçamentos: ' + error.message, 'error');
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus('❌ Erro ao carregar orçamentos');
-                }
-            }
-        }
-
-        function atualizarFiltros() {
-            // Clientes
-            const selectCliente = document.getElementById('filterCliente');
-            const valCliente = selectCliente.value;
-            selectCliente.innerHTML = '<option value="">Todos os clientes</option>';
-            clientesData.forEach(c => {
-                selectCliente.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
-            });
-            selectCliente.value = valCliente;
-
-            // Vendedores (extrair únicos)
-            const vendedores = [...new Set(orcamentosData.map(o => o.vendedor).filter(Boolean))];
-            const selectVendedor = document.getElementById('filterVendedor');
-            const valVendedor = selectVendedor.value;
-            selectVendedor.innerHTML = '<option value="">Todos os vendedores</option>';
-            vendedores.forEach(v => {
-                selectVendedor.innerHTML += `<option value="${v}">${v}</option>`;
-            });
-            selectVendedor.value = valVendedor;
-        }
-
-        function filtrarOrcamentos() {
-            const cliente = document.getElementById('filterCliente').value;
-            const vendedor = document.getElementById('filterVendedor').value;
-            const status = document.getElementById('filterStatus').value;
-
-            orcamentosFiltrados = orcamentosData.filter(o => {
-                const matchCliente = !cliente || o.clienteId === cliente;
-                const matchVendedor = !vendedor || o.vendedor === vendedor;
-                const matchStatus = !status || o.status === status;
-                return matchCliente && matchVendedor && matchStatus;
-            });
-
-            renderizarOrcamentos();
-            atualizarResumo();
-        }
-
-        // ============ RENDERIZAR ============
-        function renderizarOrcamentos() {
-            const tbody = document.getElementById('orcamentosBody');
-
-            if (orcamentosFiltrados.length === 0) {
+                
+                const tbody = document.getElementById('orcamentosBody');
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8;">
-                            ${orcamentosData.length === 0 ? 'Nenhum orçamento cadastrado. Clique em "Novo Orçamento" para começar.' : 'Nenhum orçamento encontrado com os filtros atuais.'}
+                        <td colspan="8" style="text-align: center; padding: 40px; color: #dc2626;">
+                            ❌ Erro ao carregar: ${error.message}
                         </td>
                     </tr>
                 `;
+            }
+        }
+
+        // =============================================
+        //  FILTRAR
+        // =============================================
+        function filtrarPorStatus(status) {
+            filtroStatusAtual = status;
+            
+            // Atualizar botões
+            document.querySelectorAll('.btn-filtro-status').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.status === status);
+            });
+
+            aplicarFiltroStatus();
+        }
+
+        function aplicarFiltroStatus() {
+            let filtrados = [...orcamentosData];
+
+            if (filtroStatusAtual !== 'todos') {
+                filtrados = filtrados.filter(o => o.status === filtroStatusAtual);
+            }
+
+            // Aplicar busca
+            const termo = document.getElementById('searchInput').value.toLowerCase().trim();
+            if (termo) {
+                filtrados = filtrados.filter(o => 
+                    o.clienteNome.toLowerCase().includes(termo) ||
+                    (o.telefone && o.telefone.includes(termo)) ||
+                    (o.email && o.email.toLowerCase().includes(termo))
+                );
+            }
+
+            orcamentosFiltrados = filtrados;
+            paginaAtual = 1;
+            renderizarOrcamentos();
+            atualizarStats();
+        }
+
+        function filtrarOrcamentos() {
+            aplicarFiltroStatus();
+        }
+
+        // =============================================
+        //  RENDERIZAR
+        // =============================================
+        function renderizarOrcamentos() {
+            const tbody = document.getElementById('orcamentosBody');
+            const total = orcamentosFiltrados.length;
+            totalPaginas = Math.ceil(total / ITENS_POR_PAGINA) || 1;
+
+            if (paginaAtual > totalPaginas) paginaAtual = totalPaginas;
+
+            const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA;
+            const fim = Math.min(inicio + ITENS_POR_PAGINA, total);
+            const paginaOrcamentos = orcamentosFiltrados.slice(inicio, fim);
+
+            if (orcamentosFiltrados.length === 0) {
+                const termo = document.getElementById('searchInput').value.trim();
+                const statusMsg = filtroStatusAtual !== 'todos' ? ` com status "${filtroStatusAtual}"` : '';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: #94a3b8;">
+                            <div style="font-size: 32px; margin-bottom: 8px;">📋</div>
+                            ${termo ? `Nenhum orçamento encontrado para "${termo}"` : `Nenhum orçamento${statusMsg} encontrado`}
+                            <br><small style="color: #cbd5e1;">Crie um orçamento na página "Orçamento por Cômodo"</small>
+                        </td>
+                    </tr>
+                `;
+                atualizarPaginacao();
                 return;
             }
 
-            const statusClasses = {
-                'aprovado': 'aprovado',
-                'pendente': 'pendente',
-                'cancelado': 'cancelado'
-            };
-
-            const statusLabels = {
-                'aprovado': '✅ Aprovado',
-                'pendente': '⏳ Pendente',
-                'cancelado': '❌ Cancelado'
-            };
-
-            tbody.innerHTML = orcamentosFiltrados.map((orc, idx) => {
-                const cliente = clientesData.find(c => c.id === orc.clienteId);
-                const clienteNome = cliente ? cliente.nome : 'Cliente removido';
-                const statusLabel = statusLabels[orc.status] || orc.status;
+            tbody.innerHTML = paginaOrcamentos.map((orc, idx) => {
+                const numero = inicio + idx + 1;
+                const statusClass = getStatusClass(orc.status);
+                const statusLabel = getStatusLabel(orc.status);
+                
+                // Botões de ação baseados no status
+                let botoes = '';
+                
+                if (orc.status === 'pendente') {
+                    botoes = `
+                        <button class="btn-aprovar" onclick="alterarStatus('${orc.clienteId}', 'aprovado')" title="Aprovar">
+                            ✅ <span>Aprovar</span>
+                        </button>
+                        <button class="btn-cancelar" onclick="alterarStatus('${orc.clienteId}', 'cancelado')" title="Cancelar">
+                            ❌ <span>Cancelar</span>
+                        </button>
+                    `;
+                } else if (orc.status === 'aprovado') {
+                    botoes = `
+                        <button class="btn-finalizar" onclick="alterarStatus('${orc.clienteId}', 'finalizado')" title="Finalizar">
+                            🔵 <span>Finalizar</span>
+                        </button>
+                        <button class="btn-cancelar" onclick="alterarStatus('${orc.clienteId}', 'cancelado')" title="Cancelar">
+                            ❌ <span>Cancelar</span>
+                        </button>
+                    `;
+                } else if (orc.status === 'finalizado' || orc.status === 'cancelado') {
+                    botoes = `
+                        <button class="btn-ver" onclick="verOrcamento('${orc.clienteId}')" title="Ver">
+                            👁️ <span>Ver</span>
+                        </button>
+                        <button class="btn btn-outline btn-sm" onclick="reabrirOrcamento('${orc.clienteId}')" title="Reabrir" style="border:1px solid #f59e0b;color:#f59e0b;background:transparent;">
+                            🔄 <span>Reabrir</span>
+                        </button>
+                    `;
+                }
 
                 return `
                     <tr>
-                        <td>${idx + 1}</td>
-                        <td><strong>${clienteNome}</strong></td>
-                        <td>${orc.vendedor || '-'}</td>
-                        <td style="font-size: 13px;">${orc.condicoes || '-'}<br><small style="color: #94a3b8;">${orc.prazo || ''}</small></td>
-                        <td><strong>R$ ${(orc.valorTotal || 0).toFixed(2)}</strong></td>
-                        <td><span class="badge-status ${statusClasses[orc.status] || ''}">${statusLabel}</span></td>
-                        <td>${orc.dataCriacao ? new Date(orc.dataCriacao).toLocaleDateString('pt-BR') : '-'}</td>
+                        <td style="color: #94a3b8; font-size: 13px;">${numero}</td>
                         <td>
-                            <button class="btn btn-primary btn-sm" onclick="editarOrcamento('${orc.id}')" title="Editar">✏️</button>
-                            <button class="btn btn-success btn-sm" onclick="imprimirOrcamento('${orc.id}')" title="Imprimir">🖨️</button>
-                            <button class="btn btn-danger btn-sm" onclick="excluirOrcamento('${orc.id}')" title="Excluir">🗑️</button>
+                            <div class="cliente-nome">${orc.clienteNome}</div>
+                            <div class="cliente-info">${orc.documento ? `📄 ${orc.documento}` : ''}</div>
+                        </td>
+                        <td>
+                            <div class="cliente-info">
+                                ${orc.telefone ? `📞 ${orc.telefone}` : ''}
+                                ${orc.email ? `<br>✉️ ${orc.email}` : ''}
+                            </div>
+                        </td>
+                        <td style="text-align:center;">
+                            <div class="comodos-info">
+                                <span>🏠 ${orc.comodos || 0}</span>
+                            </div>
+                        </td>
+                        <td style="text-align:center;">
+                            <span style="font-weight:500;">${orc.itens || 0}</span>
+                        </td>
+                        <td style="text-align:right;">
+                            <span class="valor-total">${fmtBRL(orc.valorTotal || 0)}</span>
+                        </td>
+                        <td style="text-align:center;">
+                            <span class="badge-status ${statusClass}">${statusLabel}</span>
+                        </td>
+                        <td>
+                            <div class="acoes-cell">
+                                ${botoes}
+                                <button class="btn-ver" onclick="verOrcamento('${orc.clienteId}')" title="Ver detalhes">
+                                    👁️ <span>Detalhes</span>
+                                </button>
+                                <button class="btn btn-outline btn-sm" onclick="imprimirOrcamento('${orc.clienteId}')" title="Imprimir" style="border:1px solid #4f46e5;color:#4f46e5;background:transparent;">
+                                    🖨️ <span>Imprimir</span>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                 `;
             }).join('');
+
+            atualizarPaginacao();
         }
 
-        // ============ RESUMO ============
-        function atualizarResumo() {
+        // =============================================
+        //  PAGINAÇÃO
+        // =============================================
+        function atualizarPaginacao() {
             const total = orcamentosFiltrados.length;
-            const soma = orcamentosFiltrados.reduce((sum, o) => sum + (o.valorTotal || 0), 0);
-            const media = total > 0 ? soma / total : 0;
-            const aprovados = orcamentosFiltrados.filter(o => o.status === 'aprovado').length;
+            const inicio = (paginaAtual - 1) * ITENS_POR_PAGINA + 1;
+            const fim = Math.min(paginaAtual * ITENS_POR_PAGINA, total);
 
-            document.getElementById('totalOrcamentos').textContent = total;
-            document.getElementById('valorTotalOrcamentos').textContent = `R$ ${soma.toFixed(2)}`;
-            document.getElementById('mediaOrcamentos').textContent = `R$ ${media.toFixed(2)}`;
-            document.getElementById('aprovadosCount').textContent = aprovados;
-        }
+            document.getElementById('paginaInicio').textContent = total > 0 ? inicio : 0;
+            document.getElementById('paginaFim').textContent = fim;
+            document.getElementById('totalRegistros').textContent = total;
 
-        // ============ MODAL ============
-        async function novoOrcamento() {
-            await carregarClientesSelect();
-            document.getElementById('modalOrcamentoTitle').textContent = 'Novo Orçamento';
-            document.getElementById('formEditIndex').value = '-1';
-            
-            document.getElementById('formCliente').value = '';
-            document.getElementById('formVendedor').value = '';
-            document.getElementById('formCondicoes').value = '50% entrada + 50% na entrega';
-            document.getElementById('formPrazo').value = '15 dias úteis';
-            document.getElementById('formObservacoes').value = '';
-            document.getElementById('formStatus').value = 'pendente';
-            document.getElementById('formValorTotal').value = '';
-            
-            document.getElementById('modalOrcamento').classList.add('active');
-        }
+            document.getElementById('btnPrimeira').disabled = paginaAtual <= 1;
+            document.getElementById('btnAnterior').disabled = paginaAtual <= 1;
+            document.getElementById('btnProxima').disabled = paginaAtual >= totalPaginas;
+            document.getElementById('btnUltima').disabled = paginaAtual >= totalPaginas;
 
-        async function editarOrcamento(id) {
-            const orc = orcamentosData.find(o => o.id === id);
-            if (!orc) return;
-
-            await carregarClientesSelect();
-            document.getElementById('modalOrcamentoTitle').textContent = 'Editar Orçamento';
-            document.getElementById('formEditIndex').value = id;
+            const container = document.getElementById('paginasNumeros');
+            let html = '';
+            const maxBotoes = 5;
+            let inicioPaginas = Math.max(1, paginaAtual - Math.floor(maxBotoes / 2));
+            let fimPaginas = Math.min(totalPaginas, inicioPaginas + maxBotoes - 1);
             
-            document.getElementById('formCliente').value = orc.clienteId || '';
-            document.getElementById('formVendedor').value = orc.vendedor || '';
-            document.getElementById('formCondicoes').value = orc.condicoes || '50% entrada + 50% na entrega';
-            document.getElementById('formPrazo').value = orc.prazo || '15 dias úteis';
-            document.getElementById('formObservacoes').value = orc.observacoes || '';
-            document.getElementById('formStatus').value = orc.status || 'pendente';
-            document.getElementById('formValorTotal').value = orc.valorTotal || '';
-            
-            document.getElementById('modalOrcamento').classList.add('active');
-        }
-
-        async function carregarClientesSelect() {
-            const select = document.getElementById('formCliente');
-            const valorAtual = select.value;
-            
-            select.innerHTML = '<option value="">Selecione um cliente</option>';
-            clientesData.forEach(c => {
-                select.innerHTML += `<option value="${c.id}">${c.nome}</option>`;
-            });
-            
-            if (valorAtual && clientesData.some(c => c.id === valorAtual)) {
-                select.value = valorAtual;
+            if (fimPaginas - inicioPaginas < maxBotoes - 1) {
+                inicioPaginas = Math.max(1, fimPaginas - maxBotoes + 1);
             }
+
+            for (let i = inicioPaginas; i <= fimPaginas; i++) {
+                const active = i === paginaAtual ? 'active' : '';
+                html += `<button class="${active}" onclick="irPagina(${i})">${i}</button>`;
+            }
+
+            container.innerHTML = html;
         }
 
-        function fecharModal(id) {
-            document.getElementById(id).classList.remove('active');
+        function irPagina(num) {
+            if (num < 1 || num > totalPaginas) return;
+            paginaAtual = num;
+            renderizarOrcamentos();
+            document.querySelector('.table-container').scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
-        // ============ SALVAR ORÇAMENTO ============
-        async function salvarOrcamento(event) {
-            event.preventDefault();
+        function paginaAnterior() {
+            if (paginaAtual > 1) irPagina(paginaAtual - 1);
+        }
 
-            const data = {
-                clienteId: document.getElementById('formCliente').value,
-                vendedor: document.getElementById('formVendedor').value.trim(),
-                condicoes: document.getElementById('formCondicoes').value,
-                prazo: document.getElementById('formPrazo').value,
-                observacoes: document.getElementById('formObservacoes').value.trim(),
-                status: document.getElementById('formStatus').value,
-                valorTotal: parseFloat(document.getElementById('formValorTotal').value) || 0,
+        function proximaPagina() {
+            if (paginaAtual < totalPaginas) irPagina(paginaAtual + 1);
+        }
+
+        function atualizarStats() {
+            document.getElementById('totalOrcamentosDisplay').textContent = orcamentosFiltrados.length;
+        }
+
+        // =============================================
+        //  AÇÕES - ALTERAR STATUS
+        // =============================================
+        async function alterarStatus(clienteId, novoStatus) {
+            const statusLabels = {
+                'aprovado': 'aprovar',
+                'finalizado': 'finalizar',
+                'cancelado': 'cancelar'
+            };
+            
+            const confirmMsg = {
+                'aprovado': 'Tem certeza que deseja APROVAR este orçamento?',
+                'finalizado': 'Tem certeza que deseja FINALIZAR este orçamento?',
+                'cancelado': 'Tem certeza que deseja CANCELAR este orçamento?'
             };
 
-            if (!data.clienteId || !data.vendedor) {
-                mostrarNotificacao('⚠️ Cliente e Vendedor são obrigatórios!', 'warning');
-                return;
-            }
-
-            if (data.valorTotal <= 0) {
-                mostrarNotificacao('⚠️ Informe um valor total válido!', 'warning');
-                return;
-            }
+            if (!confirm(confirmMsg[novoStatus] || 'Confirmar alteração de status?')) return;
 
             try {
                 const db = getDb();
-                if (!db) {
-                    throw new Error('Database não disponível');
-                }
+                if (!db) throw new Error('Database não disponível');
 
-                const id = document.getElementById('formEditIndex').value;
-                let mensagem = '';
+                await db.salvarOrcamentoStatus(clienteId, {
+                    status: novoStatus,
+                    dataAtualizacao: new Date().toISOString()
+                });
 
-                // Buscar nome do cliente
-                const cliente = clientesData.find(c => c.id === data.clienteId);
-                data.clienteNome = cliente ? cliente.nome : '';
+                // Atualizar no array local
+                const orc = orcamentosData.find(o => o.clienteId === clienteId);
+                if (orc) orc.status = novoStatus;
 
-                if (id && id !== '-1') {
-                    data.id = id;
-                    await db.salvarOrcamento(data);
-                    mensagem = '✅ Orçamento atualizado com sucesso!';
-                } else {
-                    data.dataCriacao = new Date().toISOString();
-                    await db.salvarOrcamento(data);
-                    mensagem = '✅ Orçamento criado com sucesso!';
-                }
+                const orcFiltrado = orcamentosFiltrados.find(o => o.clienteId === clienteId);
+                if (orcFiltrado) orcFiltrado.status = novoStatus;
 
-                mostrarNotificacao(mensagem, 'success');
-                
+                renderizarOrcamentos();
+                mostrarNotificacao(`✅ Orçamento ${statusLabels[novoStatus] || 'atualizado'} com sucesso!`, 'success');
+
                 if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus(mensagem);
+                    window.parent.atualizarStatus(`✅ Orçamento ${statusLabels[novoStatus] || 'atualizado'}`);
                 }
 
-                fecharModal('modalOrcamento');
-                await carregarOrcamentos();
             } catch (error) {
-                console.error('Erro ao salvar orçamento:', error);
-                mostrarNotificacao('❌ Erro ao salvar: ' + error.message, 'error');
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus('❌ Erro ao salvar orçamento');
-                }
+                console.error('❌ Erro ao alterar status:', error);
+                mostrarNotificacao('❌ Erro ao alterar status: ' + error.message, 'error');
             }
         }
 
-        // ============ EXCLUIR ============
-        async function excluirOrcamento(id) {
-            if (!confirm('Tem certeza que deseja excluir este orçamento?')) return;
+        async function reabrirOrcamento(clienteId) {
+            if (!confirm('Tem certeza que deseja REABRIR este orçamento? O status voltará para "Pendente".')) return;
 
             try {
                 const db = getDb();
-                if (!db) {
-                    throw new Error('Database não disponível');
-                }
+                if (!db) throw new Error('Database não disponível');
 
-                await db.deletarOrcamento(id);
-                mostrarNotificacao('🗑️ Orçamento excluído com sucesso!', 'success');
-                
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus('🗑️ Orçamento excluído');
-                }
+                await db.salvarOrcamentoStatus(clienteId, {
+                    status: 'pendente',
+                    dataAtualizacao: new Date().toISOString()
+                });
 
-                await carregarOrcamentos();
+                const orc = orcamentosData.find(o => o.clienteId === clienteId);
+                if (orc) orc.status = 'pendente';
+
+                const orcFiltrado = orcamentosFiltrados.find(o => o.clienteId === clienteId);
+                if (orcFiltrado) orcFiltrado.status = 'pendente';
+
+                renderizarOrcamentos();
+                mostrarNotificacao('🔄 Orçamento reaberto como Pendente!', 'success');
+
             } catch (error) {
-                console.error('Erro ao excluir orçamento:', error);
-                mostrarNotificacao('❌ Erro ao excluir: ' + error.message, 'error');
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus('❌ Erro ao excluir orçamento');
-                }
+                console.error('❌ Erro ao reabrir orçamento:', error);
+                mostrarNotificacao('❌ Erro ao reabrir: ' + error.message, 'error');
             }
         }
 
-        // ============ IMPRIMIR ORÇAMENTO ============
-        async function imprimirOrcamento(id) {
+        // =============================================
+        //  VER ORÇAMENTO
+        // =============================================
+        function verOrcamento(clienteId) {
+            // Navegar para a página de orçamento por cômodo com o cliente selecionado
+            if (window.parent && window.parent.navegarPara) {
+                // Salvar o cliente selecionado no sessionStorage
+                sessionStorage.setItem('clienteSelecionado', clienteId);
+                window.parent.navegarPara('orcamento-comodo');
+            } else {
+                window.location.href = 'orcamento-comodo.html?cliente=' + clienteId;
+            }
+        }
+
+        // =============================================
+        //  IMPRIMIR ORÇAMENTO
+        // =============================================
+        async function imprimirOrcamento(clienteId) {
             try {
-                const orc = orcamentosData.find(o => o.id === id);
-                if (!orc) {
-                    mostrarNotificacao('❌ Orçamento não encontrado', 'error');
+                const db = getDb();
+                if (!db) throw new Error('Database não disponível');
+
+                const cliente = await db.getClientePorId(clienteId);
+                if (!cliente) {
+                    mostrarNotificacao('❌ Cliente não encontrado', 'error');
                     return;
                 }
 
-                // Buscar cliente
-                const cliente = clientesData.find(c => c.id === orc.clienteId);
-                
-                // Buscar produtos do orçamento
-                const produtos = await buscarProdutosDoOrcamento(id);
-                
-                // Montar dados para impressão
-                const dadosImpressao = {
-                    id: orc.id,
-                    cliente: cliente || { nome: orc.clienteNome || 'Cliente não encontrado' },
-                    vendedor: orc.vendedor || 'Não informado',
-                    status: orc.status || 'pendente',
-                    produtos: produtos.length > 0 ? produtos : [],
-                    condicoes: {
-                        validade: '30 dias',
-                        pagamento: orc.condicoes || '50% entrada + 50% na entrega',
-                        garantia: '12 meses',
-                        prazo: orc.prazo || '15 dias úteis',
-                        observacao: 'Valores sujeitos a alteração conforme cotação do dia'
-                    },
-                    observacoes: orc.observacoes || '',
+                const data = await db.getOrcamentoComodo(clienteId);
+                if (!data || Object.keys(data).length === 0) {
+                    mostrarNotificacao('⚠️ Este cliente não possui itens no orçamento', 'warning');
+                    return;
+                }
+
+                const itens = Object.values(data).filter(e => e && e.qtd > 0);
+                if (itens.length === 0) {
+                    mostrarNotificacao('⚠️ Este cliente não possui itens no orçamento', 'warning');
+                    return;
+                }
+
+                const statusData = await db.getOrcamentoStatus(clienteId);
+                const status = statusData ? statusData.status : 'pendente';
+
+                const dados = {
+                    id: 'ORC-' + Date.now().toString(36).toUpperCase(),
+                    numero: 'ORC-' + Date.now().toString(36).toUpperCase(),
+                    cliente: cliente,
+                    vendedor: sessionStorage.getItem('userEmail') || 'Não informado',
+                    status: status,
+                    dataCriacao: new Date().toISOString(),
+                    valorTotal: itens.reduce((s, e) => s + (e.qtd || 0) * (e.preco || 0), 0),
+                    produtos: itens.map(e => ({ ...e })),
                     empresaNome: 'SmartHome Automação',
                     empresaSub: 'Projetos e instalação de automação residencial',
-                    numero: orc.id || 'ORC-' + String(Math.floor(100000 + Math.random() * 900000)),
-                    valorTotal: orc.valorTotal || 0,
-                    dataCriacao: orc.dataCriacao || new Date().toISOString()
+                    condicoes: {
+                        validade: '30 dias',
+                        pagamento: '50% entrada + 50% na entrega',
+                        garantia: '12 meses',
+                        prazo: '15 dias úteis',
+                        observacao: 'Valores sujeitos a alteração conforme cotação do dia'
+                    },
+                    observacoes: ''
                 };
 
-                // Verificar se há produtos
-                if (produtos.length === 0) {
-                    mostrarNotificacao('⚠️ Este orçamento não possui produtos associados. A impressão mostrará apenas o resumo.', 'warning');
-                }
+                localStorage.setItem('orcamentoParaImprimir', JSON.stringify(dados));
 
-                // Abrir página de impressão com os dados
                 if (window.parent && window.parent.abrirImpressaoComDados) {
-                    window.parent.abrirImpressaoComDados(dadosImpressao);
+                    window.parent.abrirImpressaoComDados(dados);
                 } else {
-                    // Fallback: abrir em nova janela
-                    const dadosParam = encodeURIComponent(JSON.stringify(dadosImpressao));
-                    window.open(`pages/orcamento-print.html?dados=${dadosParam}`, '_blank');
+                    window.open('../pages/orcamento-print.html', '_blank');
                 }
+                mostrarNotificacao('🖨️ Abrindo impressão...', 'info');
 
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus('🖨️ Abrindo impressão do orçamento');
-                }
-                
             } catch (error) {
-                console.error('❌ Erro ao imprimir orçamento:', error);
+                console.error('❌ Erro ao imprimir:', error);
                 mostrarNotificacao('❌ Erro ao imprimir: ' + error.message, 'error');
             }
         }
 
-        // ============ BUSCAR PRODUTOS DO ORÇAMENTO ============
-        async function buscarProdutosDoOrcamento(orcamentoId) {
-            try {
-                const db = getDb();
-                if (!db) return [];
-
-                // Buscar do localStorage (orcamento-comodo)
-                const saved = localStorage.getItem(`orcamento_comodo_v3_${orcamentoId}`);
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    const produtos = [];
-                    const todosProdutos = await db.getProdutos(true);
-                    
-                    Object.entries(data).forEach(([key, entry]) => {
-                        if (entry && entry.qtd > 0) {
-                            // Tentar encontrar o produto pelo ID
-                            let produto = todosProdutos.find(p => p.id === entry.id);
-                            
-                            // Se não encontrar, tentar pelo ID da chave
-                            if (!produto) {
-                                const idFromKey = key.split('_')[0];
-                                produto = todosProdutos.find(p => p.id === idFromKey);
-                            }
-                            
-                            if (produto) {
-                                produtos.push({
-                                    ...produto,
-                                    qtd: entry.qtd,
-                                    comodo: entry.comodo || produto.comodo || 'Sem Cômodo'
-                                });
-                            }
-                        }
-                    });
-                    
-                    return produtos;
-                }
-                return [];
-            } catch (error) {
-                console.error('Erro ao buscar produtos do orçamento:', error);
-                return [];
-            }
-        }
-
-        // ============ EXPORTAR ============
-        function exportarOrcamentoTotal() {
+        // =============================================
+        //  EXPORTAR RELATÓRIO
+        // =============================================
+        function exportarRelatorio() {
             if (orcamentosFiltrados.length === 0) {
-                mostrarNotificacao('⚠️ Nenhum orçamento para exportar.', 'warning');
+                mostrarNotificacao('⚠️ Nenhum orçamento para exportar', 'warning');
                 return;
             }
 
-            let html = `
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Relatório de Orçamentos</title>
-                    <style>
-                        body { font-family: Arial, sans-serif; padding: 30px; }
-                        h1 { color: #1a1a2e; }
-                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                        th { background: #4f46e5; color: white; padding: 10px; text-align: left; }
-                        td { padding: 8px 10px; border-bottom: 1px solid #ddd; }
-                        .total { font-weight: bold; background: #f0f4ff; }
-                        .footer { margin-top: 30px; color: #888; font-size: 12px; }
-                    </style>
-                </head>
-                <body>
-                <h1>📊 Relatório de Orçamentos</h1>
-                <p><strong>Gerado em:</strong> ${new Date().toLocaleString('pt-BR')}</p>
-                <p><strong>Total de orçamentos:</strong> ${orcamentosFiltrados.length}</p>
-                <hr>
-                <table>
-                    <tr>
-                        <th>#</th>
-                        <th>Cliente</th>
-                        <th>Vendedor</th>
-                        <th>Condições</th>
-                        <th>Valor</th>
-                        <th>Status</th>
-                        <th>Data</th>
-                    </tr>
-            `;
+            let html = `<html><head><meta charset="UTF-8"><title>Relatório de Orçamentos</title>
+            <style>
+                body{font-family:Arial,sans-serif;padding:30px;}
+                h1{color:#1a1a2e;border-bottom:2px solid #4f46e5;padding-bottom:10px;}
+                table{width:100%;border-collapse:collapse;margin-top:16px;}
+                th{background:#4f46e5;color:white;padding:10px 12px;text-align:left;}
+                td{padding:8px 12px;border-bottom:1px solid #e2e8f0;}
+                .total{font-weight:bold;background:#f0f4ff;}
+                .status-pendente{color:#92400e;}
+                .status-aprovado{color:#065f46;}
+                .status-finalizado{color:#3730a3;}
+                .status-cancelado{color:#991b1b;}
+                .footer{margin-top:30px;color:#94a3b8;font-size:13px;text-align:center;border-top:1px solid #e2e8f0;padding-top:16px;}
+            </style>
+            </head><body>
+            <h1>📋 Relatório de Orçamentos</h1>
+            <p><strong>Data:</strong> ${new Date().toLocaleString('pt-BR')}</p>
+            <p><strong>Total:</strong> ${orcamentosFiltrados.length} orçamentos</p>
+            <p><strong>Status filtrado:</strong> ${filtroStatusAtual === 'todos' ? 'Todos' : filtroStatusAtual}</p>
+            <hr>
+            <table>
+                <tr><th>#</th><th>Cliente</th><th>Contato</th><th>Cômodos</th><th>Itens</th><th>Valor Total</th><th>Status</th></tr>`;
 
-            let totalGeral = 0;
             orcamentosFiltrados.forEach((orc, idx) => {
-                const cliente = clientesData.find(c => c.id === orc.clienteId);
-                const clienteNome = cliente ? cliente.nome : 'Cliente removido';
-                totalGeral += orc.valorTotal || 0;
-                
-                const statusLabels = {
-                    'aprovado': '✅ Aprovado',
-                    'pendente': '⏳ Pendente',
-                    'cancelado': '❌ Cancelado'
-                };
-                
+                const statusClass = `status-${orc.status}`;
                 html += `
                     <tr>
                         <td>${idx + 1}</td>
-                        <td><strong>${clienteNome}</strong></td>
-                        <td>${orc.vendedor || '-'}</td>
-                        <td>${orc.condicoes || '-'}</td>
-                        <td><strong>R$ ${(orc.valorTotal || 0).toFixed(2)}</strong></td>
-                        <td>${statusLabels[orc.status] || orc.status || '-'}</td>
-                        <td>${orc.dataCriacao ? new Date(orc.dataCriacao).toLocaleDateString('pt-BR') : '-'}</td>
+                        <td><strong>${orc.clienteNome}</strong></td>
+                        <td>${orc.telefone || '-'}</td>
+                        <td style="text-align:center;">${orc.comodos || 0}</td>
+                        <td style="text-align:center;">${orc.itens || 0}</td>
+                        <td style="font-weight:bold;">R$ ${(orc.valorTotal || 0).toFixed(2)}</td>
+                        <td class="${statusClass}">${orc.status}</td>
                     </tr>
                 `;
             });
 
+            const totalGeral = orcamentosFiltrados.reduce((s, o) => s + (o.valorTotal || 0), 0);
+
             html += `
-                    <tr class="total">
-                        <td colspan="4" style="text-align: right;">TOTAL GERAL</td>
-                        <td><strong>R$ ${totalGeral.toFixed(2)}</strong></td>
-                        <td colspan="2"></td>
-                    </tr>
-                </table>
-                <div class="footer">Gerado pelo SmartHome Orçamentos v2.0</div>
-                </body></html>
-            `;
+                <tr class="total">
+                    <td colspan="5" style="text-align:right;">TOTAL GERAL</td>
+                    <td style="font-weight:bold;font-size:16px;color:#4f46e5;">R$ ${totalGeral.toFixed(2)}</td>
+                    <td></td>
+                </tr>
+            </table>
+            <div class="footer">
+                Relatório gerado automaticamente pelo sistema SmartHome Automação
+            </div>
+            </body></html>`;
 
-            const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `orcamentos_${new Date().toISOString().slice(0, 10)}.html`;
+            a.href = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+            a.download = `relatorio_orcamentos_${new Date().toISOString().slice(0,10)}.html`;
             a.click();
-            URL.revokeObjectURL(url);
-
             mostrarNotificacao('📊 Relatório exportado com sucesso!', 'success');
-            if (window.parent && window.parent.atualizarStatus) {
-                window.parent.atualizarStatus('📊 Relatório exportado');
+        }
+
+        // =============================================
+        //  ESCUTAR MUDANÇAS
+        // =============================================
+        function escutarMudancas() {
+            try {
+                const db = getDb();
+                if (!db) return;
+
+                // Escutar mudanças em orcamentos_comodo
+                const ref = db.database.ref('orcamentos_comodo');
+                ref.on('value', () => {
+                    console.log('🔄 Mudança detectada em orcamentos_comodo, recarregando...');
+                    carregarOrcamentos();
+                });
+
+                // Escutar mudanças em orcamentos_status
+                const refStatus = db.database.ref('orcamentos_status');
+                refStatus.on('value', () => {
+                    console.log('🔄 Mudança detectada em orcamentos_status, recarregando...');
+                    carregarOrcamentos();
+                });
+
+                console.log('👂 Escutando mudanças no Firebase...');
+            } catch (error) {
+                console.error('❌ Erro ao configurar escuta:', error);
             }
         }
 
-        // ============ INICIALIZAR ============
+        // =============================================
+        //  INICIALIZAR
+        // =============================================
         document.addEventListener('DOMContentLoaded', function() {
             const isDark = localStorage.getItem('darkMode') === 'true';
             if (isDark) {
@@ -1001,32 +1419,12 @@
 
             carregarOrcamentos();
 
-            // Fechar modal com ESC
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    document.querySelectorAll('.modal.active').forEach(modal => {
-                        modal.classList.remove('active');
-                    });
-                }
-            });
+            setTimeout(() => {
+                escutarMudancas();
+            }, 2000);
 
-            // Fechar modal ao clicar fora
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('modal')) {
-                    e.target.classList.remove('active');
-                }
-            });
+            setInterval(carregarOrcamentos, 30000);
         });
-
-        // Adicionar estilo para animação
-        const styleSheet = document.createElement('style');
-        styleSheet.textContent = `
-            @keyframes slideIn {
-                from { opacity: 0; transform: translateX(30px); }
-                to { opacity: 1; transform: translateX(0); }
-            }
-        `;
-        document.head.appendChild(styleSheet);
     </script>
 </body>
 </html>
