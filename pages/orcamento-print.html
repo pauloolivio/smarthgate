@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orçamento - SmartHome</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -98,20 +94,9 @@
             margin-top: 4px;
         }
 
-        .status.aprovado {
-            background: #10b981;
-            color: white;
-        }
-
-        .status.pendente {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .status.cancelado {
-            background: #ef4444;
-            color: white;
-        }
+        .status.aprovado { background: #10b981; color: white; }
+        .status.pendente { background: #f59e0b; color: white; }
+        .status.cancelado { background: #ef4444; color: white; }
 
         .cliente-area {
             padding: 25px 40px;
@@ -158,15 +143,8 @@
             color: #334155;
         }
 
-        .vendedor-area .label {
-            font-weight: 600;
-            color: #475569;
-        }
-
-        .vendedor-area .nome {
-            font-weight: 500;
-            color: #0f172a;
-        }
+        .vendedor-area .label { font-weight: 600; color: #475569; }
+        .vendedor-area .nome { font-weight: 500; color: #0f172a; }
 
         .condicoes-area {
             padding: 18px 40px;
@@ -185,13 +163,8 @@
             gap: 8px;
         }
 
-        .condicoes-area .condicao-item .icone {
-            font-size: 18px;
-        }
-
-        .condicoes-area .condicao-item strong {
-            color: #0f172a;
-        }
+        .condicoes-area .condicao-item .icone { font-size: 18px; }
+        .condicoes-area .condicao-item strong { color: #0f172a; }
 
         .table-wrapper {
             padding: 20px 40px 10px 40px;
@@ -222,9 +195,7 @@
             vertical-align: middle;
         }
 
-        .table-wrapper table tr:hover td {
-            background: #fafbff;
-        }
+        .table-wrapper table tr:hover td { background: #fafbff; }
 
         .table-wrapper table .protocolo-badge {
             display: inline-block;
@@ -234,20 +205,9 @@
             font-weight: 500;
         }
 
-        .protocolo-badge.wifi {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .protocolo-badge.zigbee {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .protocolo-badge.rf {
-            background: #fef3c7;
-            color: #92400e;
-        }
+        .protocolo-badge.wifi { background: #dbeafe; color: #1e40af; }
+        .protocolo-badge.zigbee { background: #d1fae5; color: #065f46; }
+        .protocolo-badge.rf { background: #fef3c7; color: #92400e; }
 
         .table-wrapper table .subtotal-row td {
             background: #f8fafc;
@@ -487,138 +447,40 @@
         }
 
         @media (max-width: 768px) {
-            body {
-                padding: 10px;
-            }
-
-            .orcamento-header {
-                padding: 25px 20px;
-                flex-direction: column;
-                align-items: stretch;
-                text-align: center;
-            }
-
-            .orcamento-header .logo-area {
-                justify-content: center;
-            }
-
-            .orcamento-header .orcamento-numero {
-                text-align: center;
-            }
-
-            .cliente-area {
-                padding: 20px;
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-
-            .condicoes-area {
-                padding: 16px 20px;
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .vendedor-area {
-                padding: 12px 20px;
-                flex-wrap: wrap;
-            }
-
-            .seletor-area {
-                padding: 14px 20px;
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .table-wrapper {
-                padding: 15px 12px;
-            }
-
-            .totais-area {
-                padding: 15px 20px;
-                justify-content: center;
-            }
-
-            .observacoes-area {
-                padding: 14px 20px 20px;
-            }
-
-            .orcamento-footer {
-                padding: 16px 20px;
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .orcamento-footer .assinatura {
-                flex-direction: column;
-                gap: 16px;
-            }
-
-            .orcamento-footer .assinatura .linha-assinatura {
-                width: 120px;
-            }
-
-            .print-actions {
-                padding: 12px 20px;
-                flex-wrap: wrap;
-            }
-
-            .table-wrapper table {
-                font-size: 12px;
-            }
-
-            .table-wrapper table th,
-            .table-wrapper table td {
-                padding: 6px 8px;
-            }
+            body { padding: 10px; }
+            .orcamento-header { padding: 25px 20px; flex-direction: column; align-items: stretch; text-align: center; }
+            .orcamento-header .logo-area { justify-content: center; }
+            .orcamento-header .orcamento-numero { text-align: center; }
+            .cliente-area { padding: 20px; grid-template-columns: 1fr; gap: 10px; }
+            .condicoes-area { padding: 16px 20px; flex-direction: column; gap: 8px; }
+            .vendedor-area { padding: 12px 20px; flex-wrap: wrap; }
+            .seletor-area { padding: 14px 20px; flex-direction: column; align-items: stretch; }
+            .table-wrapper { padding: 15px 12px; }
+            .totais-area { padding: 15px 20px; justify-content: center; }
+            .observacoes-area { padding: 14px 20px 20px; }
+            .orcamento-footer { padding: 16px 20px; flex-direction: column; text-align: center; }
+            .orcamento-footer .assinatura { flex-direction: column; gap: 16px; }
+            .orcamento-footer .assinatura .linha-assinatura { width: 120px; }
+            .print-actions { padding: 12px 20px; flex-wrap: wrap; }
+            .table-wrapper table { font-size: 12px; }
+            .table-wrapper table th, .table-wrapper table td { padding: 6px 8px; }
         }
 
         @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-
-            .print-container {
-                box-shadow: none;
-                border-radius: 0;
-            }
-
-            .print-actions {
-                display: none !important;
-            }
-
-            .seletor-area {
-                display: none !important;
-            }
-
-            .orcamento-header {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            .status {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            .protocolo-badge {
-                -webkit-print-color-adjust: exact;
-                print-color-adjust: exact;
-            }
-
-            .table-wrapper table tr:hover td {
-                background: transparent;
-            }
-
-            .orcamento-footer {
-                page-break-inside: avoid;
-            }
+            body { background: white; padding: 0; }
+            .print-container { box-shadow: none; border-radius: 0; }
+            .print-actions { display: none !important; }
+            .seletor-area { display: none !important; }
+            .orcamento-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .status { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .protocolo-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .table-wrapper table tr:hover td { background: transparent; }
+            .orcamento-footer { page-break-inside: avoid; }
         }
     </style>
 </head>
 <body>
     <div class="print-container" id="printContainer">
-        <!-- Barra superior -->
         <div class="seletor-area">
             <span style="font-weight:600; color:#0f172a;">📄 Orçamento</span>
             <span style="flex:1; color:#64748b; font-size:14px;" id="orcamentoInfo">Carregando...</span>
@@ -626,7 +488,6 @@
             <button class="btn btn-outline" onclick="voltar()">⬅️ Voltar</button>
         </div>
 
-        <!-- Conteúdo do orçamento -->
         <div id="orcamentoContent">
             <div class="empty-state">
                 <div class="icone">📄</div>
@@ -636,7 +497,6 @@
             </div>
         </div>
 
-        <!-- Botões de ação -->
         <div class="print-actions" id="printActions" style="display: none;">
             <button class="btn btn-primary" onclick="imprimirPagina()">🖨️ Imprimir Orçamento</button>
             <button class="btn btn-outline" onclick="voltar()">⬅️ Voltar</button>
@@ -646,7 +506,6 @@
     <script>
         let dadosOrcamentoAtual = null;
 
-        // ============ FUNÇÕES ============
         function imprimirPagina() {
             window.print();
         }
@@ -659,7 +518,6 @@
             }
         }
 
-        // ============ RENDERIZAR ORÇAMENTO ============
         function renderizarOrcamento(dados) {
             const container = document.getElementById('orcamentoContent');
             const info = document.getElementById('orcamentoInfo');
@@ -693,7 +551,6 @@
             const dataAtual = new Date(dados.dataCriacao || Date.now()).toLocaleDateString('pt-BR');
             const numeroOrcamento = dados.numero || 'ORC-' + Date.now().toString(36).toUpperCase();
 
-            // Calcular totais
             let totalEquipamentos = 0;
             let totalGeral = 0;
             dados.produtos.forEach(item => {
@@ -701,7 +558,6 @@
                 totalGeral += (item.qtd || 0) * (item.preco || 0);
             });
 
-            // Agrupar por cômodo
             const comodos = {};
             dados.produtos.forEach(item => {
                 const comodo = item.comodo || 'Sem Cômodo';
@@ -709,7 +565,6 @@
                 comodos[comodo].push(item);
             });
 
-            // Montar tabela
             let tableRows = '';
 
             Object.keys(comodos).sort().forEach(comodo => {
@@ -958,11 +813,8 @@
             }
         });
 
-        // Fechar com ESC
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                voltar();
-            }
+            if (e.key === 'Escape') voltar();
         });
     </script>
 </body>

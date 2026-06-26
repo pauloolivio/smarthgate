@@ -36,7 +36,6 @@
             max-height: calc(100vh - 180px);
         }
 
-        /* Seleção do cliente */
         .selecao-cliente {
             background: #ffffff;
             padding: 14px 20px;
@@ -91,7 +90,6 @@
             margin-left: auto;
         }
 
-        /* Catálogo */
         .catalogo-toggle {
             background: #f8fafc;
             border: 1px solid #e9edf2;
@@ -205,12 +203,6 @@
             color: #94a3b8;
         }
 
-        .catalogo-body .item-catalogo .info .detalhe .marca {
-            background: #f1f5f9;
-            padding: 1px 8px;
-            border-radius: 8px;
-        }
-
         .catalogo-body .item-catalogo .acoes-catalogo {
             display: flex;
             align-items: center;
@@ -240,7 +232,6 @@
             background: #4338ca;
         }
 
-        /* Cômodos */
         .comodo-card {
             background: #ffffff;
             border: 1px solid #e9edf2;
@@ -325,7 +316,6 @@
             display: none;
         }
 
-        /* Item do orçamento */
         .item-linha {
             display: flex;
             justify-content: space-between;
@@ -371,12 +361,6 @@
             font-size: 12px;
             color: #94a3b8;
             margin-left: 6px;
-        }
-
-        .item-linha .item-info .detalhe .marca {
-            background: #f1f5f9;
-            padding: 1px 10px;
-            border-radius: 10px;
         }
 
         .item-linha .item-actions {
@@ -455,7 +439,6 @@
             background: #fef2f2;
         }
 
-        /* Adicionar item */
         .add-item-area {
             padding: 10px 12px 4px;
             display: flex;
@@ -512,7 +495,6 @@
             box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
         }
 
-        /* Total geral */
         .total-geral-box {
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             color: white;
@@ -549,7 +531,6 @@
             align-items: center;
         }
 
-        /* Empty state */
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -572,12 +553,11 @@
             font-size: 14px;
         }
 
-        /* Toast */
         .toast-notification {
             position: fixed;
-            bottom: 20px;
+            bottom: 80px;
             right: 20px;
-            padding: 12px 20px;
+            padding: 12px 24px;
             border-radius: 12px;
             font-size: 14px;
             font-family: 'Inter', sans-serif;
@@ -595,7 +575,6 @@
             to { opacity: 1; transform: translateX(0); }
         }
 
-        /* Responsivo */
         @media (max-width: 768px) {
             .page-content {
                 padding: 12px 16px 16px;
@@ -682,7 +661,6 @@
             }
         }
 
-        /* Dark Mode */
         body.dark-mode .page-header {
             background: #1e293b;
             border-color: #334155;
@@ -838,7 +816,6 @@
     </div>
 
     <div class="page-content">
-        <!-- Seleção do Cliente -->
         <div class="selecao-cliente">
             <label>👤 <span>Cliente:</span></label>
             <select id="clienteSelect" onchange="selecionarCliente()">
@@ -851,7 +828,6 @@
             </div>
         </div>
 
-        <!-- CATÁLOGO -->
         <div class="catalogo-toggle" onclick="toggleCatalogo()">
             <div class="left">
                 <span class="icone">📦</span>
@@ -864,19 +840,17 @@
             <div style="text-align: center; padding: 16px; color: #94a3b8;">Carregando produtos...</div>
         </div>
 
-        <!-- Container dos Cômodos -->
         <div id="comodosContainer">
             <div class="empty-state" id="emptyState">
                 <div class="icone">🏗️</div>
                 <h3>Nenhum dado disponível</h3>
-                <p>Cadastre produtos e selecione um cliente para começar</p>
+                <p>Selecione um cliente e adicione produtos ao orçamento</p>
                 <button class="btn btn-primary" style="margin-top: 12px;" onclick="window.parent.navegarPara('produtos')">
                     📦 Ir para Produtos
                 </button>
             </div>
         </div>
 
-        <!-- Total Geral -->
         <div class="total-geral-box" id="totalGeralBox" style="display: none;">
             <div>
                 <div class="label">💰 VALOR TOTAL DO PROJETO</div>
@@ -893,16 +867,13 @@
         // ============ ESTADO GLOBAL ============
         let produtosData = [];
         let clientesData = [];
-        let orcamentoData = {}; // { produtoId: { qtd: number, comodo: string, preco: number, nome: string } }
+        let orcamentoData = {};
         let clienteAtual = null;
-        let produtosPorComodo = {};
 
-        // Chave para salvar no localStorage
         function getStorageKey(clienteId) {
             return `orcamento_comodo_${clienteId}`;
         }
 
-        // ============ ACESSO AO DB ============
         function getDb() {
             try {
                 if (window.parent && window.parent.getDadosGlobais) {
@@ -918,7 +889,6 @@
             }
         }
 
-        // ============ TOAST ============
         function showToast(message, type = 'info') {
             const colors = {
                 success: '#0b9e5e',
@@ -935,24 +905,8 @@
 
             const toast = document.createElement('div');
             toast.className = 'toast-notification';
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 80px;
-                right: 20px;
-                background: ${colors[type] || colors.info};
-                color: white;
-                padding: 12px 24px;
-                border-radius: 12px;
-                font-size: 14px;
-                font-family: 'Inter', sans-serif;
-                box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-                z-index: 9999;
-                max-width: 400px;
-                animation: slideIn 0.3s ease;
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            `;
+            toast.style.background = colors[type] || colors.info;
+            toast.style.color = 'white';
             toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span> ${message}`;
             document.body.appendChild(toast);
 
@@ -967,12 +921,8 @@
         async function carregarDados() {
             try {
                 const db = getDb();
-                if (!db) {
-                    throw new Error('Database não disponível');
-                }
+                if (!db) throw new Error('Database não disponível');
 
-                console.log('🏗️ Carregando dados para orçamento...');
-                
                 const [produtos, clientes] = await Promise.all([
                     db.getProdutos(true),
                     db.getClientes()
@@ -981,12 +931,8 @@
                 produtosData = produtos;
                 clientesData = clientes;
                 
-                console.log(`📦 ${produtosData.length} produtos carregados`);
-                console.log(`👤 ${clientesData.length} clientes carregados`);
-                
                 atualizarSelectClientes();
                 
-                // Carregar orçamento salvo
                 const clienteId = document.getElementById('clienteSelect').value;
                 if (clienteId) {
                     carregarOrcamentoSalvo(clienteId);
@@ -1003,9 +949,6 @@
             } catch (error) {
                 console.error('❌ Erro ao carregar dados:', error);
                 showToast('❌ Erro ao carregar dados: ' + error.message, 'error');
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus('❌ Erro ao carregar dados');
-                }
             }
         }
 
@@ -1070,9 +1013,6 @@
                 const key = getStorageKey(clienteId);
                 localStorage.setItem(key, JSON.stringify(orcamentoData));
                 showToast('💾 Orçamento salvo localmente', 'success');
-                if (window.parent && window.parent.atualizarStatus) {
-                    window.parent.atualizarStatus('💾 Orçamento salvo');
-                }
             } catch (e) {
                 console.error('Erro ao salvar:', e);
                 showToast('❌ Erro ao salvar', 'error');
@@ -1097,9 +1037,6 @@
             renderizarCatalogo();
             renderizarOrcamentoComodo();
             showToast('🗑️ Orçamento limpo', 'info');
-            if (window.parent && window.parent.atualizarStatus) {
-                window.parent.atualizarStatus('🗑️ Orçamento limpo');
-            }
         }
 
         // ============ RENDERIZAR CATÁLOGO ============
@@ -1117,7 +1054,6 @@
 
             let html = '';
             produtosData.forEach(p => {
-                // Verificar quantos já foram usados
                 let usado = 0;
                 Object.values(orcamentoData).forEach(entry => {
                     if (entry.id === p.id && entry.qtd > 0) {
@@ -1133,7 +1069,7 @@
                             <span class="detalhe">
                                 <span class="marca">${p.marca || 'Sem marca'}</span>
                                 ${p.protocolo ? '· ' + p.protocolo : ''}
-                                ${usado > 0 ? `· <strong style="color: #4f46e5;">${usado} já usados</strong>` : ''}
+                                ${usado > 0 ? `· <strong style="color: #4f46e5;">${usado} usados</strong>` : ''}
                             </span>
                         </div>
                         <div class="acoes-catalogo">
@@ -1147,133 +1083,11 @@
             body.innerHTML = html;
         }
 
-        // ============ RENDERIZAR CÔMODOS ============
-        function renderizarOrcamentoComodo() {
-            const container = document.getElementById('comodosContainer');
-            const emptyState = document.getElementById('emptyState');
-
-            // Agrupar itens do orçamento por cômodo
-            const comodosMap = {};
-            Object.values(orcamentoData).forEach(entry => {
-                if (entry && entry.qtd > 0 && entry.comodo) {
-                    if (!comodosMap[entry.comodo]) comodosMap[entry.comodo] = [];
-                    comodosMap[entry.comodo].push(entry);
-                }
-            });
-
-            const comodosOrdenados = Object.keys(comodosMap).sort();
-
-            if (comodosOrdenados.length === 0 || Object.keys(orcamentoData).length === 0) {
-                emptyState.style.display = 'block';
-                container.innerHTML = '';
-                document.getElementById('totalGeralBox').style.display = 'none';
-                return;
-            }
-
-            emptyState.style.display = 'none';
-
-            let totalGeral = 0;
-            let totalItens = 0;
-            let html = '';
-
-            comodosOrdenados.forEach(comodo => {
-                const itens = comodosMap[comodo];
-                let totalComodo = 0;
-
-                html += `
-                    <div class="comodo-card" data-comodo="${comodo.replace(/\s/g, '_')}">
-                        <div class="comodo-header" onclick="toggleComodo(this)">
-                            <div class="left">
-                                <span class="icone-comodo">🏠</span>
-                                <h3>${comodo}</h3>
-                                <span class="badge-itens">${itens.length} itens</span>
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span class="total-comodo" id="total-${comodo.replace(/\s/g, '_')}">R$ 0,00</span>
-                                <span class="toggle-icon">▼</span>
-                            </div>
-                        </div>
-                        <div class="comodo-body">
-                `;
-
-                itens.forEach(entry => {
-                    const total = entry.qtd * (entry.preco || 0);
-                    totalComodo += total;
-                    totalGeral += total;
-                    totalItens += entry.qtd;
-
-                    const key = `${entry.id}_${comodo}`;
-                    const qtdId = `qtd-${entry.id}-${comodo.replace(/\s/g, '_')}`;
-                    const totalId = `total-item-${entry.id}-${comodo.replace(/\s/g, '_')}`;
-
-                    html += `
-                        <div class="item-linha" data-id="${entry.id}" data-comodo="${comodo}">
-                            <div class="item-info">
-                                <span class="dot" style="background: ${entry.cor || '#4f46e5'};"></span>
-                                <span class="nome">${entry.nome}</span>
-                                <span class="detalhe">
-                                    <span class="marca">${entry.marca || 'Sem marca'}</span>
-                                    ${entry.protocolo ? '· ' + entry.protocolo : ''}
-                                </span>
-                            </div>
-                            <div class="item-actions">
-                                <span class="preco-unit">R$ ${(entry.preco || 0).toFixed(2)}</span>
-                                <div class="qtd-control">
-                                    <button onclick="ajustarQuantidade('${entry.id}', '${comodo}', -1)">−</button>
-                                    <span class="qtd-value" id="${qtdId}">${entry.qtd}</span>
-                                    <button onclick="ajustarQuantidade('${entry.id}', '${comodo}', 1)">+</button>
-                                </div>
-                                <span class="total-item" id="${totalId}">R$ ${total.toFixed(2)}</span>
-                                <button class="btn-remover" onclick="removerItemDoComodo('${entry.id}', '${comodo}')" title="Remover">✕</button>
-                            </div>
-                        </div>
-                    `;
-                });
-
-                html += `
-                        <div class="add-item-area">
-                            <label>➕ Adicionar:</label>
-                            <select id="addSelect-${comodo.replace(/\s/g, '_')}">
-                                <option value="">Selecione um produto...</option>
-                                ${produtosData.map(p => `
-                                    <option value="${p.id}">${p.nome || p.dispositivo || 'Sem nome'} (R$ ${(p.preco || 0).toFixed(2)})</option>
-                                `).join('')}
-                            </select>
-                            <button class="btn-add-item" onclick="adicionarItemAoComodo('${comodo}')">
-                                ➕ Adicionar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                `;
-
-                // Atualizar total do cômodo
-                setTimeout(() => {
-                    const el = document.getElementById(`total-${comodo.replace(/\s/g, '_')}`);
-                    if (el) el.textContent = `R$ ${totalComodo.toFixed(2)}`;
-                }, 50);
-            });
-
-            // Total geral
-            const totalGeralBox = document.getElementById('totalGeralBox');
-            if (totalItens > 0) {
-                totalGeralBox.style.display = 'flex';
-                document.getElementById('totalGeralDisplay').textContent = `R$ ${totalGeral.toFixed(2)}`;
-                document.getElementById('totalItensDisplay').textContent = `📦 ${totalItens} itens`;
-                document.getElementById('totalComodosDisplay').textContent = `🏠 ${comodosOrdenados.length} cômodos`;
-            } else {
-                totalGeralBox.style.display = 'none';
-            }
-
-            container.innerHTML = html;
-        }
-
         // ============ ADICIONAR PRODUTO ============
         function adicionarProdutoAoComodo(produtoId) {
             const produto = produtosData.find(p => p.id === produtoId);
             if (!produto) return;
 
-            // Perguntar em qual cômodo adicionar
             const comodo = prompt(`Em qual cômodo deseja adicionar "${produto.nome || produto.dispositivo}"?`, produto.comodo || 'Sala de Estar');
             if (!comodo || comodo.trim() === '') return;
 
@@ -1332,7 +1146,6 @@
             }
 
             select.value = '';
-
             renderizarCatalogo();
             renderizarOrcamentoComodo();
             salvarOrcamentoLocal();
@@ -1344,7 +1157,6 @@
             const key = `${produtoId}_${comodo}`;
             
             if (!orcamentoData[key]) {
-                // Tentar encontrar sem o sufixo
                 const found = Object.keys(orcamentoData).find(k => k.startsWith(produtoId + '_') && orcamentoData[k].comodo === comodo);
                 if (found) {
                     const novaQtd = orcamentoData[found].qtd + delta;
@@ -1354,7 +1166,6 @@
                         orcamentoData[found].qtd = novaQtd;
                     }
                 } else {
-                    // Criar novo
                     const produto = produtosData.find(p => p.id === produtoId);
                     if (produto) {
                         const newKey = `${produtoId}_${comodo}`;
@@ -1383,9 +1194,7 @@
             renderizarOrcamentoComodo();
             
             clearTimeout(window._saveTimeout);
-            window._saveTimeout = setTimeout(() => {
-                salvarOrcamentoLocal();
-            }, 1000);
+            window._saveTimeout = setTimeout(salvarOrcamentoLocal, 1000);
         }
 
         function removerItemDoComodo(produtoId, comodo) {
@@ -1393,11 +1202,8 @@
             if (orcamentoData[key]) {
                 delete orcamentoData[key];
             } else {
-                // Tentar encontrar sem o sufixo
                 const found = Object.keys(orcamentoData).find(k => k.startsWith(produtoId + '_') && orcamentoData[k].comodo === comodo);
-                if (found) {
-                    delete orcamentoData[found];
-                }
+                if (found) delete orcamentoData[found];
             }
 
             renderizarCatalogo();
@@ -1406,25 +1212,205 @@
             showToast('🗑️ Item removido', 'info');
         }
 
+        // ============ RENDERIZAR CÔMODOS ============
+        function renderizarOrcamentoComodo() {
+            const container = document.getElementById('comodosContainer');
+            const emptyState = document.getElementById('emptyState');
+
+            const comodosMap = {};
+            Object.values(orcamentoData).forEach(entry => {
+                if (entry && entry.qtd > 0 && entry.comodo) {
+                    if (!comodosMap[entry.comodo]) comodosMap[entry.comodo] = [];
+                    comodosMap[entry.comodo].push(entry);
+                }
+            });
+
+            const comodosOrdenados = Object.keys(comodosMap).sort();
+
+            if (comodosOrdenados.length === 0 || Object.keys(orcamentoData).length === 0) {
+                emptyState.style.display = 'block';
+                container.innerHTML = '';
+                document.getElementById('totalGeralBox').style.display = 'none';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+
+            let totalGeral = 0;
+            let totalItens = 0;
+            let html = '';
+
+            comodosOrdenados.forEach(comodo => {
+                const itens = comodosMap[comodo];
+                let totalComodo = 0;
+
+                html += `
+                    <div class="comodo-card" data-comodo="${comodo.replace(/\s/g, '_')}">
+                        <div class="comodo-header" onclick="toggleComodo(this)">
+                            <div class="left">
+                                <span class="icone-comodo">🏠</span>
+                                <h3>${comodo}</h3>
+                                <span class="badge-itens">${itens.length} itens</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <span class="total-comodo" id="total-${comodo.replace(/\s/g, '_')}">R$ 0,00</span>
+                                <span class="toggle-icon">▼</span>
+                            </div>
+                        </div>
+                        <div class="comodo-body">
+                `;
+
+                itens.forEach(entry => {
+                    const total = entry.qtd * (entry.preco || 0);
+                    totalComodo += total;
+                    totalGeral += total;
+                    totalItens += entry.qtd;
+
+                    html += `
+                        <div class="item-linha" data-id="${entry.id}" data-comodo="${comodo}">
+                            <div class="item-info">
+                                <span class="dot" style="background: ${entry.cor || '#4f46e5'};"></span>
+                                <span class="nome">${entry.nome}</span>
+                                <span class="detalhe">
+                                    <span class="marca">${entry.marca || 'Sem marca'}</span>
+                                    ${entry.protocolo ? '· ' + entry.protocolo : ''}
+                                </span>
+                            </div>
+                            <div class="item-actions">
+                                <span class="preco-unit">R$ ${(entry.preco || 0).toFixed(2)}</span>
+                                <div class="qtd-control">
+                                    <button onclick="ajustarQuantidade('${entry.id}', '${comodo}', -1)">−</button>
+                                    <span class="qtd-value" id="qtd-${entry.id}-${comodo.replace(/\s/g, '_')}">${entry.qtd}</span>
+                                    <button onclick="ajustarQuantidade('${entry.id}', '${comodo}', 1)">+</button>
+                                </div>
+                                <span class="total-item" id="total-item-${entry.id}-${comodo.replace(/\s/g, '_')}">R$ ${total.toFixed(2)}</span>
+                                <button class="btn-remover" onclick="removerItemDoComodo('${entry.id}', '${comodo}')" title="Remover">✕</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                html += `
+                        <div class="add-item-area">
+                            <label>➕ Adicionar:</label>
+                            <select id="addSelect-${comodo.replace(/\s/g, '_')}">
+                                <option value="">Selecione um produto...</option>
+                                ${produtosData.map(p => `
+                                    <option value="${p.id}">${p.nome || p.dispositivo || 'Sem nome'} (R$ ${(p.preco || 0).toFixed(2)})</option>
+                                `).join('')}
+                            </select>
+                            <button class="btn-add-item" onclick="adicionarItemAoComodo('${comodo}')">
+                                ➕ Adicionar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                `;
+
+                setTimeout(() => {
+                    const el = document.getElementById(`total-${comodo.replace(/\s/g, '_')}`);
+                    if (el) el.textContent = `R$ ${totalComodo.toFixed(2)}`;
+                }, 50);
+            });
+
+            const totalGeralBox = document.getElementById('totalGeralBox');
+            if (totalItens > 0) {
+                totalGeralBox.style.display = 'flex';
+                document.getElementById('totalGeralDisplay').textContent = `R$ ${totalGeral.toFixed(2)}`;
+                document.getElementById('totalItensDisplay').textContent = `📦 ${totalItens} itens`;
+                document.getElementById('totalComodosDisplay').textContent = `🏠 ${comodosOrdenados.length} cômodos`;
+            } else {
+                totalGeralBox.style.display = 'none';
+            }
+
+            container.innerHTML = html;
+        }
+
         // ============ TOGGLE ============
         function toggleCatalogo() {
             const body = document.getElementById('catalogoBody');
             const icon = document.getElementById('catalogoIcon');
             body.classList.toggle('collapsed');
-            if (icon) {
-                icon.classList.toggle('open');
-            }
+            icon.classList.toggle('open');
         }
 
         function toggleComodo(header) {
             const body = header.nextElementSibling;
             const icon = header.querySelector('.toggle-icon');
-            if (body) {
-                body.classList.toggle('collapsed');
-                if (icon) {
-                    icon.classList.toggle('open');
-                }
+            body.classList.toggle('collapsed');
+            icon.classList.toggle('open');
+        }
+
+        // ============ IMPRIMIR ============
+        function imprimirOrcamento() {
+            const clienteId = document.getElementById('clienteSelect').value;
+            const cliente = clientesData.find(c => c.id === clienteId);
+            
+            if (!cliente) {
+                showToast('⚠️ Selecione um cliente primeiro', 'warning');
+                return;
             }
+
+            const itens = Object.values(orcamentoData).filter(e => e && e.qtd > 0);
+            if (itens.length === 0) {
+                showToast('⚠️ Adicione produtos ao orçamento primeiro', 'warning');
+                return;
+            }
+
+            const dadosImpressao = {
+                id: 'ORC-' + Date.now().toString(36).toUpperCase(),
+                cliente: cliente,
+                vendedor: sessionStorage.getItem('userEmail') || 'Não informado',
+                status: 'pendente',
+                produtos: itens.map(e => ({
+                    id: e.id,
+                    nome: e.nome,
+                    marca: e.marca || '',
+                    protocolo: e.protocolo || '',
+                    preco: e.preco || 0,
+                    qtd: e.qtd,
+                    comodo: e.comodo,
+                    cor: e.cor || '#4f46e5'
+                })),
+                condicoes: {
+                    validade: '30 dias',
+                    pagamento: '50% entrada + 50% na entrega',
+                    garantia: '12 meses',
+                    prazo: '15 dias úteis',
+                    observacao: 'Valores sujeitos a alteração conforme cotação do dia'
+                },
+                observacoes: '',
+                empresaNome: 'SmartHome Automação',
+                empresaSub: 'Projetos e instalação de automação residencial',
+                numero: 'ORC-' + Date.now().toString(36).toUpperCase(),
+                valorTotal: itens.reduce((sum, e) => sum + (e.qtd * (e.preco || 0)), 0),
+                dataCriacao: new Date().toISOString()
+            };
+
+            // SALVAR NO LOCALSTORAGE PARA RECUPERAR NA IMPRESSÃO
+            localStorage.setItem('orcamentoPrintData', JSON.stringify(dadosImpressao));
+            
+            // ABRIR A PÁGINA DE IMPRESSÃO
+            if (window.parent && window.parent.navegarPara) {
+                window.parent.navegarPara('orcamento-print');
+                
+                // Enviar dados via postMessage após carregar
+                setTimeout(() => {
+                    const frame = window.parent.document.getElementById('pageFrame');
+                    if (frame && frame.contentWindow) {
+                        frame.contentWindow.postMessage({
+                            type: 'orcamentoData',
+                            dados: dadosImpressao
+                        }, '*');
+                    }
+                }, 800);
+            } else {
+                // Fallback: abrir em nova janela
+                const dadosParam = encodeURIComponent(JSON.stringify(dadosImpressao));
+                window.open(`orcamento-print.html?dados=${dadosParam}`, '_blank');
+            }
+
+            showToast('🖨️ Abrindo impressão do orçamento', 'info');
         }
 
         // ============ EXPORTAR ============
@@ -1434,7 +1420,6 @@
             const clienteNome = cliente ? cliente.nome : 'Cliente não selecionado';
             const dataAtual = new Date().toLocaleString('pt-BR');
 
-            // Agrupar por cômodo
             const comodosMap = {};
             Object.values(orcamentoData).forEach(entry => {
                 if (entry && entry.qtd > 0 && entry.comodo) {
@@ -1518,88 +1503,8 @@
             URL.revokeObjectURL(url);
 
             showToast('📊 Orçamento exportado com sucesso!', 'success');
-            if (window.parent && window.parent.atualizarStatus) {
-                window.parent.atualizarStatus('📊 Orçamento exportado');
-            }
         }
 
-        // ============ IMPRIMIR ============
-        function imprimirOrcamento() {
-            const clienteId = document.getElementById('clienteSelect').value;
-            const cliente = clientesData.find(c => c.id === clienteId);
-            
-            if (!cliente) {
-                showToast('⚠️ Selecione um cliente primeiro', 'warning');
-                return;
-            }
-
-            // Verificar se há itens no orçamento
-            const itens = Object.values(orcamentoData).filter(e => e && e.qtd > 0);
-            if (itens.length === 0) {
-                showToast('⚠️ Adicione produtos ao orçamento primeiro', 'warning');
-                return;
-            }
-
-            // Montar dados para impressão
-            const dadosImpressao = {
-                id: 'ORC-' + Date.now().toString(36).toUpperCase(),
-                cliente: cliente,
-                vendedor: sessionStorage.getItem('userEmail') || 'Não informado',
-                status: 'pendente',
-                produtos: itens.map(e => ({
-                    id: e.id,
-                    nome: e.nome,
-                    marca: e.marca || '',
-                    protocolo: e.protocolo || '',
-                    preco: e.preco || 0,
-                    qtd: e.qtd,
-                    comodo: e.comodo,
-                    cor: e.cor || '#4f46e5'
-                })),
-                condicoes: {
-                    validade: '30 dias',
-                    pagamento: '50% entrada + 50% na entrega',
-                    garantia: '12 meses',
-                    prazo: '15 dias úteis',
-                    observacao: 'Valores sujeitos a alteração conforme cotação do dia'
-                },
-                observacoes: '',
-                empresaNome: 'SmartHome Automação',
-                empresaSub: 'Projetos e instalação de automação residencial',
-                numero: 'ORC-' + Date.now().toString(36).toUpperCase(),
-                valorTotal: itens.reduce((sum, e) => sum + (e.qtd * (e.preco || 0)), 0),
-                dataCriacao: new Date().toISOString()
-            };
-
-            // Salvar no localStorage para recuperar na página de impressão
-            localStorage.setItem('orcamentoPrintData', JSON.stringify(dadosImpressao));
-
-            // Abrir página de impressão
-            if (window.parent && window.parent.navegarPara) {
-                window.parent.navegarPara('orcamento-print');
-                // Aguardar carregamento e enviar dados
-                setTimeout(() => {
-                    const frame = window.parent.document.getElementById('pageFrame');
-                    if (frame && frame.contentWindow) {
-                        frame.contentWindow.postMessage({
-                            type: 'orcamentoData',
-                            dados: dadosImpressao
-                        }, '*');
-                    }
-                }, 500);
-            } else {
-                // Fallback: abrir em nova janela
-                const dadosParam = encodeURIComponent(JSON.stringify(dadosImpressao));
-                window.open(`orcamento-print.html?dados=${dadosParam}`, '_blank');
-            }
-
-            showToast('🖨️ Abrindo impressão do orçamento', 'info');
-            if (window.parent && window.parent.atualizarStatus) {
-                window.parent.atualizarStatus('🖨️ Abrindo impressão');
-            }
-        }
-
-        // ============ NAVEGAÇÃO ============
         function irParaClientes() {
             if (window.parent && window.parent.navegarPara) {
                 window.parent.navegarPara('clientes');
@@ -1609,24 +1514,17 @@
         // ============ INICIALIZAR ============
         document.addEventListener('DOMContentLoaded', function() {
             const isDark = localStorage.getItem('darkMode') === 'true';
-            if (isDark) {
-                document.body.classList.add('dark-mode');
-            }
+            if (isDark) document.body.classList.add('dark-mode');
 
             carregarDados();
             
             setTimeout(() => {
-                document.querySelectorAll('.comodo-body').forEach(body => {
-                    body.classList.remove('collapsed');
-                });
-                document.querySelectorAll('.toggle-icon').forEach(icon => {
-                    icon.classList.add('open');
-                });
+                document.querySelectorAll('.comodo-body').forEach(body => body.classList.remove('collapsed'));
+                document.querySelectorAll('.toggle-icon').forEach(icon => icon.classList.add('open'));
                 document.getElementById('catalogoBody').classList.remove('collapsed');
                 document.getElementById('catalogoIcon').classList.add('open');
             }, 500);
 
-            // Auto-save a cada 30s
             setInterval(() => {
                 const clienteId = document.getElementById('clienteSelect').value;
                 if (clienteId && Object.keys(orcamentoData).length > 0) {
