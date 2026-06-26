@@ -24,7 +24,7 @@
         .page-header p  { color: #64748b; font-size: 14px; }
 
         .page-content {
-            padding: 16px 24px 100px;
+            padding: 16px 24px 24px;
             overflow-y: auto;
             max-height: calc(100vh - 180px);
         }
@@ -74,6 +74,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
         }
         .selecao-cliente .cliente-info .total-cliente {
             font-weight: 700;
@@ -82,6 +83,7 @@
             background: #eef2ff;
             padding: 2px 12px;
             border-radius: 16px;
+            white-space: nowrap;
         }
         .selecao-cliente .cliente-info .total-cliente .valor {
             font-weight: 800;
@@ -289,7 +291,7 @@
         }
         .btn-add-item:hover { background: #4338ca; box-shadow: 0 4px 12px rgba(79,70,229,0.25); }
 
-        /* ===== TOTAL GERAL ===== */
+        /* ===== TOTAL GERAL - FIXO NO FINAL ===== */
         .total-geral-box {
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
             color: white; 
@@ -302,8 +304,6 @@
             gap: 14px; 
             margin-top: 20px;
             box-shadow: 0 8px 30px rgba(79,70,229,0.25);
-            position: sticky; 
-            bottom: 0;
         }
         .total-geral-box .label { font-size: 14px; opacity: 0.85; font-weight: 500; }
         .total-geral-box .valor { font-size: 28px; font-weight: 800; }
@@ -428,7 +428,7 @@
 
         /* ===== RESPONSIVO ===== */
         @media (max-width: 768px) {
-            .page-content { padding: 12px 12px 100px; }
+            .page-content { padding: 12px 12px 24px; }
             .selecao-cliente { flex-direction: column; align-items: stretch; }
             .acoes-rapidas { margin-left: 0; }
             .selecao-cliente .cliente-info { flex-wrap: wrap; justify-content: center; }
@@ -496,7 +496,7 @@
         <!-- CÔMODOS -->
         <div id="comodosContainer"></div>
 
-        <!-- TOTAL GERAL -->
+        <!-- TOTAL GERAL - FIXO NO FINAL DA PÁGINA -->
         <div class="total-geral-box" id="totalGeralBox" style="display:none;">
             <div>
                 <div class="label">💰 VALOR TOTAL DO PROJETO</div>
@@ -585,21 +585,37 @@
     /** Calcula o total do orçamento atual */
     function calcularTotalOrcamento() {
         let total = 0, itens = 0;
+        const comodosSet = new Set();
         Object.values(orcamentoData).forEach(e => {
             if (e && e.qtd > 0) {
                 total += e.qtd * e.preco;
                 itens += e.qtd;
+                if (e.comodo) comodosSet.add(e.comodo);
             }
         });
-        return { total, itens };
+        return { total, itens, comodos: comodosSet.size };
     }
 
     /** Atualiza o total do cliente na label */
     function atualizarTotalCliente() {
-        const { total, itens } = calcularTotalOrcamento();
+        const { total } = calcularTotalOrcamento();
         const totalEl = document.getElementById('clienteTotalValor');
         if (totalEl) {
             totalEl.textContent = fmtBRL(total);
+        }
+    }
+
+    /** Atualiza o total geral no final da página */
+    function atualizarTotalGeral() {
+        const { total, itens, comodos } = calcularTotalOrcamento();
+        const box = document.getElementById('totalGeralBox');
+        if (itens > 0) {
+            box.style.display = 'flex';
+            document.getElementById('totalValor').textContent   = fmtBRL(total);
+            document.getElementById('totalItens').textContent   = `📦 ${itens} ${itens===1?'item':'itens'}`;
+            document.getElementById('totalComodos').textContent  = `🏠 ${comodos} ${comodos===1?'cômodo':'cômodos'}`;
+        } else {
+            box.style.display = 'none';
         }
     }
 
@@ -634,6 +650,7 @@
             renderCatalogo();
             renderComodos();
             atualizarTotalCliente();
+            atualizarTotalGeral();
 
             showToast(`✅ ${produtosData.length} produtos · ${clientesData.length} clientes`, 'success');
             if (window.parent && window.parent.atualizarStatus) {
@@ -672,6 +689,7 @@
             }
             console.log(`📂 Orçamento carregado: ${Object.keys(orcamentoData).length} itens`);
             atualizarTotalCliente();
+            atualizarTotalGeral();
         } catch (err) {
             console.error('❌ carregarOrcamento:', err);
             orcamentoData = {};
@@ -714,6 +732,7 @@
         _autoSave = setTimeout(() => {
             salvarNoFirebase();
             atualizarTotalCliente();
+            atualizarTotalGeral();
         }, 1200);
     }
 
@@ -721,6 +740,7 @@
         clearTimeout(_autoSave);
         await salvarNoFirebase();
         atualizarTotalCliente();
+        atualizarTotalGeral();
         showToast('💾 Orçamento salvo!', 'success');
     }
 
@@ -736,6 +756,7 @@
             renderCatalogo();
             renderComodos();
             atualizarTotalCliente();
+            atualizarTotalGeral();
             showToast('🗑️ Orçamento limpo', 'info');
         } catch (err) {
             showToast('❌ Erro ao limpar: ' + err.message, 'error');
@@ -775,6 +796,7 @@
         renderCatalogo();
         renderComodos();
         atualizarTotalCliente();
+        atualizarTotalGeral();
     }
 
     // =============================================
@@ -837,7 +859,6 @@
                         📦 Ir para Produtos
                     </button>
                 </div>`;
-            document.getElementById('totalGeralBox').style.display = 'none';
             return;
         }
 
@@ -920,16 +941,6 @@
         });
 
         container.innerHTML = html;
-
-        const box = document.getElementById('totalGeralBox');
-        if (totalItens > 0) {
-            box.style.display = 'flex';
-            document.getElementById('totalValor').textContent  = fmtBRL(totalGeral);
-            document.getElementById('totalItens').textContent  = `📦 ${totalItens} ${totalItens===1?'item':'itens'}`;
-            document.getElementById('totalComodos').textContent = `🏠 ${comodos.length} cômodos`;
-        } else {
-            box.style.display = 'none';
-        }
     }
 
     // =============================================
@@ -966,10 +977,10 @@
             }
 
             renderCatalogo();
-            atualizarTotalGeral();
         }
 
         atualizarTotalCliente();
+        atualizarTotalGeral();
         agendarSalvamento();
     }
 
@@ -980,6 +991,7 @@
         renderCatalogo();
         renderComodos();
         atualizarTotalCliente();
+        atualizarTotalGeral();
         agendarSalvamento();
         showToast(`🗑️ Item removido do ${comodo}`, 'info');
     }
@@ -1007,6 +1019,7 @@
         renderCatalogo();
         renderComodos();
         atualizarTotalCliente();
+        atualizarTotalGeral();
         agendarSalvamento();
         showToast(`✅ ${produto.nome || produto.dispositivo} adicionado ao ${comodo}`, 'success');
     }
@@ -1094,6 +1107,7 @@
         renderCatalogo();
         renderComodos();
         atualizarTotalCliente();
+        atualizarTotalGeral();
         agendarSalvamento();
         showToast(`✅ ${qtd}× ${produtoModal.nome || produtoModal.dispositivo} → ${comodo}`, 'success');
     }
@@ -1112,32 +1126,6 @@
         const icon = header.querySelector('.toggle-icon');
         if (body) body.classList.toggle('collapsed');
         if (icon) icon.classList.toggle('open');
-    }
-
-    // =============================================
-    //  TOTAL GERAL
-    // =============================================
-
-    function atualizarTotalGeral() {
-        let total = 0, itens = 0;
-        const comodosSet = new Set();
-        Object.values(orcamentoData).forEach(e => {
-            if (e && e.qtd > 0) {
-                total += e.qtd * e.preco;
-                itens += e.qtd;
-                comodosSet.add(e.comodo);
-            }
-        });
-
-        const box = document.getElementById('totalGeralBox');
-        if (itens > 0) {
-            box.style.display = 'flex';
-            document.getElementById('totalValor').textContent   = fmtBRL(total);
-            document.getElementById('totalItens').textContent   = `📦 ${itens} ${itens===1?'item':'itens'}`;
-            document.getElementById('totalComodos').textContent  = `🏠 ${comodosSet.size} cômodos`;
-        } else {
-            box.style.display = 'none';
-        }
     }
 
     // =============================================
@@ -1258,6 +1246,7 @@
             if (clienteId && Object.keys(orcamentoData).length > 0) {
                 salvarNoFirebase();
                 atualizarTotalCliente();
+                atualizarTotalGeral();
             }
         }, 30000);
 
