@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orçamento - SmartHome</title>
+    <title>Impressão de Orçamento - SmartHome</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -402,48 +402,19 @@
             transform: translateY(-2px);
         }
 
-        .seletor-area {
-            padding: 16px 40px;
-            background: #ffffff;
-            border-bottom: 2px solid #e9edf2;
-            display: flex;
-            gap: 16px;
-            align-items: center;
-            flex-wrap: wrap;
+        .loading-spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid #e9edf2;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
         }
 
-        .seletor-area .btn {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'Segoe UI', sans-serif;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .seletor-area .btn-success {
-            background: #0b9e5e;
-            color: white;
-        }
-
-        .seletor-area .btn-success:hover {
-            background: #059669;
-            transform: translateY(-1px);
-        }
-
-        .seletor-area .btn-outline {
-            background: transparent;
-            border: 2px solid #cbd5e1;
-            color: #334155;
-        }
-
-        .seletor-area .btn-outline:hover {
-            background: #f1f5f9;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         @media (max-width: 768px) {
@@ -454,7 +425,6 @@
             .cliente-area { padding: 20px; grid-template-columns: 1fr; gap: 10px; }
             .condicoes-area { padding: 16px 20px; flex-direction: column; gap: 8px; }
             .vendedor-area { padding: 12px 20px; flex-wrap: wrap; }
-            .seletor-area { padding: 14px 20px; flex-direction: column; align-items: stretch; }
             .table-wrapper { padding: 15px 12px; }
             .totais-area { padding: 15px 20px; justify-content: center; }
             .observacoes-area { padding: 14px 20px 20px; }
@@ -470,57 +440,80 @@
             body { background: white; padding: 0; }
             .print-container { box-shadow: none; border-radius: 0; }
             .print-actions { display: none !important; }
-            .seletor-area { display: none !important; }
             .orcamento-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .status { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .protocolo-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
             .table-wrapper table tr:hover td { background: transparent; }
             .orcamento-footer { page-break-inside: avoid; }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
 <body>
     <div class="print-container" id="printContainer">
-        <div class="seletor-area">
-            <span style="font-weight:600; color:#0f172a;">📄 Orçamento</span>
-            <span style="flex:1; color:#64748b; font-size:14px;" id="orcamentoInfo">Carregando...</span>
-            <button class="btn btn-success" onclick="imprimirPagina()">🖨️ Imprimir</button>
-            <button class="btn btn-outline" onclick="voltar()">⬅️ Voltar</button>
-        </div>
-
+        <!-- CONTEÚDO DO ORÇAMENTO -->
         <div id="orcamentoContent">
-            <div class="empty-state">
-                <div class="icone">📄</div>
-                <h3>Nenhum orçamento carregado</h3>
-                <p>Clique em "Imprimir" na página de orçamento por cômodo para gerar a impressão.</p>
-                <button class="btn" onclick="voltar()">🏗️ Ir para Orçamento</button>
+            <div class="empty-state" id="loadingState">
+                <div class="loading-spinner"></div>
+                <h3 style="margin-top: 16px;">Carregando orçamento...</h3>
+                <p>Aguarde um momento</p>
             </div>
         </div>
 
-        <div class="print-actions" id="printActions" style="display: none;">
-            <button class="btn btn-primary" onclick="imprimirPagina()">🖨️ Imprimir Orçamento</button>
-            <button class="btn btn-outline" onclick="voltar()">⬅️ Voltar</button>
+        <!-- BOTÕES DE AÇÃO (não aparecem na impressão) -->
+        <div class="print-actions no-print" id="printActions" style="display: none;">
+            <button class="btn btn-primary" onclick="window.print()">🖨️ Imprimir</button>
+            <button class="btn btn-outline" onclick="window.close()">✕ Fechar</button>
         </div>
     </div>
 
     <script>
-        let dadosOrcamentoAtual = null;
+        // ============ FUNÇÃO PRINCIPAL ============
+        function carregarDadosEImprimir() {
+            try {
+                // Busca os dados do localStorage
+                const dadosJson = localStorage.getItem('orcamentoParaImprimir');
+                
+                if (!dadosJson) {
+                    document.getElementById('loadingState').innerHTML = `
+                        <div class="icone" style="font-size:64px; margin-bottom:16px;">⚠️</div>
+                        <h3>Nenhum orçamento encontrado</h3>
+                        <p>Volte para a página de orçamento e clique em "Imprimir" novamente.</p>
+                        <button class="btn" onclick="window.close()" style="margin-top:12px; padding:10px 24px; border:none; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; background:#4f46e5; color:white;">Fechar</button>
+                    `;
+                    document.getElementById('printActions').style.display = 'none';
+                    return;
+                }
 
-        function imprimirPagina() {
-            window.print();
-        }
+                const dados = JSON.parse(dadosJson);
+                renderizarOrcamento(dados);
+                
+                // Limpa o localStorage após carregar
+                localStorage.removeItem('orcamentoParaImprimir');
 
-        function voltar() {
-            if (window.parent && window.parent.navegarPara) {
-                window.parent.navegarPara('orcamento-comodo');
-            } else {
-                window.location.href = 'orcamento-comodo.html';
+                // Mostra os botões de ação
+                document.getElementById('printActions').style.display = 'flex';
+
+                // Dispara a impressão automaticamente após 1 segundo
+                setTimeout(() => {
+                    window.print();
+                }, 1000);
+
+            } catch (error) {
+                console.error('Erro ao carregar dados:', error);
+                document.getElementById('loadingState').innerHTML = `
+                    <div class="icone" style="font-size:64px; margin-bottom:16px;">❌</div>
+                    <h3>Erro ao carregar orçamento</h3>
+                    <p>${error.message || 'Tente novamente'}</p>
+                    <button class="btn" onclick="window.close()" style="margin-top:12px; padding:10px 24px; border:none; border-radius:8px; font-size:14px; font-weight:500; cursor:pointer; background:#dc2626; color:white;">Fechar</button>
+                `;
+                document.getElementById('printActions').style.display = 'none';
             }
         }
 
+        // ============ RENDERIZAR ORÇAMENTO ============
         function renderizarOrcamento(dados) {
             const container = document.getElementById('orcamentoContent');
-            const info = document.getElementById('orcamentoInfo');
 
             if (!dados || !dados.produtos || dados.produtos.length === 0) {
                 container.innerHTML = `
@@ -528,11 +521,10 @@
                         <div class="icone">📦</div>
                         <h3>Orçamento sem produtos</h3>
                         <p>Adicione produtos ao orçamento na página de orçamento por cômodo.</p>
-                        <button class="btn" onclick="voltar()">🏗️ Ir para Orçamento</button>
+                        <button class="btn" onclick="window.close()">Fechar</button>
                     </div>
                 `;
                 document.getElementById('printActions').style.display = 'none';
-                if (info) info.textContent = 'Nenhum produto';
                 return;
             }
 
@@ -612,8 +604,6 @@
                 'pendente': '⏳ Pendente',
                 'cancelado': '❌ Cancelado'
             };
-
-            if (info) info.textContent = `${cliente.nome} - R$ ${totalGeral.toFixed(2)} (${dados.produtos.length} itens)`;
 
             const html = `
                 <div class="orcamento-header">
@@ -750,71 +740,32 @@
             `;
 
             container.innerHTML = html;
-            document.getElementById('printActions').style.display = 'flex';
         }
-
-        // ============ CARREGAR DADOS ============
-        function carregarDadosDoLocalStorage() {
-            try {
-                const saved = localStorage.getItem('orcamentoPrintData');
-                if (saved) {
-                    const dados = JSON.parse(saved);
-                    dadosOrcamentoAtual = dados;
-                    renderizarOrcamento(dados);
-                    return true;
-                }
-                return false;
-            } catch (e) {
-                console.error('Erro ao carregar dados:', e);
-                return false;
-            }
-        }
-
-        // ============ LISTENERS ============
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.type === 'orcamentoData') {
-                dadosOrcamentoAtual = event.data.dados;
-                renderizarOrcamento(dadosOrcamentoAtual);
-                localStorage.setItem('orcamentoPrintData', JSON.stringify(dadosOrcamentoAtual));
-            }
-        });
 
         // ============ INICIALIZAR ============
         document.addEventListener('DOMContentLoaded', function() {
-            // Tentar carregar do localStorage
-            if (!carregarDadosDoLocalStorage()) {
-                // Verificar se veio via URL
-                const params = new URLSearchParams(window.location.search);
-                const dadosParam = params.get('dados');
-                if (dadosParam) {
-                    try {
-                        const dados = JSON.parse(decodeURIComponent(dadosParam));
-                        dadosOrcamentoAtual = dados;
-                        renderizarOrcamento(dados);
-                        localStorage.setItem('orcamentoPrintData', JSON.stringify(dados));
-                    } catch (e) {
-                        console.error('Erro ao ler dados da URL:', e);
-                    }
+            // Verifica se veio via URL (fallback)
+            const params = new URLSearchParams(window.location.search);
+            const dadosParam = params.get('dados');
+            
+            if (dadosParam) {
+                try {
+                    const dados = JSON.parse(decodeURIComponent(dadosParam));
+                    localStorage.setItem('orcamentoParaImprimir', JSON.stringify(dados));
+                } catch (e) {
+                    console.error('Erro ao ler dados da URL:', e);
                 }
             }
 
-            // Se ainda não carregou, tentar buscar do parent
-            if (!dadosOrcamentoAtual && window.parent) {
-                setTimeout(() => {
-                    try {
-                        const frame = window.parent.document.getElementById('pageFrame');
-                        if (frame && frame.contentWindow) {
-                            frame.contentWindow.postMessage({ type: 'getOrcamentoData' }, '*');
-                        }
-                    } catch (e) {
-                        console.log('Não foi possível comunicar com o parent');
-                    }
-                }, 500);
-            }
+            // Carrega os dados e inicia a impressão
+            carregarDadosEImprimir();
         });
 
+        // Tecla ESC fecha a janela
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') voltar();
+            if (e.key === 'Escape') {
+                window.close();
+            }
         });
     </script>
 </body>

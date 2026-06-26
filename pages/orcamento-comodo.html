@@ -6,6 +6,7 @@
     <title>Orçamento por Cômodo</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
+        /* ... (mesmo CSS anterior, mantido) ... */
         .page-header {
             padding: 16px 24px;
             background: #f8fafc;
@@ -1341,7 +1342,7 @@
             icon.classList.toggle('open');
         }
 
-        // ============ IMPRIMIR ============
+        // ============ IMPRIMIR - ABRE EM NOVA ABA ============
         function imprimirOrcamento() {
             const clienteId = document.getElementById('clienteSelect').value;
             const cliente = clientesData.find(c => c.id === clienteId);
@@ -1387,30 +1388,16 @@
                 dataCriacao: new Date().toISOString()
             };
 
-            // SALVAR NO LOCALSTORAGE PARA RECUPERAR NA IMPRESSÃO
-            localStorage.setItem('orcamentoPrintData', JSON.stringify(dadosImpressao));
+            // Salva no localStorage para a página de impressão ler
+            localStorage.setItem('orcamentoParaImprimir', JSON.stringify(dadosImpressao));
             
-            // ABRIR A PÁGINA DE IMPRESSÃO
-            if (window.parent && window.parent.navegarPara) {
-                window.parent.navegarPara('orcamento-print');
-                
-                // Enviar dados via postMessage após carregar
-                setTimeout(() => {
-                    const frame = window.parent.document.getElementById('pageFrame');
-                    if (frame && frame.contentWindow) {
-                        frame.contentWindow.postMessage({
-                            type: 'orcamentoData',
-                            dados: dadosImpressao
-                        }, '*');
-                    }
-                }, 800);
-            } else {
-                // Fallback: abrir em nova janela
-                const dadosParam = encodeURIComponent(JSON.stringify(dadosImpressao));
-                window.open(`orcamento-print.html?dados=${dadosParam}`, '_blank');
-            }
+            // ABRE EM NOVA ABA (FORA DO IFRAME)
+            window.open('pages/orcamento-print.html', '_blank');
 
-            showToast('🖨️ Abrindo impressão do orçamento', 'info');
+            showToast('🖨️ Abrindo impressão em nova aba', 'info');
+            if (window.parent && window.parent.atualizarStatus) {
+                window.parent.atualizarStatus('🖨️ Abrindo impressão em nova aba');
+            }
         }
 
         // ============ EXPORTAR ============
