@@ -14,11 +14,13 @@
 
         .page-header h2 {
             color: #0f172a;
+            margin: 0;
         }
 
         .page-header p {
             color: #64748b;
             font-size: 14px;
+            margin: 4px 0 0;
         }
 
         .dashboard-grid {
@@ -98,7 +100,7 @@
         .dashboard-content h2 {
             color: #0f172a;
             font-size: 18px;
-            margin-bottom: 16px;
+            margin: 0 0 16px;
         }
 
         .dashboard-content .section-header {
@@ -142,6 +144,7 @@
             background: #f8fafc;
             border-radius: 8px;
             padding: 0;
+            margin: 0;
         }
 
         .lista-ultimos li {
@@ -182,6 +185,7 @@
             padding: 1px 10px;
             border-radius: 12px;
             margin-left: 8px;
+            display: inline-block;
         }
 
         .badge-status {
@@ -225,13 +229,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        .dashboard-grid-dois {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            padding: 0 24px 24px;
-        }
-
         .card-status-resumo {
             background: #ffffff;
             border: 1px solid #e9edf2;
@@ -243,7 +240,7 @@
             font-size: 14px;
             color: #64748b;
             font-weight: 600;
-            margin-bottom: 12px;
+            margin: 0 0 12px;
         }
 
         .card-status-resumo .status-item {
@@ -270,6 +267,7 @@
             height: 8px;
             border-radius: 50%;
             display: inline-block;
+            flex-shrink: 0;
         }
 
         .card-status-resumo .status-item .dot.aprovado { background: #0b9e5e; }
@@ -282,31 +280,227 @@
             color: #0f172a;
         }
 
-        @media (max-width: 768px) {
+        /* Status Resumo - layout responsivo */
+        .status-resumo-wrapper {
+            padding: 0 24px 24px;
+            max-width: 500px;
+        }
+
+        /* ===== RESPONSIVIDADE ===== */
+        @media (max-width: 1024px) {
             .dashboard-grid {
-                grid-template-columns: 1fr 1fr;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 14px;
+                padding: 20px;
+            }
+
+            .card-dashboard .numero {
+                font-size: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                padding: 12px 16px;
+            }
+
+            .page-header h2 {
+                font-size: 20px;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: repeat(2, 1fr);
                 padding: 16px;
                 gap: 12px;
+            }
+
+            .card-dashboard {
+                padding: 14px 16px;
             }
 
             .card-dashboard .numero {
                 font-size: 20px;
             }
 
-            .dashboard-grid-dois {
-                grid-template-columns: 1fr;
-                padding: 0 16px 16px;
+            .card-dashboard .icone {
+                font-size: 20px;
+            }
+
+            .dashboard-content {
+                padding: 16px;
+            }
+
+            .dashboard-content h2 {
+                font-size: 16px;
+            }
+
+            .dashboard-content .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .dashboard-content .section-header .filtros {
+                width: 100%;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 4px;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .dashboard-content .section-header .filtros .btn-filtro {
+                white-space: nowrap;
+                font-size: 11px;
+                padding: 4px 12px;
             }
 
             .lista-ultimos li {
                 flex-direction: column;
                 align-items: flex-start;
+                padding: 10px 14px;
+            }
+
+            .lista-ultimos .valor {
+                align-self: flex-end;
+                margin-top: 4px;
+            }
+
+            .lista-ultimos .cliente {
+                font-size: 14px;
+            }
+
+            .lista-ultimos .comodos-badge {
+                margin-left: 4px;
+                font-size: 10px;
+                padding: 1px 8px;
+            }
+
+            .badge-status {
+                font-size: 10px;
+                padding: 1px 10px;
+            }
+
+            .status-resumo-wrapper {
+                padding: 0 16px 16px;
+            }
+
+            .card-status-resumo {
+                padding: 14px 16px;
+            }
+
+            .card-status-resumo h3 {
+                font-size: 13px;
+            }
+
+            .card-status-resumo .status-item {
+                font-size: 12px;
+                padding: 5px 0;
             }
         }
 
         @media (max-width: 480px) {
+            .page-header h2 {
+                font-size: 18px;
+            }
+
+            .page-header p {
+                font-size: 12px;
+            }
+
             .dashboard-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .card-dashboard {
+                padding: 12px 14px;
+            }
+
+            .card-dashboard .numero {
+                font-size: 18px;
+            }
+
+            .card-dashboard .label {
+                font-size: 10px;
+            }
+
+            .card-dashboard .icone {
+                font-size: 18px;
+            }
+
+            .dashboard-content {
+                padding: 12px;
+            }
+
+            .dashboard-content h2 {
+                font-size: 15px;
+            }
+
+            .lista-ultimos li {
+                padding: 8px 12px;
+                font-size: 13px;
+            }
+
+            .lista-ultimos .comodos-badge {
+                font-size: 9px;
+                padding: 0 6px;
+            }
+
+            .badge-status {
+                font-size: 9px;
+                padding: 1px 8px;
+            }
+
+            .status-resumo-wrapper {
+                padding: 0 12px 12px;
+            }
+
+            .card-status-resumo {
+                padding: 12px 14px;
+            }
+
+            .card-status-resumo h3 {
+                font-size: 12px;
+            }
+
+            .card-status-resumo .status-item {
+                font-size: 11px;
+                padding: 4px 0;
+            }
+
+            .card-status-resumo .status-item .dot {
+                width: 6px;
+                height: 6px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                padding: 8px;
+            }
+
+            .card-dashboard {
+                padding: 10px 12px;
+                border-radius: 8px;
+            }
+
+            .card-dashboard .numero {
+                font-size: 16px;
+            }
+
+            .card-dashboard .label {
+                font-size: 9px;
+            }
+
+            .card-dashboard .icone {
+                font-size: 16px;
+            }
+
+            .dashboard-content .section-header .filtros .btn-filtro {
+                font-size: 10px;
+                padding: 3px 10px;
             }
         }
 
@@ -403,6 +597,10 @@
             border-color: #4f46e5;
             color: white;
         }
+
+        body.dark-mode .dashboard-content .section-header .filtros .btn-filtro:hover {
+            background: #334155;
+        }
     </style>
 </head>
 <body>
@@ -436,7 +634,7 @@
     </div>
 
     <!-- Resumo por Status -->
-    <div class="dashboard-grid-dois">
+    <div class="status-resumo-wrapper">
         <div class="card-status-resumo">
             <h3>📋 Orçamentos por Status</h3>
             <div id="statusResumo">
@@ -458,14 +656,6 @@
                 </div>
             </div>
         </div>
-        <div class="card-status-resumo">
-            <h3>🏠 Orçamentos por Cômodo</h3>
-            <div id="comodoResumo">
-                <div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">
-                    <span class="loading-spinner"></span> Carregando...
-                </div>
-            </div>
-        </div>
     </div>
 
     <!-- Últimos Orçamentos -->
@@ -481,7 +671,7 @@
             </div>
         </div>
         <ul class="lista-ultimos" id="ultimosOrcamentos">
-            <li style="text-align: center; color: #94a3b8; padding: 24px;">
+            <li style="text-align: center; color: #94a3b8; padding: 24px; justify-content: center;">
                 <span class="loading-spinner"></span> Carregando...
             </li>
         </ul>
@@ -591,9 +781,6 @@
                 document.getElementById('statusFinalizado').textContent = statusCount.finalizado;
                 document.getElementById('statusCancelado').textContent = statusCount.cancelado;
 
-                // ===== CÔMODO RESUME =====
-                await carregarResumoComodos(db, clientes);
-
                 // ===== ÚLTIMOS ORÇAMENTOS =====
                 aplicarFiltro();
 
@@ -606,7 +793,7 @@
             } catch (error) {
                 console.error('❌ Erro ao carregar dashboard:', error);
                 document.getElementById('ultimosOrcamentos').innerHTML = `
-                    <li style="text-align: center; color: #dc2626; padding: 24px;">
+                    <li style="text-align: center; color: #dc2626; padding: 24px; justify-content: center;">
                         ❌ Erro ao carregar dados: ${error.message}
                     </li>
                 `;
@@ -616,12 +803,10 @@
         // ============ CARREGAR ORÇAMENTOS COM STATUS ============
         async function carregarOrcamentosComStatus(db) {
             try {
-                // Buscar todos os clientes
                 const clientes = await db.getClientes();
                 const orcamentos = [];
 
                 for (const cliente of clientes) {
-                    // Buscar orçamento por cômodo do cliente
                     const data = await db.getOrcamentoComodo(cliente.id);
                     
                     if (data && Object.keys(data).length > 0) {
@@ -638,16 +823,13 @@
                         });
 
                         if (total > 0) {
-                            // Buscar status do orçamento (salvo separadamente ou usar pendente como padrão)
                             let status = 'pendente';
                             try {
                                 const orcStatus = await db.getOrcamentoStatus(cliente.id);
                                 if (orcStatus && orcStatus.status) {
                                     status = orcStatus.status;
                                 }
-                            } catch (e) {
-                                // Se não houver status, usar pendente
-                            }
+                            } catch (e) {}
 
                             orcamentos.push({
                                 clienteId: cliente.id,
@@ -663,9 +845,7 @@
                     }
                 }
 
-                // Ordenar por data de criação (mais recentes primeiro)
                 orcamentos.sort((a, b) => new Date(b.dataCriacao) - new Date(a.dataCriacao));
-                
                 return orcamentos;
             } catch (error) {
                 console.error('❌ Erro ao carregar orçamentos:', error);
@@ -673,77 +853,10 @@
             }
         }
 
-        // ============ CARREGAR RESUMO POR CÔMODO ============
-        async function carregarResumoComodos(db, clientes) {
-            const container = document.getElementById('comodoResumo');
-            
-            try {
-                const comodoData = {};
-
-                for (const cliente of clientes) {
-                    const data = await db.getOrcamentoComodo(cliente.id);
-                    if (data && Object.keys(data).length > 0) {
-                        let total = 0;
-                        let itens = 0;
-                        const comodosSet = new Set();
-
-                        Object.values(data).forEach(entry => {
-                            if (entry && entry.qtd > 0) {
-                                total += (entry.qtd || 0) * (entry.preco || 0);
-                                itens += entry.qtd || 0;
-                                if (entry.comodo) comodosSet.add(entry.comodo);
-                            }
-                        });
-
-                        if (total > 0) {
-                            comodoData[cliente.id] = {
-                                total: total,
-                                itens: itens,
-                                comodos: comodosSet.size,
-                                clienteNome: cliente.nome
-                            };
-                        }
-                    }
-                }
-
-                const sorted = Object.entries(comodoData)
-                    .sort((a, b) => b[1].total - a[1].total)
-                    .slice(0, 5);
-
-                if (sorted.length === 0) {
-                    container.innerHTML = `
-                        <div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">
-                            📭 Nenhum orçamento por cômodo encontrado.
-                        </div>
-                    `;
-                } else {
-                    container.innerHTML = sorted.map(([clienteId, data]) => `
-                        <div class="status-item">
-                            <span class="label">
-                                <span>🏠 ${data.clienteNome || clienteId}</span>
-                                <span style="font-size:11px;color:#94a3b8;margin-left:4px;">
-                                    (${data.comodos} cômodos, ${data.itens} itens)
-                                </span>
-                            </span>
-                            <span class="count">${fmtBRL(data.total)}</span>
-                        </div>
-                    `).join('');
-                }
-            } catch (error) {
-                console.error('❌ Erro ao carregar resumo por cômodo:', error);
-                container.innerHTML = `
-                    <div style="text-align:center;color:#dc2626;padding:20px;font-size:13px;">
-                        ❌ Erro ao carregar dados
-                    </div>
-                `;
-            }
-        }
-
         // ============ FILTRAR ORÇAMENTOS ============
         function filtrarOrcamentos(status) {
             filtroAtual = status;
             
-            // Atualizar botões
             document.querySelectorAll('.btn-filtro').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.status === status);
             });
@@ -764,7 +877,7 @@
                 const msg = filtroAtual === 'todos' ? 'Nenhum orçamento cadastrado ainda.' : 
                     `Nenhum orçamento ${filtroAtual} encontrado.`;
                 lista.innerHTML = `
-                    <li style="text-align: center; color: #94a3b8; padding: 24px;">
+                    <li style="text-align: center; color: #94a3b8; padding: 24px; justify-content: center;">
                         📭 ${msg}
                     </li>
                 `;
@@ -792,14 +905,12 @@
                 const db = getDb();
                 if (!db) return;
 
-                // Escutar mudanças em orcamentos_comodo
                 const ref = db.database.ref('orcamentos_comodo');
                 ref.on('value', () => {
                     console.log('🔄 Mudança detectada em orcamentos_comodo, recarregando...');
                     carregarDashboard();
                 });
 
-                // Escutar mudanças em orcamentos_status
                 const refStatus = db.database.ref('orcamentos_status');
                 refStatus.on('value', () => {
                     console.log('🔄 Mudança detectada em orcamentos_status, recarregando...');
@@ -819,15 +930,12 @@
                 document.body.classList.add('dark-mode');
             }
 
-            // Carregar dados
             carregarDashboard();
 
-            // Configurar escuta de mudanças
             setTimeout(() => {
                 escutarMudancas();
             }, 2000);
 
-            // Recarregar a cada 30 segundos (fallback)
             setInterval(carregarDashboard, 30000);
         });
     </script>
