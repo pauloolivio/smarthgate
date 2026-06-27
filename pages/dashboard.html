@@ -155,12 +155,79 @@
             color: #0f172a;
         }
 
-        /* ===== LISTA ÚLTIMOS ORÇAMENTOS COM ROLAGEM ===== */
-        .lista-ultimos-wrapper {
-            max-height: 300px;
+        /* ===== SEÇÃO ÚLTIMOS ORÇAMENTOS ===== */
+        .dashboard-content {
+            padding: 0 24px 24px;
+        }
+
+        .dashboard-content .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .dashboard-content .section-header h2 {
+            color: #0f172a;
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .dashboard-content .section-header .filtros {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-content .section-header .filtros .btn-filtro {
+            padding: 4px 14px;
+            border: 1px solid #e9edf2;
+            border-radius: 20px;
+            font-size: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            color: #64748b;
+        }
+
+        .dashboard-content .section-header .filtros .btn-filtro:hover {
+            background: #f1f5f9;
+        }
+
+        .dashboard-content .section-header .filtros .btn-filtro.active {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: white;
+        }
+
+        /* ===== LISTA COM ROLAGEM ===== */
+        .lista-ultimos-container {
+            background: #ffffff;
+            border: 1px solid #e9edf2;
+            border-radius: 12px;
+            overflow: hidden;
+            max-height: 320px;
             overflow-y: auto;
-            border-radius: 8px;
-            background: #f8fafc;
+        }
+
+        .lista-ultimos-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .lista-ultimos-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .lista-ultimos-container::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+
+        .lista-ultimos-container::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         .lista-ultimos {
@@ -229,44 +296,6 @@
         .badge-status.cancelado { background: #fee2e2; color: #991b1b; }
         .badge-status.finalizado { background: #e0e7ff; color: #3730a3; }
 
-        /* ===== FILTROS ===== */
-        .dashboard-content .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .dashboard-content .section-header .filtros {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .dashboard-content .section-header .filtros .btn-filtro {
-            padding: 4px 14px;
-            border: 1px solid #e9edf2;
-            border-radius: 20px;
-            font-size: 12px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'Inter', sans-serif;
-            color: #64748b;
-        }
-
-        .dashboard-content .section-header .filtros .btn-filtro:hover {
-            background: #f1f5f9;
-        }
-
-        .dashboard-content .section-header .filtros .btn-filtro.active {
-            background: #4f46e5;
-            border-color: #4f46e5;
-            color: white;
-        }
-
         /* ===== LOADING ===== */
         .loading-spinner {
             display: inline-block;
@@ -282,19 +311,6 @@
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
-        }
-
-        /* ===== EMPTY STATE ===== */
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #94a3b8;
-        }
-
-        .empty-state .icone {
-            font-size: 48px;
-            opacity: 0.5;
-            margin-bottom: 12px;
         }
 
         /* ===== DARK MODE ===== */
@@ -320,8 +336,21 @@
             color: #64748b;
         }
 
-        body.dark-mode .lista-ultimos-wrapper {
+        body.dark-mode .lista-ultimos-container {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .lista-ultimos-container::-webkit-scrollbar-track {
             background: #0f172a;
+        }
+
+        body.dark-mode .lista-ultimos-container::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        body.dark-mode .lista-ultimos-container::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
         }
 
         body.dark-mode .lista-ultimos li {
@@ -396,6 +425,10 @@
             color: white;
         }
 
+        body.dark-mode .dashboard-content .section-header h2 {
+            color: #f1f5f9;
+        }
+
         /* ===== RESPONSIVIDADE ===== */
         @media (max-width: 992px) {
             .dashboard-grid-dois {
@@ -435,6 +468,10 @@
                 align-items: flex-start;
             }
 
+            .lista-ultimos-container {
+                max-height: 280px;
+            }
+
             .lista-ultimos li {
                 flex-direction: column;
                 align-items: flex-start;
@@ -444,10 +481,6 @@
             .lista-ultimos .valor {
                 align-self: flex-end;
                 font-size: 16px;
-            }
-
-            .lista-ultimos-wrapper {
-                max-height: 250px;
             }
         }
 
@@ -479,13 +512,13 @@
                 padding: 3px 10px;
             }
 
+            .lista-ultimos-container {
+                max-height: 240px;
+            }
+
             .lista-ultimos li {
                 font-size: 13px;
                 padding: 10px 12px;
-            }
-
-            .lista-ultimos-wrapper {
-                max-height: 200px;
             }
 
             .badge-status {
@@ -554,7 +587,6 @@
             </div>
         </div>
 
-        <!-- Card substituído: Maiores Orçamentos -->
         <div class="card-status-resumo">
             <h3>🏆 Maiores Orçamentos</h3>
             <div id="maioresOrcamentos">
@@ -577,7 +609,7 @@
                 <button class="btn-filtro" data-status="cancelado" onclick="filtrarOrcamentos('cancelado')">❌ Cancelados</button>
             </div>
         </div>
-        <div class="lista-ultimos-wrapper">
+        <div class="lista-ultimos-container">
             <ul class="lista-ultimos" id="ultimosOrcamentos">
                 <li style="text-align: center; color: #94a3b8; padding: 24px; justify-content: center;">
                     <span class="loading-spinner"></span> Carregando...
@@ -685,8 +717,8 @@
                 document.getElementById('statusFinalizado').textContent = statusCount.finalizado;
                 document.getElementById('statusCancelado').textContent = statusCount.cancelado;
 
-                // ===== MAIORES ORÇAMENTOS (substitui resumo por cômodo) =====
-                await carregarMaioresOrcamentos(orcamentos);
+                // ===== MAIORES ORÇAMENTOS =====
+                carregarMaioresOrcamentos(orcamentos);
 
                 // ===== ÚLTIMOS ORÇAMENTOS =====
                 aplicarFiltro();
@@ -772,7 +804,6 @@
                 return;
             }
 
-            // Ordenar por valor total (maior para menor) e pegar os 5 primeiros
             const top5 = [...orcamentos]
                 .sort((a, b) => (b.valorTotal || 0) - (a.valorTotal || 0))
                 .slice(0, 5);
