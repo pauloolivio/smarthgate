@@ -11,11 +11,38 @@
             box-sizing: border-box;
         }
 
-        body {
+        html, body {
+            height: 100%;
             margin: 0;
+            padding: 0;
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             background: #f8fafc;
             transition: background 0.2s;
+        }
+
+        /* ===== CONTAINER PRINCIPAL COM ROLAGEM ===== */
+        .dashboard-wrapper {
+            height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-bottom: 20px;
+        }
+
+        .dashboard-wrapper::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .dashboard-wrapper::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        .dashboard-wrapper::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .dashboard-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
         /* ===== PAGE HEADER ===== */
@@ -23,6 +50,11 @@
             padding: 16px 24px;
             background: #f8fafc;
             border-bottom: 2px solid #e9edf2;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(8px);
+            background: rgba(248, 250, 252, 0.95);
         }
 
         .page-header h2 {
@@ -42,7 +74,7 @@
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 16px;
-            padding: 24px;
+            padding: 24px 24px 0 24px;
         }
 
         .card-dashboard {
@@ -100,7 +132,7 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
-            padding: 0 24px 24px;
+            padding: 16px 24px 0 24px;
         }
 
         .card-status-resumo {
@@ -157,7 +189,7 @@
 
         /* ===== SEÇÃO ÚLTIMOS ORÇAMENTOS ===== */
         .dashboard-content {
-            padding: 0 24px 24px;
+            padding: 16px 24px 24px 24px;
         }
 
         .dashboard-content .section-header {
@@ -314,9 +346,22 @@
         }
 
         /* ===== DARK MODE ===== */
+        body.dark-mode .dashboard-wrapper::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        body.dark-mode .dashboard-wrapper::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+
+        body.dark-mode .dashboard-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
         body.dark-mode .page-header {
-            background: #1e293b;
+            background: rgba(30, 41, 59, 0.95);
             border-color: #334155;
+            backdrop-filter: blur(8px);
         }
 
         body.dark-mode .page-header h2 {
@@ -446,7 +491,7 @@
 
             .dashboard-grid {
                 grid-template-columns: 1fr 1fr;
-                padding: 16px;
+                padding: 16px 16px 0 16px;
                 gap: 12px;
             }
 
@@ -456,11 +501,11 @@
 
             .dashboard-grid-dois {
                 grid-template-columns: 1fr;
-                padding: 0 16px 16px;
+                padding: 12px 16px 0 16px;
             }
 
             .dashboard-content {
-                padding: 0 16px 16px;
+                padding: 12px 16px 16px 16px;
             }
 
             .dashboard-content .section-header {
@@ -487,7 +532,7 @@
         @media (max-width: 480px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
-                padding: 12px;
+                padding: 12px 12px 0 12px;
                 gap: 10px;
             }
 
@@ -500,11 +545,11 @@
             }
 
             .dashboard-grid-dois {
-                padding: 0 12px 12px;
+                padding: 10px 12px 0 12px;
             }
 
             .dashboard-content {
-                padding: 0 12px 12px;
+                padding: 10px 12px 12px 12px;
             }
 
             .dashboard-content .section-header .filtros .btn-filtro {
@@ -530,91 +575,98 @@
                 font-size: 10px;
                 padding: 0 8px;
             }
+
+            .dashboard-wrapper {
+                height: 100vh;
+                overflow-y: auto;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="page-header">
-        <h2>📊 Dashboard</h2>
-        <p>Visão geral do sistema de orçamento</p>
-    </div>
+    <div class="dashboard-wrapper">
+        <div class="page-header">
+            <h2>📊 Dashboard</h2>
+            <p>Visão geral do sistema de orçamento</p>
+        </div>
 
-    <!-- Cards Principais -->
-    <div class="dashboard-grid" id="dashboardStats">
-        <div class="card-dashboard primary">
-            <span class="icone">👤</span>
-            <div class="label">Clientes</div>
-            <div class="numero" id="totalClientes">0</div>
+        <!-- Cards Principais -->
+        <div class="dashboard-grid" id="dashboardStats">
+            <div class="card-dashboard primary">
+                <span class="icone">👤</span>
+                <div class="label">Clientes</div>
+                <div class="numero" id="totalClientes">0</div>
+            </div>
+            <div class="card-dashboard success">
+                <span class="icone">📦</span>
+                <div class="label">Produtos</div>
+                <div class="numero" id="totalProdutos">0</div>
+            </div>
+            <div class="card-dashboard warning">
+                <span class="icone">📄</span>
+                <div class="label">Orçamentos</div>
+                <div class="numero" id="totalOrcamentos">0</div>
+            </div>
+            <div class="card-dashboard danger">
+                <span class="icone">💰</span>
+                <div class="label">Valor Total</div>
+                <div class="numero" id="valorTotal">R$ 0</div>
+            </div>
         </div>
-        <div class="card-dashboard success">
-            <span class="icone">📦</span>
-            <div class="label">Produtos</div>
-            <div class="numero" id="totalProdutos">0</div>
-        </div>
-        <div class="card-dashboard warning">
-            <span class="icone">📄</span>
-            <div class="label">Orçamentos</div>
-            <div class="numero" id="totalOrcamentos">0</div>
-        </div>
-        <div class="card-dashboard danger">
-            <span class="icone">💰</span>
-            <div class="label">Valor Total</div>
-            <div class="numero" id="valorTotal">R$ 0</div>
-        </div>
-    </div>
 
-    <!-- Resumo por Status + Maiores Orçamentos -->
-    <div class="dashboard-grid-dois">
-        <div class="card-status-resumo">
-            <h3>📋 Orçamentos por Status</h3>
-            <div id="statusResumo">
-                <div class="status-item">
-                    <span class="label"><span class="dot pendente"></span> Pendentes</span>
-                    <span class="count" id="statusPendente">0</span>
+        <!-- Resumo por Status + Maiores Orçamentos -->
+        <div class="dashboard-grid-dois">
+            <div class="card-status-resumo">
+                <h3>📋 Orçamentos por Status</h3>
+                <div id="statusResumo">
+                    <div class="status-item">
+                        <span class="label"><span class="dot pendente"></span> Pendentes</span>
+                        <span class="count" id="statusPendente">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label"><span class="dot aprovado"></span> Aprovados</span>
+                        <span class="count" id="statusAprovado">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label"><span class="dot finalizado"></span> Finalizados</span>
+                        <span class="count" id="statusFinalizado">0</span>
+                    </div>
+                    <div class="status-item">
+                        <span class="label"><span class="dot cancelado"></span> Cancelados</span>
+                        <span class="count" id="statusCancelado">0</span>
+                    </div>
                 </div>
-                <div class="status-item">
-                    <span class="label"><span class="dot aprovado"></span> Aprovados</span>
-                    <span class="count" id="statusAprovado">0</span>
-                </div>
-                <div class="status-item">
-                    <span class="label"><span class="dot finalizado"></span> Finalizados</span>
-                    <span class="count" id="statusFinalizado">0</span>
-                </div>
-                <div class="status-item">
-                    <span class="label"><span class="dot cancelado"></span> Cancelados</span>
-                    <span class="count" id="statusCancelado">0</span>
+            </div>
+
+            <div class="card-status-resumo">
+                <h3>🏆 Maiores Orçamentos</h3>
+                <div id="maioresOrcamentos">
+                    <div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">
+                        <span class="loading-spinner"></span> Carregando...
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card-status-resumo">
-            <h3>🏆 Maiores Orçamentos</h3>
-            <div id="maioresOrcamentos">
-                <div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">
-                    <span class="loading-spinner"></span> Carregando...
+        <!-- Últimos Orçamentos com barra de rolagem -->
+        <div class="dashboard-content">
+            <div class="section-header">
+                <h2>📋 Últimos Orçamentos</h2>
+                <div class="filtros" id="filtrosStatus">
+                    <button class="btn-filtro active" data-status="todos" onclick="filtrarOrcamentos('todos')">Todos</button>
+                    <button class="btn-filtro" data-status="pendente" onclick="filtrarOrcamentos('pendente')">⏳ Pendentes</button>
+                    <button class="btn-filtro" data-status="aprovado" onclick="filtrarOrcamentos('aprovado')">✅ Aprovados</button>
+                    <button class="btn-filtro" data-status="finalizado" onclick="filtrarOrcamentos('finalizado')">🔵 Finalizados</button>
+                    <button class="btn-filtro" data-status="cancelado" onclick="filtrarOrcamentos('cancelado')">❌ Cancelados</button>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Últimos Orçamentos com barra de rolagem -->
-    <div class="dashboard-content">
-        <div class="section-header">
-            <h2>📋 Últimos Orçamentos</h2>
-            <div class="filtros" id="filtrosStatus">
-                <button class="btn-filtro active" data-status="todos" onclick="filtrarOrcamentos('todos')">Todos</button>
-                <button class="btn-filtro" data-status="pendente" onclick="filtrarOrcamentos('pendente')">⏳ Pendentes</button>
-                <button class="btn-filtro" data-status="aprovado" onclick="filtrarOrcamentos('aprovado')">✅ Aprovados</button>
-                <button class="btn-filtro" data-status="finalizado" onclick="filtrarOrcamentos('finalizado')">🔵 Finalizados</button>
-                <button class="btn-filtro" data-status="cancelado" onclick="filtrarOrcamentos('cancelado')">❌ Cancelados</button>
+            <div class="lista-ultimos-container">
+                <ul class="lista-ultimos" id="ultimosOrcamentos">
+                    <li style="text-align: center; color: #94a3b8; padding: 24px; justify-content: center;">
+                        <span class="loading-spinner"></span> Carregando...
+                    </li>
+                </ul>
             </div>
-        </div>
-        <div class="lista-ultimos-container">
-            <ul class="lista-ultimos" id="ultimosOrcamentos">
-                <li style="text-align: center; color: #94a3b8; padding: 24px; justify-content: center;">
-                    <span class="loading-spinner"></span> Carregando...
-                </li>
-            </ul>
         </div>
     </div>
 
