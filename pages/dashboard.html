@@ -6,6 +6,19 @@
     <title>Dashboard</title>
     <link rel="stylesheet" href="../css/style.css">
     <style>
+        /* ===== RESET E BASE ===== */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #f8fafc;
+            transition: background 0.2s;
+        }
+
+        /* ===== PAGE HEADER ===== */
         .page-header {
             padding: 16px 24px;
             background: #f8fafc;
@@ -15,6 +28,7 @@
         .page-header h2 {
             color: #0f172a;
             margin: 0;
+            font-size: 1.4rem;
         }
 
         .page-header p {
@@ -23,9 +37,10 @@
             margin: 4px 0 0;
         }
 
+        /* ===== GRID CARDS ===== */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 16px;
             padding: 24px;
         }
@@ -80,153 +95,12 @@
         .card-dashboard.info .numero { color: #0ea5e9; }
         .card-dashboard.purple .numero { color: #8b5cf6; }
 
-        .card-dashboard .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 4px;
-        }
-
-        .card-dashboard .status-indicator.aprovado { background: #0b9e5e; }
-        .card-dashboard .status-indicator.pendente { background: #f59e0b; }
-        .card-dashboard .status-indicator.cancelado { background: #dc2626; }
-        .card-dashboard .status-indicator.finalizado { background: #4f46e5; }
-
-        .dashboard-content {
-            padding: 24px;
-        }
-
-        .dashboard-content h2 {
-            color: #0f172a;
-            font-size: 18px;
-            margin: 0 0 16px;
-        }
-
-        .dashboard-content .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .dashboard-content .section-header .filtros {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .dashboard-content .section-header .filtros .btn-filtro {
-            padding: 4px 14px;
-            border: 1px solid #e9edf2;
-            border-radius: 20px;
-            font-size: 12px;
-            background: white;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'Inter', sans-serif;
-            color: #64748b;
-        }
-
-        .dashboard-content .section-header .filtros .btn-filtro:hover {
-            background: #f1f5f9;
-        }
-
-        .dashboard-content .section-header .filtros .btn-filtro.active {
-            background: #4f46e5;
-            border-color: #4f46e5;
-            color: white;
-        }
-
-        .lista-ultimos {
-            background: #f8fafc;
-            border-radius: 8px;
-            padding: 0;
-            margin: 0;
-        }
-
-        .lista-ultimos li {
-            list-style: none;
-            padding: 12px 16px;
-            border-bottom: 1px solid #e9edf2;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .lista-ultimos li:last-child {
-            border-bottom: none;
-        }
-
-        .lista-ultimos .cliente {
-            font-weight: 500;
-            color: #0f172a;
-        }
-
-        .lista-ultimos .valor {
-            font-weight: 600;
-            color: #4f46e5;
-        }
-
-        .lista-ultimos .data {
-            color: #94a3b8;
-            font-size: 12px;
-        }
-
-        .lista-ultimos .comodos-badge {
-            font-size: 11px;
-            color: #64748b;
-            background: #e9edf2;
-            padding: 1px 10px;
-            border-radius: 12px;
-            margin-left: 8px;
-            display: inline-block;
-        }
-
-        .badge-status {
-            display: inline-block;
-            padding: 2px 12px;
-            border-radius: 40px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-
-        .badge-status.aprovado { background: #d1fae5; color: #065f46; }
-        .badge-status.pendente { background: #fef3c7; color: #92400e; }
-        .badge-status.cancelado { background: #fee2e2; color: #991b1b; }
-        .badge-status.finalizado { background: #e0e7ff; color: #3730a3; }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #94a3b8;
-        }
-
-        .empty-state .icone {
-            font-size: 48px;
-            opacity: 0.5;
-            margin-bottom: 12px;
-        }
-
-        .loading-spinner {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #e9edf2;
-            border-top: 2px solid #4f46e5;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-right: 8px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        /* ===== GRID 2 COLUNAS ===== */
+        .dashboard-grid-dois {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            padding: 0 24px 24px;
         }
 
         .card-status-resumo {
@@ -240,7 +114,8 @@
             font-size: 14px;
             color: #64748b;
             font-weight: 600;
-            margin: 0 0 12px;
+            margin-bottom: 12px;
+            margin-top: 0;
         }
 
         .card-status-resumo .status-item {
@@ -280,231 +155,149 @@
             color: #0f172a;
         }
 
-        /* Status Resumo - layout responsivo */
-        .status-resumo-wrapper {
-            padding: 0 24px 24px;
-            max-width: 500px;
+        /* ===== LISTA ÚLTIMOS ORÇAMENTOS COM ROLAGEM ===== */
+        .lista-ultimos-wrapper {
+            max-height: 300px;
+            overflow-y: auto;
+            border-radius: 8px;
+            background: #f8fafc;
         }
 
-        /* ===== RESPONSIVIDADE ===== */
-        @media (max-width: 1024px) {
-            .dashboard-grid {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 14px;
-                padding: 20px;
-            }
-
-            .card-dashboard .numero {
-                font-size: 24px;
-            }
+        .lista-ultimos {
+            margin: 0;
+            padding: 0;
+            list-style: none;
         }
 
-        @media (max-width: 768px) {
-            .page-header {
-                padding: 12px 16px;
-            }
-
-            .page-header h2 {
-                font-size: 20px;
-            }
-
-            .dashboard-grid {
-                grid-template-columns: repeat(2, 1fr);
-                padding: 16px;
-                gap: 12px;
-            }
-
-            .card-dashboard {
-                padding: 14px 16px;
-            }
-
-            .card-dashboard .numero {
-                font-size: 20px;
-            }
-
-            .card-dashboard .icone {
-                font-size: 20px;
-            }
-
-            .dashboard-content {
-                padding: 16px;
-            }
-
-            .dashboard-content h2 {
-                font-size: 16px;
-            }
-
-            .dashboard-content .section-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .dashboard-content .section-header .filtros {
-                width: 100%;
-                overflow-x: auto;
-                flex-wrap: nowrap;
-                padding-bottom: 4px;
-                -webkit-overflow-scrolling: touch;
-            }
-
-            .dashboard-content .section-header .filtros .btn-filtro {
-                white-space: nowrap;
-                font-size: 11px;
-                padding: 4px 12px;
-            }
-
-            .lista-ultimos li {
-                flex-direction: column;
-                align-items: flex-start;
-                padding: 10px 14px;
-            }
-
-            .lista-ultimos .valor {
-                align-self: flex-end;
-                margin-top: 4px;
-            }
-
-            .lista-ultimos .cliente {
-                font-size: 14px;
-            }
-
-            .lista-ultimos .comodos-badge {
-                margin-left: 4px;
-                font-size: 10px;
-                padding: 1px 8px;
-            }
-
-            .badge-status {
-                font-size: 10px;
-                padding: 1px 10px;
-            }
-
-            .status-resumo-wrapper {
-                padding: 0 16px 16px;
-            }
-
-            .card-status-resumo {
-                padding: 14px 16px;
-            }
-
-            .card-status-resumo h3 {
-                font-size: 13px;
-            }
-
-            .card-status-resumo .status-item {
-                font-size: 12px;
-                padding: 5px 0;
-            }
+        .lista-ultimos li {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e9edf2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            flex-wrap: wrap;
+            gap: 8px;
+            background: #ffffff;
         }
 
-        @media (max-width: 480px) {
-            .page-header h2 {
-                font-size: 18px;
-            }
-
-            .page-header p {
-                font-size: 12px;
-            }
-
-            .dashboard-grid {
-                grid-template-columns: 1fr 1fr;
-                padding: 12px;
-                gap: 10px;
-            }
-
-            .card-dashboard {
-                padding: 12px 14px;
-            }
-
-            .card-dashboard .numero {
-                font-size: 18px;
-            }
-
-            .card-dashboard .label {
-                font-size: 10px;
-            }
-
-            .card-dashboard .icone {
-                font-size: 18px;
-            }
-
-            .dashboard-content {
-                padding: 12px;
-            }
-
-            .dashboard-content h2 {
-                font-size: 15px;
-            }
-
-            .lista-ultimos li {
-                padding: 8px 12px;
-                font-size: 13px;
-            }
-
-            .lista-ultimos .comodos-badge {
-                font-size: 9px;
-                padding: 0 6px;
-            }
-
-            .badge-status {
-                font-size: 9px;
-                padding: 1px 8px;
-            }
-
-            .status-resumo-wrapper {
-                padding: 0 12px 12px;
-            }
-
-            .card-status-resumo {
-                padding: 12px 14px;
-            }
-
-            .card-status-resumo h3 {
-                font-size: 12px;
-            }
-
-            .card-status-resumo .status-item {
-                font-size: 11px;
-                padding: 4px 0;
-            }
-
-            .card-status-resumo .status-item .dot {
-                width: 6px;
-                height: 6px;
-            }
+        .lista-ultimos li:nth-child(even) {
+            background: #fafbfc;
         }
 
-        @media (max-width: 380px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 8px;
-                padding: 8px;
-            }
-
-            .card-dashboard {
-                padding: 10px 12px;
-                border-radius: 8px;
-            }
-
-            .card-dashboard .numero {
-                font-size: 16px;
-            }
-
-            .card-dashboard .label {
-                font-size: 9px;
-            }
-
-            .card-dashboard .icone {
-                font-size: 16px;
-            }
-
-            .dashboard-content .section-header .filtros .btn-filtro {
-                font-size: 10px;
-                padding: 3px 10px;
-            }
+        .lista-ultimos li:last-child {
+            border-bottom: none;
         }
 
-        /* Dark Mode */
+        .lista-ultimos .cliente {
+            font-weight: 500;
+            color: #0f172a;
+        }
+
+        .lista-ultimos .valor {
+            font-weight: 600;
+            color: #4f46e5;
+            white-space: nowrap;
+        }
+
+        .lista-ultimos .data {
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        .lista-ultimos .comodos-badge {
+            font-size: 11px;
+            color: #64748b;
+            background: #e9edf2;
+            padding: 1px 10px;
+            border-radius: 12px;
+            margin-left: 4px;
+            white-space: nowrap;
+        }
+
+        .badge-status {
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 40px;
+            font-size: 11px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .badge-status.aprovado { background: #d1fae5; color: #065f46; }
+        .badge-status.pendente { background: #fef3c7; color: #92400e; }
+        .badge-status.cancelado { background: #fee2e2; color: #991b1b; }
+        .badge-status.finalizado { background: #e0e7ff; color: #3730a3; }
+
+        /* ===== FILTROS ===== */
+        .dashboard-content .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .dashboard-content .section-header .filtros {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .dashboard-content .section-header .filtros .btn-filtro {
+            padding: 4px 14px;
+            border: 1px solid #e9edf2;
+            border-radius: 20px;
+            font-size: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Inter', sans-serif;
+            color: #64748b;
+        }
+
+        .dashboard-content .section-header .filtros .btn-filtro:hover {
+            background: #f1f5f9;
+        }
+
+        .dashboard-content .section-header .filtros .btn-filtro.active {
+            background: #4f46e5;
+            border-color: #4f46e5;
+            color: white;
+        }
+
+        /* ===== LOADING ===== */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #e9edf2;
+            border-top: 2px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state .icone {
+            font-size: 48px;
+            opacity: 0.5;
+            margin-bottom: 12px;
+        }
+
+        /* ===== DARK MODE ===== */
         body.dark-mode .page-header {
             background: #1e293b;
             border-color: #334155;
@@ -527,13 +320,18 @@
             color: #64748b;
         }
 
-        body.dark-mode .lista-ultimos {
+        body.dark-mode .lista-ultimos-wrapper {
             background: #0f172a;
         }
 
         body.dark-mode .lista-ultimos li {
+            background: #1e293b;
             border-color: #334155;
             color: #f1f5f9;
+        }
+
+        body.dark-mode .lista-ultimos li:nth-child(even) {
+            background: #162033;
         }
 
         body.dark-mode .lista-ultimos .cliente {
@@ -598,8 +396,107 @@
             color: white;
         }
 
-        body.dark-mode .dashboard-content .section-header .filtros .btn-filtro:hover {
-            background: #334155;
+        /* ===== RESPONSIVIDADE ===== */
+        @media (max-width: 992px) {
+            .dashboard-grid-dois {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                padding: 12px 16px;
+            }
+            .page-header h2 {
+                font-size: 1.2rem;
+            }
+
+            .dashboard-grid {
+                grid-template-columns: 1fr 1fr;
+                padding: 16px;
+                gap: 12px;
+            }
+
+            .card-dashboard .numero {
+                font-size: 22px;
+            }
+
+            .dashboard-grid-dois {
+                grid-template-columns: 1fr;
+                padding: 0 16px 16px;
+            }
+
+            .dashboard-content {
+                padding: 0 16px 16px;
+            }
+
+            .dashboard-content .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .lista-ultimos li {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 4px;
+            }
+
+            .lista-ultimos .valor {
+                align-self: flex-end;
+                font-size: 16px;
+            }
+
+            .lista-ultimos-wrapper {
+                max-height: 250px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                padding: 12px;
+                gap: 10px;
+            }
+
+            .card-dashboard {
+                padding: 12px 16px;
+            }
+
+            .card-dashboard .numero {
+                font-size: 20px;
+            }
+
+            .dashboard-grid-dois {
+                padding: 0 12px 12px;
+            }
+
+            .dashboard-content {
+                padding: 0 12px 12px;
+            }
+
+            .dashboard-content .section-header .filtros .btn-filtro {
+                font-size: 11px;
+                padding: 3px 10px;
+            }
+
+            .lista-ultimos li {
+                font-size: 13px;
+                padding: 10px 12px;
+            }
+
+            .lista-ultimos-wrapper {
+                max-height: 200px;
+            }
+
+            .badge-status {
+                font-size: 10px;
+                padding: 1px 8px;
+            }
+
+            .lista-ultimos .comodos-badge {
+                font-size: 10px;
+                padding: 0 8px;
+            }
         }
     </style>
 </head>
@@ -633,8 +530,8 @@
         </div>
     </div>
 
-    <!-- Resumo por Status -->
-    <div class="status-resumo-wrapper">
+    <!-- Resumo por Status + Maiores Orçamentos -->
+    <div class="dashboard-grid-dois">
         <div class="card-status-resumo">
             <h3>📋 Orçamentos por Status</h3>
             <div id="statusResumo">
@@ -656,9 +553,19 @@
                 </div>
             </div>
         </div>
+
+        <!-- Card substituído: Maiores Orçamentos -->
+        <div class="card-status-resumo">
+            <h3>🏆 Maiores Orçamentos</h3>
+            <div id="maioresOrcamentos">
+                <div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">
+                    <span class="loading-spinner"></span> Carregando...
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Últimos Orçamentos -->
+    <!-- Últimos Orçamentos com barra de rolagem -->
     <div class="dashboard-content">
         <div class="section-header">
             <h2>📋 Últimos Orçamentos</h2>
@@ -670,11 +577,13 @@
                 <button class="btn-filtro" data-status="cancelado" onclick="filtrarOrcamentos('cancelado')">❌ Cancelados</button>
             </div>
         </div>
-        <ul class="lista-ultimos" id="ultimosOrcamentos">
-            <li style="text-align: center; color: #94a3b8; padding: 24px; justify-content: center;">
-                <span class="loading-spinner"></span> Carregando...
-            </li>
-        </ul>
+        <div class="lista-ultimos-wrapper">
+            <ul class="lista-ultimos" id="ultimosOrcamentos">
+                <li style="text-align: center; color: #94a3b8; padding: 24px; justify-content: center;">
+                    <span class="loading-spinner"></span> Carregando...
+                </li>
+            </ul>
+        </div>
     </div>
 
     <script>
@@ -740,14 +649,10 @@
         async function carregarDashboard() {
             try {
                 const db = getDb();
-                
-                if (!db) {
-                    throw new Error('Database não disponível');
-                }
+                if (!db) throw new Error('Database não disponível');
 
                 console.log('📊 Carregando dashboard...');
 
-                // Buscar todos os dados
                 const [clientes, produtos, orcamentos] = await Promise.all([
                     db.getClientes(),
                     db.getProdutos(),
@@ -762,7 +667,6 @@
                 document.getElementById('totalProdutos').textContent = produtos.length;
                 document.getElementById('totalOrcamentos').textContent = orcamentos.length;
 
-                // Calcular valor total dos orçamentos
                 let totalGeral = 0;
                 orcamentos.forEach(orc => {
                     if (orc.valorTotal) totalGeral += orc.valorTotal;
@@ -780,6 +684,9 @@
                 document.getElementById('statusAprovado').textContent = statusCount.aprovado;
                 document.getElementById('statusFinalizado').textContent = statusCount.finalizado;
                 document.getElementById('statusCancelado').textContent = statusCount.cancelado;
+
+                // ===== MAIORES ORÇAMENTOS (substitui resumo por cômodo) =====
+                await carregarMaioresOrcamentos(orcamentos);
 
                 // ===== ÚLTIMOS ORÇAMENTOS =====
                 aplicarFiltro();
@@ -808,7 +715,6 @@
 
                 for (const cliente of clientes) {
                     const data = await db.getOrcamentoComodo(cliente.id);
-                    
                     if (data && Object.keys(data).length > 0) {
                         let total = 0;
                         let itens = 0;
@@ -829,7 +735,7 @@
                                 if (orcStatus && orcStatus.status) {
                                     status = orcStatus.status;
                                 }
-                            } catch (e) {}
+                            } catch (e) { /* ignora */ }
 
                             orcamentos.push({
                                 clienteId: cliente.id,
@@ -853,14 +759,43 @@
             }
         }
 
+        // ============ CARREGAR MAIORES ORÇAMENTOS ============
+        function carregarMaioresOrcamentos(orcamentos) {
+            const container = document.getElementById('maioresOrcamentos');
+
+            if (!orcamentos || orcamentos.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center;color:#94a3b8;padding:20px;font-size:13px;">
+                        📭 Nenhum orçamento encontrado.
+                    </div>
+                `;
+                return;
+            }
+
+            // Ordenar por valor total (maior para menor) e pegar os 5 primeiros
+            const top5 = [...orcamentos]
+                .sort((a, b) => (b.valorTotal || 0) - (a.valorTotal || 0))
+                .slice(0, 5);
+
+            container.innerHTML = top5.map((orc, index) => `
+                <div class="status-item">
+                    <span class="label">
+                        <span>${index + 1}. ${orc.clienteNome || 'Cliente'}</span>
+                        <span style="font-size:11px;color:#94a3b8;margin-left:4px;">
+                            (${orc.comodos || 0} cômodos)
+                        </span>
+                    </span>
+                    <span class="count">${fmtBRL(orc.valorTotal || 0)}</span>
+                </div>
+            `).join('');
+        }
+
         // ============ FILTRAR ORÇAMENTOS ============
         function filtrarOrcamentos(status) {
             filtroAtual = status;
-            
             document.querySelectorAll('.btn-filtro').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.status === status);
             });
-
             aplicarFiltro();
         }
 
@@ -891,8 +826,8 @@
                         <span class="cliente">${orc.clienteNome || 'Cliente não definido'}</span>
                         <span class="data">${fmtDate(orc.dataCriacao)}</span>
                         <span class="badge-status ${getStatusClass(orc.status)}">${getStatusLabel(orc.status)}</span>
-                        <span class="comodos-badge">🏠 ${orc.comodos || 0} cômodos</span>
-                        <span class="comodos-badge">📦 ${orc.itens || 0} itens</span>
+                        <span class="comodos-badge">🏠 ${orc.comodos || 0}</span>
+                        <span class="comodos-badge">📦 ${orc.itens || 0}</span>
                     </span>
                     <span class="valor">${fmtBRL(orc.valorTotal || 0)}</span>
                 </li>
