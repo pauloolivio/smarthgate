@@ -211,8 +211,8 @@
                 'orcamento-comodo': 'orcamento-comodo.html',
                 'orcamento-total': 'orcamento-total.html',
                 'orcamento-print': 'orcamento-print.html',
-                'sala-inteligente': 'sala-inteligente.html'  // <-- ADICIONE ESTA LINHA
-                'configuracoes': 'configuracoes.html',
+                'sala-inteligente': 'sala-inteligente.html',  // <-- VÍRGULA CORRIGIDA
+                'configuracoes': 'configuracoes.html'
             };
             
             const fileName = pageMap[pagina] || 'dashboard.html';
@@ -242,9 +242,8 @@
                 'orcamento-comodo': '🏗️ Orç. por Cômodo',
                 'orcamento-total': '💰 Orçamento Total',
                 'orcamento-print': '🖨️ Impressão',
-                'sala-inteligente': '🏠 Sala Inteligente' 
-                'configuracoes': '⚙️ Configurações',
-
+                'sala-inteligente': '🏠 Sala Inteligente',  // <-- VÍRGULA CORRIGIDA
+                'configuracoes': '⚙️ Configurações'
             };
             window.atualizarStatus(`📄 ${nomes[pagina] || pagina}`);
             
@@ -370,7 +369,7 @@
         // ============ INICIALIZAR ============
         document.addEventListener('DOMContentLoaded', function() {
             const pagina = window.location.hash.replace('#', '') || 'dashboard';
-            const paginasValidas = ['dashboard', 'clientes', 'produtos', 'orcamento-comodo', 'orcamento-total', 'configuracoes', 'sala-inteligente'];
+            const paginasValidas = ['dashboard', 'clientes', 'produtos', 'orcamento-comodo', 'orcamento-total', 'orcamento-print', 'configuracoes', 'sala-inteligente'];
             const paginaFinal = paginasValidas.includes(pagina) ? pagina : 'dashboard';
             
             const email = sessionStorage.getItem('userEmail');
