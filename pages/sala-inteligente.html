@@ -55,8 +55,8 @@
         }
 
         .plant-image-wrapper img {
-            width: 50%;  /* ← REDUZIDO PARA 50% */
-            height: 50%; /* ← REDUZIDO PARA 50% */
+            width: 50%;
+            height: 50%;
             object-fit: contain;
             display: block;
             user-select: none;
@@ -102,8 +102,8 @@
         }
 
         .device-draggable .device-icon {
-            width: 2.2rem;  /* ← REDUZIDO para proporção com a imagem menor */
-            height: 2.2rem; /* ← REDUZIDO para proporção com a imagem menor */
+            width: 2.2rem;
+            height: 2.2rem;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -112,7 +112,7 @@
             border: 2px solid rgba(255,255,255,0.9);
             background: rgba(0,0,0,0.75);
             backdrop-filter: blur(8px);
-            font-size: 1.1rem; /* ← REDUZIDO */
+            font-size: 1.1rem;
             transition: all 0.3s;
             position: relative;
             transform: translate(-50%, -50%);
@@ -307,6 +307,168 @@
             to   { opacity: 1; transform: translateX(0); }
         }
 
+        /* =============================================
+           ESTILOS DE IMPRESSÃO
+           ============================================= */
+        @media print {
+            /* Esconder elementos que não devem aparecer na impressão */
+            .page-header,
+            .toolbar,
+            .btn,
+            .modal,
+            .toast,
+            .grid-background,
+            .position-indicator {
+                display: none !important;
+            }
+
+            /* Reset do body para impressão */
+            body {
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+
+            /* Container da planta ocupa toda a página */
+            .page-content {
+                padding: 0 !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+
+            .plant-container {
+                box-shadow: none !important;
+                border: 1px solid #ddd !important;
+                border-radius: 0 !important;
+                background: white !important;
+                aspect-ratio: 4/3;
+                width: 100% !important;
+                height: auto !important;
+                max-height: 70vh !important;
+                page-break-after: avoid !important;
+            }
+
+            .plant-image-wrapper {
+                padding: 10px !important;
+            }
+
+            .plant-image-wrapper img {
+                width: 60% !important;
+                height: 60% !important;
+                opacity: 1 !important;
+                border: 1px solid #e2e8f0 !important;
+                background: white !important;
+            }
+
+            /* Dispositivos na impressão */
+            .device-draggable {
+                filter: none !important;
+                cursor: default !important;
+                pointer-events: none !important;
+            }
+
+            .device-draggable .device-icon {
+                width: 1.8rem !important;
+                height: 1.8rem !important;
+                font-size: 1rem !important;
+                background: rgba(255,255,255,0.95) !important;
+                border: 2px solid #333 !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+                backdrop-filter: none !important;
+            }
+
+            .device-draggable .device-name {
+                display: none !important;
+            }
+
+            /* Lista de dispositivos para impressão */
+            .print-device-list {
+                display: block !important;
+                margin-top: 20px !important;
+                padding: 16px 20px !important;
+                background: #f8f9fa !important;
+                border-radius: 8px !important;
+                border: 1px solid #dee2e6 !important;
+                page-break-inside: avoid !important;
+            }
+
+            .print-device-list h3 {
+                color: #1a202c !important;
+                margin-bottom: 12px !important;
+                font-size: 16px !important;
+                font-weight: 700 !important;
+            }
+
+            .print-device-list table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                font-size: 12px !important;
+            }
+
+            .print-device-list th {
+                background: #e9ecef !important;
+                padding: 8px 12px !important;
+                text-align: left !important;
+                border: 1px solid #dee2e6 !important;
+                font-weight: 600 !important;
+                color: #1a202c !important;
+            }
+
+            .print-device-list td {
+                padding: 6px 12px !important;
+                border: 1px solid #dee2e6 !important;
+                color: #2d3748 !important;
+            }
+
+            .print-device-list tr:nth-child(even) {
+                background: #f8f9fa !important;
+            }
+
+            .print-header {
+                display: block !important;
+                text-align: center !important;
+                margin-bottom: 16px !important;
+                padding: 10px !important;
+                border-bottom: 2px solid #4f46e5 !important;
+            }
+
+            .print-header h1 {
+                font-size: 22px !important;
+                font-weight: 700 !important;
+                color: #1a202c !important;
+                margin: 0 !important;
+            }
+
+            .print-header p {
+                color: #4a5568 !important;
+                font-size: 13px !important;
+                margin: 4px 0 0 !important;
+            }
+
+            .print-footer {
+                display: block !important;
+                text-align: center !important;
+                margin-top: 20px !important;
+                padding-top: 12px !important;
+                border-top: 1px solid #dee2e6 !important;
+                color: #6b7280 !important;
+                font-size: 11px !important;
+            }
+        }
+
+        /* Elementos que só aparecem na impressão */
+        .print-header {
+            display: none;
+        }
+
+        .print-device-list {
+            display: none;
+        }
+
+        .print-footer {
+            display: none;
+        }
+
         /* ===== DARK MODE ===== */
         body.dark-mode .page-header {
             background: #1e293b;
@@ -388,6 +550,13 @@
             .modal-sala .icon-picker {
                 grid-template-columns: repeat(5, 1fr);
             }
+
+            @media print {
+                .plant-image-wrapper img {
+                    width: 75% !important;
+                    height: 75% !important;
+                }
+            }
         }
 
         @media (max-width: 480px) {
@@ -453,6 +622,39 @@
             <div id="devicesContainer" class="absolute inset-0 pointer-events-none" style="position:absolute;inset:0;pointer-events:none;">
                 <!-- Dispositivos serão inseridos aqui -->
             </div>
+        </div>
+
+        <!-- Cabeçalho para Impressão -->
+        <div class="print-header">
+            <h1>🏠 Planta Inteligente</h1>
+            <p>Lista de dispositivos e suas posições</p>
+        </div>
+
+        <!-- Lista de Dispositivos para Impressão -->
+        <div class="print-device-list" id="printDeviceList">
+            <h3>📋 Lista de Dispositivos</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ícone</th>
+                        <th>Dispositivo</th>
+                        <th>Posição X</th>
+                        <th>Posição Y</th>
+                    </tr>
+                </thead>
+                <tbody id="printDeviceTableBody">
+                    <tr>
+                        <td colspan="4" style="text-align:center;padding:20px;color:#6b7280;">
+                            Nenhum dispositivo configurado
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Rodapé para Impressão -->
+        <div class="print-footer">
+            Gerado em: <span id="printDate"></span> | SmartHome - Sistema de Orçamento
         </div>
     </div>
 
@@ -605,6 +807,7 @@
     function saveDevices() {
         localStorage.setItem('smartPlantDevices', JSON.stringify(devices));
         updateCounters();
+        updatePrintList();
     }
 
     function renderDevices() {
@@ -643,6 +846,32 @@
         const count = devices.length;
         document.getElementById('deviceCount').textContent = count;
         document.getElementById('positionIndicator').textContent = `📍 ${count} dispositivos`;
+    }
+
+    // =============================================
+    //  LISTA PARA IMPRESSÃO
+    // =============================================
+    function updatePrintList() {
+        const tbody = document.getElementById('printDeviceTableBody');
+        if (!tbody) return;
+        
+        tbody.innerHTML = '';
+        
+        if (devices.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:16px;color:#6b7280;">Nenhum dispositivo configurado</td></tr>';
+            return;
+        }
+        
+        devices.forEach(device => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="font-size:18px;text-align:center;">${device.icon}</td>
+                <td><strong>${device.name}</strong></td>
+                <td>${Math.round(device.x)}%</td>
+                <td>${Math.round(device.y)}%</td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
 
     // =============================================
@@ -825,6 +1054,13 @@
     }
 
     function printPlant() {
+        // Atualizar data no rodapé
+        document.getElementById('printDate').textContent = new Date().toLocaleString('pt-BR');
+        
+        // Atualizar lista de impressão
+        updatePrintList();
+        
+        // Forçar a imagem a ficar opaca na impressão
         const img = document.getElementById('plantImage');
         const originalOpacity = img.style.opacity;
         img.style.opacity = '1';
@@ -932,6 +1168,7 @@
         loadSavedDevices();
         renderDevices();
         updateCounters();
+        updatePrintList();
         setupDragAndDrop();
         setupModalListeners();
         setupUploadListener();
