@@ -129,6 +129,9 @@
             <button class="nav-item" data-page="orcamento-print" onclick="abrirImpressaoOrcamento()">
                 <i class="fas fa-print"></i> Imprimir
             </button>
+            <button class="nav-item" data-page="sala-inteligente" onclick="navegarPara('sala-inteligente')">
+                <i class="fas fa-layer-group"></i> Sala Inteligente
+            </button>
             <button class="nav-item" data-page="configuracoes" onclick="navegarPara('configuracoes')">
                 <i class="fas fa-cog"></i> Configurações
             </button>
@@ -208,7 +211,8 @@
                 'orcamento-comodo': 'orcamento-comodo.html',
                 'orcamento-total': 'orcamento-total.html',
                 'orcamento-print': 'orcamento-print.html',
-                'configuracoes': 'configuracoes.html'
+                'sala-inteligente': 'sala-inteligente.html'  // <-- ADICIONE ESTA LINHA
+                'configuracoes': 'configuracoes.html',
             };
             
             const fileName = pageMap[pagina] || 'dashboard.html';
@@ -238,7 +242,9 @@
                 'orcamento-comodo': '🏗️ Orç. por Cômodo',
                 'orcamento-total': '💰 Orçamento Total',
                 'orcamento-print': '🖨️ Impressão',
-                'configuracoes': '⚙️ Configurações'
+                'sala-inteligente': '🏠 Sala Inteligente' 
+                'configuracoes': '⚙️ Configurações',
+
             };
             window.atualizarStatus(`📄 ${nomes[pagina] || pagina}`);
             
@@ -364,7 +370,7 @@
         // ============ INICIALIZAR ============
         document.addEventListener('DOMContentLoaded', function() {
             const pagina = window.location.hash.replace('#', '') || 'dashboard';
-            const paginasValidas = ['dashboard', 'clientes', 'produtos', 'orcamento-comodo', 'orcamento-total', 'configuracoes'];
+            const paginasValidas = ['dashboard', 'clientes', 'produtos', 'orcamento-comodo', 'orcamento-total', 'configuracoes', 'sala-inteligente'];
             const paginaFinal = paginasValidas.includes(pagina) ? pagina : 'dashboard';
             
             const email = sessionStorage.getItem('userEmail');
