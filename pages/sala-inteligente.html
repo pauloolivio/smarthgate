@@ -26,7 +26,7 @@
         .page-content {
             padding: 16px 24px 24px;
             overflow-y: auto;
-            max-height: calc(100vh - 120px);
+            max-height: calc(100vh - 70px);
         }
 
         /* ===== CONTAINER DA PLANTA ===== */
@@ -39,6 +39,9 @@
             box-shadow: 0 8px 32px rgba(0,0,0,0.5);
             border: 1px solid rgba(255,255,255,0.05);
             aspect-ratio: 4/3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .plant-image-wrapper {
@@ -48,16 +51,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 30px 0;
         }
 
         .plant-image-wrapper img {
-            width: 100%;
-            height: 70%;  /* ← MODIFICADO AQUI */
+            width: 50%;  /* ← REDUZIDO PARA 50% */
+            height: 50%; /* ← REDUZIDO PARA 50% */
             object-fit: contain;
             display: block;
             user-select: none;
             -webkit-user-drag: none;
             transition: opacity 0.3s ease;
+            border-radius: 8px;
         }
 
         /* Grid de fundo */
@@ -97,8 +102,8 @@
         }
 
         .device-draggable .device-icon {
-            width: 3rem;
-            height: 3rem;
+            width: 2.2rem;  /* ← REDUZIDO para proporção com a imagem menor */
+            height: 2.2rem; /* ← REDUZIDO para proporção com a imagem menor */
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -107,7 +112,7 @@
             border: 2px solid rgba(255,255,255,0.9);
             background: rgba(0,0,0,0.75);
             backdrop-filter: blur(8px);
-            font-size: 1.5rem;
+            font-size: 1.1rem; /* ← REDUZIDO */
             transition: all 0.3s;
             position: relative;
             transform: translate(-50%, -50%);
@@ -116,7 +121,7 @@
         .device-draggable .device-icon::after {
             content: '';
             position: absolute;
-            inset: -4px;
+            inset: -3px;
             border-radius: 50%;
             border: 2px solid transparent;
             transition: all 0.3s;
@@ -134,14 +139,14 @@
 
         .device-draggable .device-name {
             position: absolute;
-            bottom: calc(100% + 12px);
+            bottom: calc(100% + 8px);
             left: 50%;
             transform: translateX(-50%) scale(0.9);
             background: rgba(0,0,0,0.92);
             color: white;
-            padding: 0.3rem 0.8rem;
-            border-radius: 0.5rem;
-            font-size: 0.7rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 0.4rem;
+            font-size: 0.6rem;
             white-space: nowrap;
             opacity: 0;
             visibility: hidden;
@@ -360,15 +365,20 @@
                 margin-left: 0;
             }
 
+            .plant-image-wrapper img {
+                width: 65%;
+                height: 65%;
+            }
+
             .device-draggable .device-icon {
-                width: 2.5rem;
-                height: 2.5rem;
-                font-size: 1.2rem;
+                width: 2rem;
+                height: 2rem;
+                font-size: 1rem;
             }
 
             .device-draggable .device-name {
-                font-size: 0.6rem;
-                padding: 0.2rem 0.5rem;
+                font-size: 0.55rem;
+                padding: 0.15rem 0.4rem;
             }
 
             .modal-sala .form-row {
@@ -381,6 +391,17 @@
         }
 
         @media (max-width: 480px) {
+            .plant-image-wrapper img {
+                width: 75%;
+                height: 75%;
+            }
+
+            .device-draggable .device-icon {
+                width: 1.8rem;
+                height: 1.8rem;
+                font-size: 0.9rem;
+            }
+
             .modal-sala .icon-picker {
                 grid-template-columns: repeat(4, 1fr);
             }
@@ -804,7 +825,6 @@
     }
 
     function printPlant() {
-        // Forçar a imagem a ficar opaca na impressão
         const img = document.getElementById('plantImage');
         const originalOpacity = img.style.opacity;
         img.style.opacity = '1';
