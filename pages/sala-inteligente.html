@@ -33,10 +33,10 @@
         .page-header .header-actions .toolbar-compact {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
             background: #f1f5f9;
-            padding: 4px 12px 4px 16px;
+            padding: 4px 10px 4px 14px;
             border-radius: 10px;
             border: 1px solid #e9edf2;
         }
@@ -59,11 +59,11 @@
 
         .page-header .header-actions .toolbar-compact .btn-group {
             display: flex;
-            gap: 4px;
+            gap: 3px;
         }
 
         .page-header .header-actions .toolbar-compact .btn-group .btn {
-            padding: 4px 10px;
+            padding: 4px 8px;
             font-size: 12px;
             white-space: nowrap;
         }
@@ -91,6 +91,118 @@
             max-height: calc(100vh - 70px);
         }
 
+        /* ===== CONTROLES DE IMAGEM ===== */
+        .image-controls {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            background: #ffffff;
+            border: 1px solid #e9edf2;
+            border-radius: 12px;
+            padding: 10px 18px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .image-controls .control-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .image-controls .control-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .image-controls .control-group input[type="range"] {
+            width: 100px;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #d1d9e6;
+            border-radius: 2px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .image-controls .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .image-controls .control-group input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        .image-controls .control-group input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #4f46e5;
+            cursor: pointer;
+            border: none;
+        }
+
+        .image-controls .control-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #0f172a;
+            min-width: 36px;
+            text-align: center;
+        }
+
+        .image-controls .control-group .btn-zoom {
+            width: 28px;
+            height: 28px;
+            border: none;
+            border-radius: 6px;
+            background: #f1f5f9;
+            color: #475569;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-controls .control-group .btn-zoom:hover {
+            background: #e2e8f0;
+            color: #0f172a;
+        }
+
+        .image-controls .control-group .btn-zoom:active {
+            transform: scale(0.9);
+        }
+
+        .image-controls .control-group .btn-reset {
+            padding: 4px 12px;
+            border: none;
+            border-radius: 6px;
+            background: #fee2e2;
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .image-controls .control-group .btn-reset:hover {
+            background: #fecaca;
+        }
+
         /* ===== CONTAINER DA PLANTA ===== */
         .plant-container {
             position: relative;
@@ -104,6 +216,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.3s ease;
         }
 
         .plant-image-wrapper {
@@ -114,6 +227,7 @@
             align-items: center;
             justify-content: center;
             padding: 30px 0;
+            transition: all 0.3s ease;
         }
 
         .plant-image-wrapper img {
@@ -123,7 +237,7 @@
             display: block;
             user-select: none;
             -webkit-user-drag: none;
-            transition: opacity 0.3s ease;
+            transition: all 0.3s ease;
             border-radius: 8px;
         }
 
@@ -333,6 +447,7 @@
         @media print {
             .page-header,
             .page-header .header-actions,
+            .image-controls,
             .btn,
             .modal,
             .toast,
@@ -373,6 +488,7 @@
                 width: 60% !important;
                 height: 60% !important;
                 opacity: 1 !important;
+                filter: none !important;
                 border: 1px solid #e2e8f0 !important;
                 background: white !important;
             }
@@ -510,6 +626,37 @@
             background: #334155;
         }
 
+        body.dark-mode .image-controls {
+            background: #1e293b;
+            border-color: #334155;
+        }
+
+        body.dark-mode .image-controls .control-group label {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .image-controls .control-value {
+            color: #f1f5f9;
+        }
+
+        body.dark-mode .image-controls .control-group input[type="range"] {
+            background: #334155;
+        }
+
+        body.dark-mode .image-controls .control-group input[type="range"]::-webkit-slider-thumb {
+            background: #818cf8;
+        }
+
+        body.dark-mode .image-controls .control-group .btn-zoom {
+            background: #334155;
+            color: #94a3b8;
+        }
+
+        body.dark-mode .image-controls .control-group .btn-zoom:hover {
+            background: #475569;
+            color: #f1f5f9;
+        }
+
         body.dark-mode .modal-sala .icon-option {
             background: #334155;
             color: #f1f5f9;
@@ -547,6 +694,16 @@
 
             .page-header .header-actions .toolbar-compact .separator {
                 display: none;
+            }
+
+            .image-controls {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+
+            .image-controls .control-group {
+                justify-content: center;
             }
         }
 
@@ -595,6 +752,10 @@
                 justify-content: center;
             }
 
+            .image-controls .control-group input[type="range"] {
+                width: 80px;
+            }
+
             @media print {
                 .plant-image-wrapper img {
                     width: 75% !important;
@@ -622,6 +783,10 @@
             .page-header .header-actions .toolbar-compact .btn-group .btn {
                 font-size: 11px;
                 padding: 3px 8px;
+            }
+
+            .image-controls .control-group input[type="range"] {
+                width: 60px;
             }
         }
     </style>
@@ -660,6 +825,36 @@
     </div>
 
     <div class="page-content">
+        <!-- CONTROLES DE IMAGEM -->
+        <div class="image-controls">
+            <!-- Opacidade -->
+            <div class="control-group">
+                <label>🔆 Opacidade</label>
+                <input type="range" id="opacitySlider" min="10" max="100" value="80">
+                <span class="control-value" id="opacityValue">80%</span>
+            </div>
+
+            <span class="separator" style="width:1px;height:30px;background:#d1d9e6;"></span>
+
+            <!-- Brilho -->
+            <div class="control-group">
+                <label>✨ Brilho</label>
+                <input type="range" id="brightnessSlider" min="30" max="200" value="100">
+                <span class="control-value" id="brightnessValue">100%</span>
+            </div>
+
+            <span class="separator" style="width:1px;height:30px;background:#d1d9e6;"></span>
+
+            <!-- Zoom / Tamanho da Imagem -->
+            <div class="control-group">
+                <label>🔍 Tamanho</label>
+                <button class="btn-zoom" onclick="zoomImage(-5)">−</button>
+                <span class="control-value" id="zoomValue">50%</span>
+                <button class="btn-zoom" onclick="zoomImage(5)">+</button>
+                <button class="btn-reset" onclick="resetImageControls()">↺ Reset</button>
+            </div>
+        </div>
+
         <!-- PLANTA -->
         <div class="plant-container" id="plantContainer">
             <div class="plant-image-wrapper">
@@ -771,6 +966,11 @@
     let dragOffsetX = 0;
     let dragOffsetY = 0;
 
+    // Estado dos controles de imagem
+    let currentZoom = 50;
+    let currentOpacity = 80;
+    let currentBrightness = 100;
+
     const defaultDevices = [
         { id: 'tv', name: 'Smart TV', icon: '📺', color: '#3b82f6', x: 36, y: 11 },
         { id: 'voice', name: 'Assistente de Voz', icon: '🎤', color: '#10b981', x: 18, y: 55 },
@@ -832,6 +1032,99 @@
             toast.style.transition = 'opacity 0.3s';
             setTimeout(() => toast.remove(), 300);
         }, 4000);
+    }
+
+    // =============================================
+    //  CONTROLES DE IMAGEM
+    // =============================================
+    function setupImageControls() {
+        const img = document.getElementById('plantImage');
+        const opacitySlider = document.getElementById('opacitySlider');
+        const brightnessSlider = document.getElementById('brightnessSlider');
+        const opacityValue = document.getElementById('opacityValue');
+        const brightnessValue = document.getElementById('brightnessValue');
+
+        // Carregar valores salvos
+        const savedOpacity = localStorage.getItem('plantImageOpacity');
+        const savedBrightness = localStorage.getItem('plantImageBrightness');
+        const savedZoom = localStorage.getItem('plantImageZoom');
+
+        if (savedOpacity) {
+            currentOpacity = parseInt(savedOpacity);
+            opacitySlider.value = currentOpacity;
+            opacityValue.textContent = currentOpacity + '%';
+            img.style.opacity = currentOpacity / 100;
+        }
+
+        if (savedBrightness) {
+            currentBrightness = parseInt(savedBrightness);
+            brightnessSlider.value = currentBrightness;
+            brightnessValue.textContent = currentBrightness + '%';
+            img.style.filter = `brightness(${currentBrightness / 100})`;
+        }
+
+        if (savedZoom) {
+            currentZoom = parseInt(savedZoom);
+            document.getElementById('zoomValue').textContent = currentZoom + '%';
+            img.style.width = currentZoom + '%';
+            img.style.height = currentZoom + '%';
+        }
+
+        // Opacidade
+        opacitySlider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            currentOpacity = value;
+            opacityValue.textContent = value + '%';
+            img.style.opacity = value / 100;
+            localStorage.setItem('plantImageOpacity', value);
+        });
+
+        // Brilho
+        brightnessSlider.addEventListener('input', function() {
+            const value = parseInt(this.value);
+            currentBrightness = value;
+            brightnessValue.textContent = value + '%';
+            img.style.filter = `brightness(${value / 100})`;
+            localStorage.setItem('plantImageBrightness', value);
+        });
+    }
+
+    function zoomImage(delta) {
+        const img = document.getElementById('plantImage');
+        let newZoom = currentZoom + delta;
+        newZoom = Math.max(15, Math.min(100, newZoom));
+        currentZoom = newZoom;
+        document.getElementById('zoomValue').textContent = newZoom + '%';
+        img.style.width = newZoom + '%';
+        img.style.height = newZoom + '%';
+        localStorage.setItem('plantImageZoom', newZoom);
+    }
+
+    function resetImageControls() {
+        const img = document.getElementById('plantImage');
+        
+        // Resetar Opacidade
+        currentOpacity = 80;
+        document.getElementById('opacitySlider').value = 80;
+        document.getElementById('opacityValue').textContent = '80%';
+        img.style.opacity = 0.8;
+        localStorage.setItem('plantImageOpacity', 80);
+
+        // Resetar Brilho
+        currentBrightness = 100;
+        document.getElementById('brightnessSlider').value = 100;
+        document.getElementById('brightnessValue').textContent = '100%';
+        img.style.filter = 'brightness(1)';
+        localStorage.setItem('plantImageBrightness', 100);
+
+        // Resetar Zoom
+        currentZoom = 50;
+        document.getElementById('zoomValue').textContent = '50%';
+        img.style.width = '50%';
+        img.style.height = '50%';
+        localStorage.setItem('plantImageZoom', 50);
+
+        showToast('↺ Controles de imagem resetados!', 'success');
     }
 
     // =============================================
@@ -1064,7 +1357,6 @@
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         document.getElementById('plantImage').src = e.target.result;
-                        // Atualiza o nome do arquivo no botão
                         const fileName = this.files[0].name;
                         const btn = this.closest('.btn-upload');
                         if (btn) {
@@ -1092,7 +1384,6 @@
             devices = JSON.parse(JSON.stringify(defaultDevices));
             saveDevices();
             renderDevices();
-            // Resetar o nome do botão de upload
             const btn = document.querySelector('.btn-upload');
             if (btn) {
                 btn.innerHTML = '📸 Upload';
@@ -1107,7 +1398,12 @@
         const data = {
             devices: devices,
             timestamp: new Date().toISOString(),
-            totalDevices: devices.length
+            totalDevices: devices.length,
+            imageSettings: {
+                opacity: currentOpacity,
+                brightness: currentBrightness,
+                zoom: currentZoom
+            }
         };
         
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1126,12 +1422,15 @@
         
         const img = document.getElementById('plantImage');
         const originalOpacity = img.style.opacity;
+        const originalFilter = img.style.filter;
         img.style.opacity = '1';
+        img.style.filter = 'brightness(1)';
         
         setTimeout(() => {
             window.print();
             setTimeout(() => {
                 img.style.opacity = originalOpacity;
+                img.style.filter = originalFilter;
             }, 100);
         }, 100);
     }
@@ -1235,6 +1534,7 @@
         setupDragAndDrop();
         setupModalListeners();
         setupUploadListener();
+        setupImageControls();
     });
     </script>
 </body>
